@@ -179,26 +179,15 @@ void transform_image( struct image *image )
 			p2 = image->pixels[ i ];
 
 			if( ( aerr < berr ) && ( aerr < cerr ) )
-			{
 				p1 = image->pixels[ ia ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
 			else if( berr < cerr )
-			{
 				p1 = image->pixels[ ib ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
 			else
-			{
 				p1 = image->pixels[ ic ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
+
+			color.r = p1.r - p2.r;
+			color.g = p1.g - p2.g;
+			color.b = p1.b - p2.b;
 
 			image->pixels[ i ] = color;
 		}
@@ -295,26 +284,15 @@ void transform_image_rev( struct image *image )
 			p2 = image->pixels[ i ];
 
 			if( ( aerr < berr ) && ( aerr < cerr ) )
-			{
 				p1 = image->pixels[ ia ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
 			else if( berr < cerr )
-			{
 				p1 = image->pixels[ ib ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
 			else
-			{
 				p1 = image->pixels[ ic ];
-				color.r = p1.r - p2.r;
-				color.g = p1.g - p2.g;
-				color.b = p1.b - p2.b;
-			}
+
+			color.r = p1.r - p2.r;
+			color.g = p1.g - p2.g;
+			color.b = p1.b - p2.b;
 
 			image->pixels[ i ] = color;
 		}
