@@ -32,12 +32,11 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 			{
 				if( maxerror == 0 )
 				{
-					for( x=x1; x<x2; x++ )
+					for( y=y1; y<y2; y++ )
 					{
-						for( y=y1; y<y2; y++ )
+						i = x1 + y*input->width;
+						for( x=x1; x<x2; x++ )
 						{
-							i = x + y*input->width;
-
 							p1 = input->pixels[ i ];
 							p2 = refimage->pixels[ i ];
 
@@ -46,7 +45,8 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 								error = 1;
 								break;
 							}
-				
+
+							i++;				
 						}
 				
 						if( error )
@@ -65,12 +65,12 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 				}
 				else
 				{
-					for( x=x1; x<x2; x++ )
+					for( y=y1; y<y2; y++ )
 					{
-						for( y=y1; y<y2; y++ )
+						i = x1 + y*input->width;
+
+						for( x=x1; x<x2; x++ )
 						{
-							i = x + y*input->width;
-							
 							p1 = input->pixels[ i ];
 							p2 = refimage->pixels[ i ];
 							
@@ -80,7 +80,8 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 
 							if( error > maxerror )
 								break;
-				
+
+							i++;
 						}
 				
 						if( error > maxerror )
@@ -106,11 +107,12 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 			{
 				p1 = input->pixels[ x1 + y1*input->width ];
 
-				for( x=x1; x<x2; x++ )
+				for( y=y1; y<y2; y++ )
 				{
-					for( y=y1; y<y2; y++ )
+					i = x1 + y*input->width;
+					for( x=x1; x<x2; x++ )
 					{
-						p2 = input->pixels[ x + y*input->width ];
+						p2 = input->pixels[ i++ ];
 
 						if( ( p1.r != p2.r ) || ( p1.g != p2.g ) || ( p1.b != p2.b ) )
 						{
@@ -132,14 +134,17 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 				avgcolor.g = 0;
 				avgcolor.b = 0;
 
-				for( x=x1; x<x2; x++ )
 				for( y=y1; y<y2; y++ )
 				{
-					p1 = input->pixels[ x + y*input->width ];
+					i = x1 + y*input->width;
+					for( x=x1; x<x2; x++ )
+					{
+						p1 = input->pixels[ i++ ];
 					
-					avgcolor.r += p1.r;
-					avgcolor.g += p1.g;
-					avgcolor.b += p1.b;
+						avgcolor.r += p1.r;
+						avgcolor.g += p1.g;
+						avgcolor.b += p1.b;
+					}
 				}
 
 				p1.r = avgcolor.r / ((x2-x1)*(y2-y1));
@@ -148,11 +153,13 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 
 //				p1 = input->pixels[ (x1+(x2-x1)/2) + (y1+(y2-y1)/2)*input->width ];
 
-				for( x=x1; x<x2; x++ )
+				for( y=y1; y<y2; y++ )
 				{
-					for( y=y1; y<y2; y++ )
+					i = x1 + y*input->width;
+
+					for( x=x1; x<x2; x++ )
 					{
-						p2 = input->pixels[ x + y*input->width ];
+						p2 = input->pixels[ i++ ];
 						
 						error += abs( p1.r - p2.r );
 						error += abs( p1.g - p2.g );
@@ -212,26 +219,33 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 					}
 					else
 					{
-						for( x=x1; x<x2; x++ )
 						for( y=y1; y<y2; y++ )
 						{
-							p1 = input->pixels[ x + y*input->width ];
-							add_data_byte( p1.r, imagedata );
-							add_data_byte( p1.g, imagedata );
-							add_data_byte( p1.b, imagedata );
+							i = x1 + y*input->width;
+							
+							for( x=x1; x<x2; x++ )
+							{
+								p1 = input->pixels[ i++ ];
+								add_data_byte( p1.r, imagedata );
+								add_data_byte( p1.g, imagedata );
+								add_data_byte( p1.b, imagedata );
+							}
 						}
 					}
 				}
 			}
 			else
 			{
-				for( x=x1; x<x2; x++ )
 				for( y=y1; y<y2; y++ )
 				{
-					p1 = input->pixels[ x + y*input->width ];
-					add_data_byte( p1.r, imagedata );
-					add_data_byte( p1.g, imagedata );
-					add_data_byte( p1.b, imagedata );
+					i = x1 + y*input->width;
+					for( x=x1; x<x2; x++ )
+					{
+						p1 = input->pixels[ i++ ];
+						add_data_byte( p1.r, imagedata );
+						add_data_byte( p1.g, imagedata );
+						add_data_byte( p1.b, imagedata );
+					}
 				}
 			}
 		}
@@ -315,8 +329,8 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 						}
 						else
 						{
-							for( x=x1; x<x2; x++ )
 							for( y=y1; y<y2; y++ )
+							for( x=x1; x<x2; x++ )
 							{
 								i = x + y*output->width;
 								output->pixels[ i ].r = get_data_byte( imagedata );
@@ -328,8 +342,8 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 				}
 				else
 				{
-					for( x=x1; x<x2; x++ )
 					for( y=y1; y<y2; y++ )
+					for( x=x1; x<x2; x++ )
 					{
 						i = x + y*output->width;
 						output->pixels[ i ].r = get_data_byte( imagedata );
@@ -344,8 +358,8 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 				color.g = get_data_byte( imagedata );
 				color.b = get_data_byte( imagedata );
 
-				for( x=x1; x<x2; x++ )
 				for( y=y1; y<y2; y++ )
+				for( x=x1; x<x2; x++ )
 					output->pixels[ x + y*output->width  ] = color;
 			}
 		}

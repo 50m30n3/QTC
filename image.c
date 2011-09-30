@@ -48,12 +48,12 @@ void transform_image_fast( struct image *image )
 	height = image->height;
 	pixels = image->pixels;
 
+	i = width-1+(height-1)*width;
+
 	for( y=height-1; y>0; y-- )
 	{
 		for( x=width-1; x>0; x-- )
 		{
-			i = x+y*width;
-
 			pa = pixels[ i-1 ];
 			pb = pixels[ i-width ];
 			pc = pixels[ i-1-width ];
@@ -61,15 +61,17 @@ void transform_image_fast( struct image *image )
 			pixels[ i ].r -= pa.r + pb.r - pc.r;
 			pixels[ i ].g -= pa.g + pb.g - pc.g;
 			pixels[ i ].b -= pa.b + pb.b - pc.b;
+			
+			i--;
 		}
 		
-		i = y*width;
-
 		pb = pixels[ i-width ];
 
 		pixels[ i ].r -= pb.r;
 		pixels[ i ].g -= pb.g;
 		pixels[ i ].b -= pb.b;
+		
+		i--;
 	}
 
 	for( x=width-1; x>0; x-- )
@@ -105,20 +107,19 @@ void transform_image_fast_rev( struct image *image )
 		pixels[ i ].b += pa.b;
 	}
 
+	i = width;
 	for( y=1; y<height; y++ )
 	{
-		i = y*width;
-
 		pb = pixels[ i-width ];
 
 		pixels[ i ].r += pb.r;
 		pixels[ i ].g += pb.g;
 		pixels[ i ].b += pb.b;
+		
+		i++;
 
 		for( x=1; x<width; x++ )
 		{
-			i = x+y*width;
-
 			pa = pixels[ i-1 ];
 			pb = pixels[ i-width ];
 			pc = pixels[ i-1-width ];
@@ -126,6 +127,8 @@ void transform_image_fast_rev( struct image *image )
 			pixels[ i ].r += pa.r + pb.r - pc.r;
 			pixels[ i ].g += pa.g + pb.g - pc.g;
 			pixels[ i ].b += pa.b + pb.b - pc.b;
+			
+			i++;
 		}
 	}
 }
