@@ -45,7 +45,7 @@ int read_qti( struct qti *image, char filename[] )
 			return 0;
 		}
 
-		if( strncmp( header, "QTI1", 4 ) != 0 )
+		if( strncmp( header, "QTI2", 4 ) != 0 )
 		{
 			fputs( "read_qti: Invalid header\n", stderr );
 			if( qti != stdin )
@@ -250,7 +250,7 @@ int write_qti( struct qti *image, int compress, char filename[] )
 	
 	if( qti != NULL )
 	{
-		fwrite( "QTI1", 1, 4, qti );
+		fwrite( "QTI2", 1, 4, qti );
 		
 		flags = 0;
 		flags |= image->transform & 0x03;
