@@ -2,12 +2,20 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 #include "image.h"
 #include "qti.h"
 #include "qtc.h"
 #include "qtv.h"
 #include "ppm.h"
+
+int interrupt;
+
+void sig_exit( int sig )
+{
+	interrupt = 1;
+}
 
 int inc_filename( char *name )
 {
@@ -149,6 +157,11 @@ int main( int argc, char *argv[] )
 		}
 	}
 
+	interrupt = 0;
+	
+	signal( SIGINT, sig_exit );
+	signal( SIGTERM, sig_exit );
+
 	if( mode == 'c' )
 	{
 		done = 0;
@@ -223,6 +236,11 @@ int main( int argc, char *argv[] )
 					done = 1;
 			}
 
+			if( interrupt )
+			{
+				done = 1;
+			}
+
 			if( verbose )
 			{
 				fprintf( stderr, "\r\033[2KFrame:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%%", framenum,
@@ -291,6 +309,11 @@ int main( int argc, char *argv[] )
 			{
 				if( !inc_filename( outfile ) )
 					done = 1;
+			}
+
+			if( interrupt )
+			{
+				done = 1;
 			}
 
 			if( ! can_read_frame( &video ) )
