@@ -237,9 +237,7 @@ int main( int argc, char *argv[] )
 			}
 
 			if( interrupt )
-			{
 				done = 1;
-			}
 
 			if( verbose )
 			{
@@ -312,9 +310,7 @@ int main( int argc, char *argv[] )
 			}
 
 			if( interrupt )
-			{
 				done = 1;
-			}
 
 			if( ! can_read_frame( &video ) )
 				done = 1;
@@ -357,6 +353,9 @@ int main( int argc, char *argv[] )
 				if( !inc_filename( outfile ) )
 					done = 1;
 			}
+
+			if( interrupt )
+				done = 1;
 
 			if( ! can_read_frame( &video ) )
 				done = 1;
