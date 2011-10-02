@@ -43,7 +43,7 @@ int read_qtv_header( struct qtv *video, char filename[] )
 			return 0;
 		}
 
-		if( strncmp( header, "QTV2", 4 ) != 0 )
+		if( strncmp( header, "QTV3", 4 ) != 0 )
 		{
 			fputs( "read_qtv_header: Invalid header\n", stderr );
 			if( qtv != stdin )
@@ -305,7 +305,7 @@ int write_qtv_header( struct qtv *video, char filename[] )
 	{
 		video->file = qtv;
 
-		fwrite( "QTV2", 1, 4, qtv );
+		fwrite( "QTV3", 1, 4, qtv );
 
 		version = 1;
 		
