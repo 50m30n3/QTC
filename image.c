@@ -136,7 +136,7 @@ void transform_image_fast_rev( struct image *image )
 void transform_image( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
-	struct pixel color, p1, p2;
+	struct pixel p1, p2;
 	struct pixel *pixels;
 	struct color p;
 
@@ -181,23 +181,18 @@ void transform_image( struct image *image )
 			else
 				p1 = pixels[ ic ];
 
-			color.r = p1.r - p2.r;
-			color.g = p1.g - p2.g;
-			color.b = p1.b - p2.b;
-
-			pixels[ i ] = color;
+			pixels[ i ].r -= p1.r;
+			pixels[ i ].g -= p1.g;
+			pixels[ i ].b -= p1.b;
 		}
 		
 		i = y*width;
 
 		p1 = pixels[ i-width ];
-		p2 = pixels[ i ];
 		
-		color.r = p1.r - p2.r;
-		color.g = p1.g - p2.g;
-		color.b = p1.b - p2.b;
-		
-		pixels[ i ] = color;
+		pixels[ i ].r -= p1.r;
+		pixels[ i ].g -= p1.g;
+		pixels[ i ].b -= p1.b;
 	}
 
 	for( x=width-1; x>0; x-- )
@@ -205,20 +200,17 @@ void transform_image( struct image *image )
 		i = x;
 
 		p1 = pixels[ i-1 ];
-		p2 = pixels[ i ];
 
-		color.r = p1.r - p2.r;
-		color.g = p1.g - p2.g;
-		color.b = p1.b - p2.b;
-
-		pixels[ i ] = color;
+		pixels[ i ].r -= p1.r;
+		pixels[ i ].g -= p1.g;
+		pixels[ i ].b -= p1.b;
 	}
 }
 
 void transform_image_rev( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
-	struct pixel color, p1, p2;
+	struct pixel p1, p2;
 	struct pixel *pixels;
 	struct color p;
 
@@ -231,13 +223,10 @@ void transform_image_rev( struct image *image )
 		i = x;
 
 		p1 = pixels[ i-1 ];
-		p2 = pixels[ i ];
 
-		color.r = p1.r - p2.r;
-		color.g = p1.g - p2.g;
-		color.b = p1.b - p2.b;
-
-		pixels[ i ] = color;
+		pixels[ i ].r += p1.r;
+		pixels[ i ].g += p1.g;
+		pixels[ i ].b += p1.b;
 	}
 
 	for( y=1; y<height; y++ )
@@ -245,14 +234,11 @@ void transform_image_rev( struct image *image )
 		i = y*width;
 
 		p1 = pixels[ i-width ];
-		p2 = pixels[ i ];
 		
-		color.r = p1.r - p2.r;
-		color.g = p1.g - p2.g;
-		color.b = p1.b - p2.b;
+		pixels[ i ].r += p1.r;
+		pixels[ i ].g += p1.g;
+		pixels[ i ].b += p1.b;
 		
-		pixels[ i ] = color;
-
 		for( x=1; x<width; x++ )
 		{
 			i = x+y*width;
@@ -288,11 +274,9 @@ void transform_image_rev( struct image *image )
 			else
 				p1 = pixels[ ic ];
 
-			color.r = p1.r - p2.r;
-			color.g = p1.g - p2.g;
-			color.b = p1.b - p2.b;
-
-			pixels[ i ] = color;
+			pixels[ i ].r += p1.r;
+			pixels[ i ].g += p1.g;
+			pixels[ i ].b += p1.b;
 		}
 	}
 }
