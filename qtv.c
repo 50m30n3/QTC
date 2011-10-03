@@ -332,7 +332,7 @@ int write_qtv_frame( struct qtv *video, struct qti *image, int compress, int key
 	struct databuffer *compdata;
 	struct rangecoder *coder;
 	unsigned char flags;
-	int size;
+	unsigned int size;
 
 	qtv = video->file;
 

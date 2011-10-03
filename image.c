@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-int create_image( struct image *image, unsigned int width, unsigned int height )
+int create_image( struct image *image, int width, int height )
 {
 	image->width = width;
 	image->height = height;

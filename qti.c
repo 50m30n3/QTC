@@ -233,7 +233,7 @@ int write_qti( struct qti *image, int compress, char filename[] )
 	struct databuffer *compdata;
 	struct rangecoder *coder;
 	unsigned char flags, version;
-	int size;
+	unsigned int size;
 
 	if( filename == NULL )
 	{

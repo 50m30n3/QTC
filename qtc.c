@@ -17,9 +17,9 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 	commanddata = output->commanddata;
 	imagedata = output->imagedata;
 
-	void compress_rec( int x1, int y1, int x2, int y2, unsigned int depth )
+	void compress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
-		unsigned int x, y, sx, sy, i;
+		int x, y, sx, sy, i;
 		struct pixel p1, p2;
 		struct color avgcolor;
 		int error;
@@ -276,9 +276,9 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
-	int decompress_rec( int x1, int y1, int x2, int y2, unsigned int depth )
+	int decompress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
-		unsigned int x, y, sx, sy, i;
+		int x, y, sx, sy, i;
 		struct pixel color;
 		unsigned char status;
 
@@ -389,13 +389,13 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
-	int decompress_ccode_rec( int x1, int y1, int x2, int y2, unsigned int depth )
+	int decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
-		unsigned int x, y, sx, sy;
+		int x, y, sx, sy;
 		unsigned char status;
 
-		for( x=x1; x<x2; x++ )
 		for( y=y1; y<y2; y++ )
+		for( x=x1; x<x2; x++ )
 		{
 			output->pixels[ x + y*output->width  ].r += 64/maxdepth;
 			output->pixels[ x + y*output->width  ].g += 64/maxdepth;
@@ -407,8 +407,8 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 	
 		if( ( refimage ) && ( status == 0 ) )
 		{
-			for( x=x1; x<x2; x++ )
 			for( y=y1; y<y2; y++ )
+			for( x=x1; x<x2; x++ )
 			{
 				if( ( x == x1 ) || ( y == y1 ) )
 					output->pixels[ x + y*output->width  ].b = 255;
@@ -451,8 +451,8 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 						}
 						else
 						{
-							for( x=x1; x<x2; x++ )
 							for( y=y1; y<y2; y++ )
+							for( x=x1; x<x2; x++ )
 							{
 								get_data( imagedata, 8 );
 								get_data( imagedata, 8 );
@@ -468,8 +468,8 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 				}
 				else
 				{
-					for( x=x1; x<x2; x++ )
 					for( y=y1; y<y2; y++ )
+					for( x=x1; x<x2; x++ )
 					{
 						get_data( imagedata, 8 );
 						get_data( imagedata, 8 );
@@ -488,8 +488,8 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 				get_data( imagedata, 8 );
 				get_data( imagedata, 8 );
 
-				for( x=x1; x<x2; x++ )
 				for( y=y1; y<y2; y++ )
+				for( x=x1; x<x2; x++ )
 				{
 					if( ( x == x1 ) || ( y == y1 ) )
 						output->pixels[ x + y*output->width  ].g = 255;
