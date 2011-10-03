@@ -258,9 +258,9 @@ int write_qti( struct qti *image, int compress, char filename[] )
 		flags = 0;
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
-		version = 1;
+		version = VERSION;
 		
-		fwrite( &(version), sizeof( version ), VERSION, qti );
+		fwrite( &(version), sizeof( version ), 1, qti );
 		fwrite( &(image->width), sizeof( image->width ), 1, qti );
 		fwrite( &(image->height), sizeof( image->height ), 1, qti );
 		fwrite( &(flags), sizeof( flags ), 1, qti );

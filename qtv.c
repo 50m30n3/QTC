@@ -310,9 +310,9 @@ int write_qtv_header( struct qtv *video, char filename[] )
 
 		fwrite( FILEVERSION, 1, 4, qtv );
 
-		version = 1;
+		version = VERSION;
 		
-		fwrite( &(version), sizeof( version ), VERSION, qtv );
+		fwrite( &(version), sizeof( version ), 1, qtv );
 		fwrite( &(video->width), sizeof( video->width ), 1, qtv );
 		fwrite( &(video->height), sizeof( video->height ), 1, qtv );
 		fwrite( &(video->framerate), sizeof( video->framerate ), 1, qtv );
