@@ -120,10 +120,10 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 		low += start * range;
 		range *= size;
 
-		while( ( ( (low^(low+range)) & maxrange ) < top ) || ( range < bottom ) )
+		while( ( (low^(low+range)) < top ) || ( range < bottom ) )
 		{
-			if( ( range < bottom ) && ( ( ((low^(low+range)) & maxrange ) >= top ) ) )
-				range = (-low & maxrange)&(bottom-1);
+			if( ( range < bottom ) && ( ( (low^(low+range)) >= top ) ) )
+				range = (-low)&(bottom-1);
 
 			add_data_byte( ( low >> 24 ) & 0xFF, out );
 			low <<= 8;
@@ -212,10 +212,11 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 		low += start * range;
 		range *= size;
 
-		while( ( ( (low^(low+range)) & maxrange ) < top ) || ( range < bottom ) )
+
+		while( ( (low^(low+range)) < top ) || ( range < bottom ) )
 		{
-			if( ( range < bottom ) && ( ( ((low^(low+range)) & maxrange ) >= top ) ) )
-				range = (-low & maxrange)&(bottom-1);
+			if( ( range < bottom ) && ( ( (low^(low+range)) >= top ) ) )
+				range = (-low)&(bottom-1);
 
 			code <<= 8;
 			code |= get_data_byte( in ) & 0xFF;
