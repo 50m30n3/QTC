@@ -5,9 +5,9 @@
 
 #include "rangecode.h"
 
-unsigned long const int maxrange = 0xFFFFFFFFl;
-unsigned long const int top = 0x01l<<24;
-unsigned long const int bottom = 0x01l<<16;
+unsigned const int maxrange = 0xFFFFFFFF;
+unsigned const int top = 0x01<<24;
+unsigned const int bottom = 0x01<<16;
 
 struct rangecoder *create_rangecoder( int order )
 {
@@ -98,8 +98,8 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 	int i, symbol, lastsym;
 	int start, size, total;
 
-	unsigned long int low = 0x00;
-	unsigned long int range = maxrange;
+	unsigned int low = 0x00;
+	unsigned int range = maxrange;
 
 	freq = coder->freq;
 
@@ -165,9 +165,9 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 	int i, symbol, lastsym;
 	int start, size, total, value;
 
-	unsigned long int low = 0x00;
-	unsigned long int range = maxrange;
-	unsigned long int code = 0x00;
+	unsigned int low = 0x00;
+	unsigned int range = maxrange;
+	unsigned int code = 0x00;
 
 	freq = coder->freq;
 
