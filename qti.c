@@ -7,7 +7,7 @@
 
 #include "qti.h"
 
-#define FILEVERSION "QTV1"
+#define FILEVERSION "QTI1"
 #define VERSION 2
 
 int read_qti( struct qti *image, char filename[] )
