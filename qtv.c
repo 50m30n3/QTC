@@ -8,6 +8,9 @@
 
 #include "qtv.h"
 
+#define FILEVERSION "QTV1"
+#define VERSION 2
+
 int read_qtv_header( struct qtv *video, char filename[] )
 {
 	FILE * qtv;
@@ -43,7 +46,7 @@ int read_qtv_header( struct qtv *video, char filename[] )
 			return 0;
 		}
 
-		if( strncmp( header, "QTV3", 4 ) != 0 )
+		if( strncmp( header, FILEVERSION, 4 ) != 0 )
 		{
 			fputs( "read_qtv_header: Invalid header\n", stderr );
 			if( qtv != stdin )
@@ -62,7 +65,7 @@ int read_qtv_header( struct qtv *video, char filename[] )
 			return 0;
 		}
 
-		if( version != 1 )
+		if( version != VERSION )
 		{
 			fputs( "read_qtv_header: Wrong version\n", stderr );
 			if( qtv != stdin )
@@ -305,11 +308,11 @@ int write_qtv_header( struct qtv *video, char filename[] )
 	{
 		video->file = qtv;
 
-		fwrite( "QTV3", 1, 4, qtv );
+		fwrite( FILEVERSION, 1, 4, qtv );
 
 		version = 1;
 		
-		fwrite( &(version), sizeof( version ), 1, qtv );
+		fwrite( &(version), sizeof( version ), VERSION, qtv );
 		fwrite( &(video->width), sizeof( video->width ), 1, qtv );
 		fwrite( &(video->height), sizeof( video->height ), 1, qtv );
 		fwrite( &(video->framerate), sizeof( video->framerate ), 1, qtv );

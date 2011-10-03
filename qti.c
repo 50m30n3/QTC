@@ -7,6 +7,9 @@
 
 #include "qti.h"
 
+#define FILEVERSION "QTV1"
+#define VERSION 2
+
 int read_qti( struct qti *image, char filename[] )
 {
 	FILE * qti;
@@ -45,7 +48,7 @@ int read_qti( struct qti *image, char filename[] )
 			return 0;
 		}
 
-		if( strncmp( header, "QTI3", 4 ) != 0 )
+		if( strncmp( header, FILEVERSION, 4 ) != 0 )
 		{
 			fputs( "read_qti: Invalid header\n", stderr );
 			if( qti != stdin )
@@ -66,7 +69,7 @@ int read_qti( struct qti *image, char filename[] )
 			return 0;
 		}
 
-		if( version != 1 )
+		if( version != VERSION )
 		{
 			fputs( "read_qti: Wrong version\n", stderr );
 			if( qti != stdin )
@@ -250,14 +253,14 @@ int write_qti( struct qti *image, int compress, char filename[] )
 	
 	if( qti != NULL )
 	{
-		fwrite( "QTI3", 1, 4, qti );
+		fwrite( FILEVERSION, 1, 4, qti );
 		
 		flags = 0;
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
 		version = 1;
 		
-		fwrite( &(version), sizeof( version ), 1, qti );
+		fwrite( &(version), sizeof( version ), VERSION, qti );
 		fwrite( &(image->width), sizeof( image->width ), 1, qti );
 		fwrite( &(image->height), sizeof( image->height ), 1, qti );
 		fwrite( &(flags), sizeof( flags ), 1, qti );
