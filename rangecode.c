@@ -95,7 +95,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 {
 	int *freq;
 	unsigned int count;
-	int i, symbol, lastsym;
+	int i, symbol, lastsym, idx;
 	int start, size, total;
 
 	unsigned int low = 0x00;
@@ -104,6 +104,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 	freq = coder->freq;
 
 	lastsym = 0x00;
+	idx = 0x00;
 
 	for( count=0; count<in->size; count++ )
 	{
@@ -111,10 +112,10 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
-			start += freq[i+1+lastsym*257];
+			start += freq[i+1+idx];
 
-		size = freq[symbol+1+lastsym*257];
-		total = freq[lastsym*257];
+		size = freq[symbol+1+idx];
+		total = freq[idx];
 
 		range /= total;
 		low += start * range;
@@ -130,23 +131,26 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 			range <<= 8;
 		}
 
-		freq[symbol+1+lastsym*257] += 32;
-		freq[lastsym*257] += 32;
+		freq[symbol+1+idx] += 32;
+		freq[idx] += 32;
 
-		if( freq[lastsym*257] >= 0xFFFF )
+		if( freq[idx] >= 0xFFFF )
 		{
-			freq[lastsym*257] = 0;
+			freq[idx] = 0;
 			for( i=0; i<256; i++ )
 			{
-				freq[i+1+lastsym*257] /= 2;
-				if( freq[i+1+lastsym*257] == 0 )
-					freq[i+1+lastsym*257] = 1;
-				freq[lastsym*257] += freq[i+1+lastsym*257];
+				freq[i+1+idx] /= 2;
+				if( freq[i+1+idx] == 0 )
+					freq[i+1+idx] = 1;
+				freq[idx] += freq[i+1+idx];
 			}
 		}
 
 		if( coder->order > 0 )
+		{
 			lastsym = symbol;
+			idx = lastsym*257;
+		}
 	}
 
 	for( i=0; i<4; i++ )
@@ -162,7 +166,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 {
 	int *freq;
 	unsigned int count;
-	int i, symbol, lastsym;
+	int i, symbol, lastsym, idx;
 	int start, size, total, value;
 
 	unsigned int low = 0x00;
@@ -178,17 +182,18 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 	}
 
 	lastsym = 0x00;
+	idx = 0x00;
 
 	for( count=0; count<length; count++ )
 	{
-		total = freq[lastsym*257];
+		total = freq[idx];
 
 		value = ( code - low ) / ( range / total );
 
 		i = 0;
 		while( ( value >= 0 ) && ( i < 256 ) )
 		{
-			value -= freq[i+1+lastsym*257];
+			value -= freq[i+1+idx];
 			i++;
 		}
 
@@ -204,9 +209,9 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
-			start += freq[i+1+lastsym*257];
+			start += freq[i+1+idx];
 
-		size = freq[symbol+1+lastsym*257];
+		size = freq[symbol+1+idx];
 
 		range /= total;
 		low += start * range;
@@ -225,23 +230,26 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 			range <<= 8;
 		}
 
-		freq[symbol+1+lastsym*257] += 32;
-		freq[lastsym*257] += 32;
+		freq[symbol+1+idx] += 32;
+		freq[idx] += 32;
 
-		if( freq[lastsym*257] >= 0xFFFF )
+		if( freq[idx] >= 0xFFFF )
 		{
-			freq[lastsym*257] = 0;
+			freq[idx] = 0;
 			for( i=0; i<256; i++ )
 			{
-				freq[i+1+lastsym*257] /= 2;
-				if( freq[i+1+lastsym*257] == 0 )
-					freq[i+1+lastsym*257] = 1;
-				freq[lastsym*257] += freq[i+1+lastsym*257];
+				freq[i+1+idx] /= 2;
+				if( freq[i+1+idx] == 0 )
+					freq[i+1+idx] = 1;
+				freq[idx] += freq[i+1+idx];
 			}
 		}
 
 		if( coder->order > 0 )
+		{
 			lastsym = symbol;
+			idx = lastsym*257;
+		}
 	}
 
 	return 1;
