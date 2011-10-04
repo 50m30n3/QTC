@@ -7,17 +7,17 @@
 
 #include "qtc.h"
 
-int compress( struct image *input, struct image *refimage, struct qti *output, int maxerror, int minsize, int maxdepth, int lazyness )
+int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int maxerror, int minsize, int maxdepth, int lazyness )
 {
 	struct databuffer *commanddata, *imagedata;
 
-	if( ! create_qti( input->width, input->height, minsize, maxdepth, output ) )
+	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
 		return 0;
 	
 	commanddata = output->commanddata;
 	imagedata = output->imagedata;
 
-	void compress_rec( int x1, int y1, int x2, int y2, int depth )
+	void qtc_compress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
 		int x, y, sx, sy, i;
 		struct pixel p1, p2;
@@ -55,11 +55,11 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 			
 					if( error )
 					{
-						add_data( 1, commanddata, 1 );
+						databuffer_add_bits( 1, commanddata, 1 );
 					}
 					else
 					{
-						add_data( 0, commanddata, 1 );
+						databuffer_add_bits( 0, commanddata, 1 );
 						return;
 					}
 				}
@@ -90,11 +90,11 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 			
 					if( error > maxerror )
 					{
-						add_data( 1, commanddata, 1 );
+						databuffer_add_bits( 1, commanddata, 1 );
 					}
 					else
 					{
-						add_data( 0, commanddata, 1 );
+						databuffer_add_bits( 0, commanddata, 1 );
 						return;
 					}
 				}
@@ -179,7 +179,7 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 		else
 		{
 			if( refimage != NULL )
-				add_data( 1, commanddata, 1 );
+				databuffer_add_bits( 1, commanddata, 1 );
 
 			error = maxerror+1;
 			
@@ -188,7 +188,7 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 
 		if( error > maxerror )
 		{
-			add_data( 0, commanddata, 1 );
+			databuffer_add_bits( 0, commanddata, 1 );
 			if( depth < maxdepth )
 			{
 				if( ( x2-x1 > minsize ) && ( y2-y1 > minsize ) )
@@ -196,10 +196,10 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 					sx = x1 + (x2-x1)/2;
 					sy = y1 + (y2-y1)/2;
 
-					compress_rec( x1, y1, sx, sy, depth+1 );
-					compress_rec( x1, sy, sx, y2, depth+1 );
-					compress_rec( sx, y1, x2, sy, depth+1 );
-					compress_rec( sx, sy, x2, y2, depth+1 );
+					qtc_compress_rec( x1, y1, sx, sy, depth+1 );
+					qtc_compress_rec( x1, sy, sx, y2, depth+1 );
+					qtc_compress_rec( sx, y1, x2, sy, depth+1 );
+					qtc_compress_rec( sx, sy, x2, y2, depth+1 );
 				}
 				else
 				{
@@ -207,15 +207,15 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 					{
 						sx = x1 + (x2-x1)/2;
 		
-						compress_rec( x1, y1, sx, y2, depth+1 );
-						compress_rec( sx, y1, x2, y2, depth+1 );
+						qtc_compress_rec( x1, y1, sx, y2, depth+1 );
+						qtc_compress_rec( sx, y1, x2, y2, depth+1 );
 					}
 					else if ( y2-y1 > minsize )
 					{
 						sy = y1 + (y2-y1)/2;
 		
-						compress_rec( x1, y1, x2, sy, depth+1 );
-						compress_rec( x1, sy, x2, y2, depth+1 );
+						qtc_compress_rec( x1, y1, x2, sy, depth+1 );
+						qtc_compress_rec( x1, sy, x2, y2, depth+1 );
 					}
 					else
 					{
@@ -226,9 +226,9 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 							for( x=x1; x<x2; x++ )
 							{
 								p1 = input->pixels[ i++ ];
-								add_data_byte( p1.r, imagedata );
-								add_data_byte( p1.g, imagedata );
-								add_data_byte( p1.b, imagedata );
+								databuffer_add_byte( p1.r, imagedata );
+								databuffer_add_byte( p1.g, imagedata );
+								databuffer_add_byte( p1.b, imagedata );
 							}
 						}
 					}
@@ -242,33 +242,33 @@ int compress( struct image *input, struct image *refimage, struct qti *output, i
 					for( x=x1; x<x2; x++ )
 					{
 						p1 = input->pixels[ i++ ];
-						add_data_byte( p1.r, imagedata );
-						add_data_byte( p1.g, imagedata );
-						add_data_byte( p1.b, imagedata );
+						databuffer_add_byte( p1.r, imagedata );
+						databuffer_add_byte( p1.g, imagedata );
+						databuffer_add_byte( p1.b, imagedata );
 					}
 				}
 			}
 		}
 		else
 		{
-			add_data( 1, commanddata, 1 );
-			add_data_byte( p1.r, imagedata );
-			add_data_byte( p1.g, imagedata );
-			add_data_byte( p1.b, imagedata );
+			databuffer_add_bits( 1, commanddata, 1 );
+			databuffer_add_byte( p1.r, imagedata );
+			databuffer_add_byte( p1.g, imagedata );
+			databuffer_add_byte( p1.b, imagedata );
 		}
 	}
 	
-	compress_rec( 0, 0, input->width, input->height, 0 );
+	qtc_compress_rec( 0, 0, input->width, input->height, 0 );
 	
 	return 1;
 }
 
-int decompress( struct qti *input, struct image *refimage, struct image *output )
+int qtc_decompress( struct qti *input, struct image *refimage, struct image *output )
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 
-	if( ! create_image( output, input->width, input->height ) )
+	if( ! image_create( output, input->width, input->height ) )
 		return 0;
 	
 	commanddata = input->commanddata;
@@ -276,14 +276,14 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
-	int decompress_rec( int x1, int y1, int x2, int y2, int depth )
+	int qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
 		int x, y, sx, sy, i;
 		struct pixel color;
 		unsigned char status;
 
 		if( refimage != NULL )
-			status = get_data( commanddata, 1 );
+			status = databuffer_get_bits( commanddata, 1 );
 	
 		if( ( refimage != NULL ) && ( status == 0 ) )
 		{
@@ -296,7 +296,7 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 		}
 		else
 		{
-			status = get_data( commanddata, 1 );
+			status = databuffer_get_bits( commanddata, 1 );
 			if( status == 0 )
 			{
 				if( depth < maxdepth )
@@ -306,10 +306,10 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 						sx = x1 + (x2-x1)/2;
 						sy = y1 + (y2-y1)/2;
 
-						decompress_rec( x1, y1, sx, sy, depth+1 );
-						decompress_rec( x1, sy, sx, y2, depth+1 );
-						decompress_rec( sx, y1, x2, sy, depth+1 );
-						decompress_rec( sx, sy, x2, y2, depth+1 );
+						qtc_decompress_rec( x1, y1, sx, sy, depth+1 );
+						qtc_decompress_rec( x1, sy, sx, y2, depth+1 );
+						qtc_decompress_rec( sx, y1, x2, sy, depth+1 );
+						qtc_decompress_rec( sx, sy, x2, y2, depth+1 );
 					}
 					else
 					{
@@ -317,15 +317,15 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 						{
 							sx = x1 + (x2-x1)/2;
 
-							decompress_rec( x1, y1, sx, y2, depth+1 );
-							decompress_rec( sx, y1, x2, y2, depth+1 );
+							qtc_decompress_rec( x1, y1, sx, y2, depth+1 );
+							qtc_decompress_rec( sx, y1, x2, y2, depth+1 );
 						}
 						else if ( y2-y1 > minsize )
 						{
 							sy = y1 + (y2-y1)/2;
 	
-							decompress_rec( x1, y1, x2, sy, depth+1 );
-							decompress_rec( x1, sy, x2, y2, depth+1 );
+							qtc_decompress_rec( x1, y1, x2, sy, depth+1 );
+							qtc_decompress_rec( x1, sy, x2, y2, depth+1 );
 						}
 						else
 						{
@@ -334,9 +334,9 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 								i = x1 + y*input->width;
 								for( x=x1; x<x2; x++ )
 								{
-									output->pixels[ i ].r = get_data_byte( imagedata );
-									output->pixels[ i ].g = get_data_byte( imagedata );
-									output->pixels[ i ].b = get_data_byte( imagedata );
+									output->pixels[ i ].r = databuffer_get_byte( imagedata );
+									output->pixels[ i ].g = databuffer_get_byte( imagedata );
+									output->pixels[ i ].b = databuffer_get_byte( imagedata );
 									i++;
 								}
 							}
@@ -350,9 +350,9 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 						i = x1 + y*input->width;
 						for( x=x1; x<x2; x++ )
 						{
-							output->pixels[ i ].r = get_data_byte( imagedata );
-							output->pixels[ i ].g = get_data_byte( imagedata );
-							output->pixels[ i ].b = get_data_byte( imagedata );
+							output->pixels[ i ].r = databuffer_get_byte( imagedata );
+							output->pixels[ i ].g = databuffer_get_byte( imagedata );
+							output->pixels[ i ].b = databuffer_get_byte( imagedata );
 							i++;
 						}
 					}
@@ -360,9 +360,9 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 			}
 			else
 			{
-				color.r = get_data_byte( imagedata );
-				color.g = get_data_byte( imagedata );
-				color.b = get_data_byte( imagedata );
+				color.r = databuffer_get_byte( imagedata );
+				color.g = databuffer_get_byte( imagedata );
+				color.b = databuffer_get_byte( imagedata );
 
 				for( y=y1; y<y2; y++ )
 				{
@@ -378,16 +378,16 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 		return 1;
 	}
 	
-	return decompress_rec( 0, 0, input->width, input->height, 0 );
+	return qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 }
 
-int decompress_ccode( struct qti *input, struct image *output, int refimage )
+int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage )
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 	int i;
 
-	if( ! create_image( output, input->width, input->height ) )
+	if( ! image_create( output, input->width, input->height ) )
 		return 0;
 	
 	for( i=0; i<input->width*input->height; i++ )
@@ -400,7 +400,7 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
-	int decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
+	int qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
 		int x, y, sx, sy;
 		unsigned char status;
@@ -414,7 +414,7 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 		}
 
 		if( refimage )
-			status = get_data( commanddata, 1 );
+			status = databuffer_get_bits( commanddata, 1 );
 	
 		if( ( refimage ) && ( status == 0 ) )
 		{
@@ -429,7 +429,7 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 		}
 		else
 		{
-			status = get_data( commanddata, 1 );
+			status = databuffer_get_bits( commanddata, 1 );
 			if( status == 0 )
 			{
 				if( depth < maxdepth )
@@ -439,10 +439,10 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 						sx = x1 + (x2-x1)/2;
 						sy = y1 + (y2-y1)/2;
 
-						decompress_ccode_rec( x1, y1, sx, sy, depth+1 );
-						decompress_ccode_rec( x1, sy, sx, y2, depth+1 );
-						decompress_ccode_rec( sx, y1, x2, sy, depth+1 );
-						decompress_ccode_rec( sx, sy, x2, y2, depth+1 );
+						qtc_decompress_ccode_rec( x1, y1, sx, sy, depth+1 );
+						qtc_decompress_ccode_rec( x1, sy, sx, y2, depth+1 );
+						qtc_decompress_ccode_rec( sx, y1, x2, sy, depth+1 );
+						qtc_decompress_ccode_rec( sx, sy, x2, y2, depth+1 );
 					}
 					else
 					{
@@ -450,24 +450,24 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 						{
 							sx = x1 + (x2-x1)/2;
 
-							decompress_ccode_rec( x1, y1, sx, y2, depth+1 );
-							decompress_ccode_rec( sx, y1, x2, y2, depth+1 );
+							qtc_decompress_ccode_rec( x1, y1, sx, y2, depth+1 );
+							qtc_decompress_ccode_rec( sx, y1, x2, y2, depth+1 );
 						}
 						else if ( y2-y1 > minsize )
 						{
 							sy = y1 + (y2-y1)/2;
 	
-							decompress_ccode_rec( x1, y1, x2, sy, depth+1 );
-							decompress_ccode_rec( x1, sy, x2, y2, depth+1 );
+							qtc_decompress_ccode_rec( x1, y1, x2, sy, depth+1 );
+							qtc_decompress_ccode_rec( x1, sy, x2, y2, depth+1 );
 						}
 						else
 						{
 							for( y=y1; y<y2; y++ )
 							for( x=x1; x<x2; x++ )
 							{
-								get_data( imagedata, 8 );
-								get_data( imagedata, 8 );
-								get_data( imagedata, 8 );
+								databuffer_get_bits( imagedata, 8 );
+								databuffer_get_bits( imagedata, 8 );
+								databuffer_get_bits( imagedata, 8 );
 
 								if( ( x == x1 ) || ( y == y1 ) )
 									output->pixels[ x + y*output->width  ].r = 255;
@@ -482,9 +482,9 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 					for( y=y1; y<y2; y++ )
 					for( x=x1; x<x2; x++ )
 					{
-						get_data( imagedata, 8 );
-						get_data( imagedata, 8 );
-						get_data( imagedata, 8 );
+						databuffer_get_bits( imagedata, 8 );
+						databuffer_get_bits( imagedata, 8 );
+						databuffer_get_bits( imagedata, 8 );
 
 						if( ( x == x1 ) || ( y == y1 ) )
 							output->pixels[ x + y*output->width  ].r = 255;
@@ -495,9 +495,9 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 			}
 			else
 			{
-				get_data( imagedata, 8 );
-				get_data( imagedata, 8 );
-				get_data( imagedata, 8 );
+				databuffer_get_bits( imagedata, 8 );
+				databuffer_get_bits( imagedata, 8 );
+				databuffer_get_bits( imagedata, 8 );
 
 				for( y=y1; y<y2; y++ )
 				for( x=x1; x<x2; x++ )
@@ -513,6 +513,6 @@ int decompress_ccode( struct qti *input, struct image *output, int refimage )
 		return 1;
 	}
 	
-	return decompress_ccode_rec( 0, 0, input->width, input->height, 0 );
+	return qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );
 }
 

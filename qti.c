@@ -10,7 +10,7 @@
 #define FILEVERSION "QTI1"
 #define VERSION 2
 
-int read_qti( struct qti *image, char filename[] )
+int qti_read( struct qti *image, char filename[] )
 {
 	FILE * qti;
 	struct databuffer *compdata;
@@ -42,7 +42,7 @@ int read_qti( struct qti *image, char filename[] )
 	{
 		if( fread( header, 1, 4, qti ) != 4 )
 		{
-			fputs( "read_qti: Short read on header\n", stderr );
+			fputs( "qti_read: Short read on header\n", stderr );
 			if( qti != stdin )
 				fclose( qti );
 			return 0;
@@ -50,7 +50,7 @@ int read_qti( struct qti *image, char filename[] )
 
 		if( strncmp( header, FILEVERSION, 4 ) != 0 )
 		{
-			fputs( "read_qti: Invalid header\n", stderr );
+			fputs( "qti_read: Invalid header\n", stderr );
 			if( qti != stdin )
 				fclose( qti );
 			return 0;
@@ -63,7 +63,7 @@ int read_qti( struct qti *image, char filename[] )
 			( fread( &minsize, sizeof( minsize ), 1, qti ) != 1 ) ||
 			( fread( &maxdepth, sizeof( maxdepth ), 1, qti ) != 1 ) )
 		{
-			fputs( "read_qti: Short read on image header\n", stderr );
+			fputs( "qti_read: Short read on image header\n", stderr );
 			if( qti != stdin )
 				fclose( qti );
 			return 0;
@@ -71,7 +71,7 @@ int read_qti( struct qti *image, char filename[] )
 
 		if( version != VERSION )
 		{
-			fputs( "read_qti: Wrong version\n", stderr );
+			fputs( "qti_read: Wrong version\n", stderr );
 			if( qti != stdin )
 				fclose( qti );
 			return 0;
@@ -88,13 +88,13 @@ int read_qti( struct qti *image, char filename[] )
 		{
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on compressed command data size\n", stderr );
+				fputs( "qti_read: Short read on compressed command data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 
-			compdata = create_databuffer( size );
+			compdata = databuffer_create( size );
 			if( compdata == NULL )
 				return 0;
 
@@ -102,7 +102,7 @@ int read_qti( struct qti *image, char filename[] )
 
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on uncompressed command data size\n", stderr );
+				fputs( "qti_read: Short read on uncompressed command data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
@@ -110,33 +110,33 @@ int read_qti( struct qti *image, char filename[] )
 
 			if( fread( compdata->data, 1, compdata->size, qti ) != compdata->size )
 			{
-				fputs( "read_qti: Short read on compressed command data\n", stderr );
+				fputs( "qti_read: Short read on compressed command data\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 			
-			image->commanddata = create_databuffer( size );
+			image->commanddata = databuffer_create( size );
 			if( image->commanddata == NULL )
 				return 0;
 
-			coder = create_rangecoder( 0 );
+			coder = rangecoder_create( 0 );
 
 			rangecode_decompress( coder, compdata, image->commanddata, size );
 			
-			free_rangecoder( coder );
-			free_databuffer( compdata );
+			rangecoder_free( coder );
+			databuffer_free( compdata );
 
 
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on compressed image data size\n", stderr );
+				fputs( "qti_read: Short read on compressed image data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 
-			compdata = create_databuffer( size );
+			compdata = databuffer_create( size );
 			if( compdata == NULL )
 				return 0;
 
@@ -144,7 +144,7 @@ int read_qti( struct qti *image, char filename[] )
 
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on uncompressed image data size\n", stderr );
+				fputs( "qti_read: Short read on uncompressed image data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
@@ -152,41 +152,41 @@ int read_qti( struct qti *image, char filename[] )
 
 			if( fread( compdata->data, 1, compdata->size, qti ) != compdata->size )
 			{
-				fputs( "read_qti: Short read on compressed image data\n", stderr );
+				fputs( "qti_read: Short read on compressed image data\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 			
-			image->imagedata = create_databuffer( size );
+			image->imagedata = databuffer_create( size );
 			if( image->imagedata == NULL )
 				return 0;
 
-			coder = create_rangecoder( 1 );
+			coder = rangecoder_create( 1 );
 
 			rangecode_decompress( coder, compdata, image->imagedata, size );
 			
-			free_rangecoder( coder );
-			free_databuffer( compdata );
+			rangecoder_free( coder );
+			databuffer_free( compdata );
 		}
 		else
 		{
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on command data size\n", stderr );
+				fputs( "qti_read: Short read on command data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 
-			image->commanddata = create_databuffer( size );
+			image->commanddata = databuffer_create( size );
 			if( image->commanddata == NULL )
 				return 0;
 
 			image->commanddata->size = size;
 			if( fread( image->commanddata->data, 1, image->commanddata->size, qti ) != image->commanddata->size )
 			{
-				fputs( "read_qti: Short read on command data\n", stderr );
+				fputs( "qti_read: Short read on command data\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
@@ -195,20 +195,20 @@ int read_qti( struct qti *image, char filename[] )
 
 			if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 			{
-				fputs( "read_qti: Short read on image data size\n", stderr );
+				fputs( "qti_read: Short read on image data size\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
 			}
 
-			image->imagedata = create_databuffer( size );
+			image->imagedata = databuffer_create( size );
 			if( image->imagedata == NULL )
 				return 0;
 
 			image->imagedata->size = size;
 			if( fread( image->imagedata->data, 1, image->imagedata->size, qti ) != image->imagedata->size )
 			{
-				fputs( "read_qti: Short read on image data\n", stderr );
+				fputs( "qti_read: Short read on image data\n", stderr );
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
@@ -222,12 +222,12 @@ int read_qti( struct qti *image, char filename[] )
 	}
 	else
 	{
-		perror( "read_qti" );
+		perror( "qti_read" );
 		return 0;
 	}
 }
 
-int write_qti( struct qti *image, int compress, char filename[] )
+int qti_write( struct qti *image, int compress, char filename[] )
 {
 	FILE * qti;
 	struct databuffer *compdata;
@@ -267,23 +267,23 @@ int write_qti( struct qti *image, int compress, char filename[] )
 		fwrite( &(image->minsize), sizeof( image->minsize ), 1, qti );
 		fwrite( &(image->maxdepth), sizeof( image->maxdepth ), 1, qti );
 
-		pad_data( image->commanddata );
-		pad_data( image->imagedata );
+		databuffer_pad( image->commanddata );
+		databuffer_pad( image->imagedata );
 		
 		size = 0;
 
 		if( compress )
 		{
-			compdata = create_databuffer( image->commanddata->size );
+			compdata = databuffer_create( image->commanddata->size );
 			if( compdata == NULL )
 				return 0;
 
-			coder = create_rangecoder( 0 );
+			coder = rangecoder_create( 0 );
 			if( coder == NULL )
 				return 0;
 
 			rangecode_compress( coder, image->commanddata, compdata );
-			pad_data( compdata );
+			databuffer_pad( compdata );
 
 			fwrite( &(compdata->size), sizeof( compdata->size ), 1, qti );
 			fwrite( &(image->commanddata->size), sizeof( image->commanddata->size ), 1, qti );
@@ -291,20 +291,20 @@ int write_qti( struct qti *image, int compress, char filename[] )
 
 			size += sizeof( compdata->size ) + sizeof( image->commanddata->size ) + compdata->size;
 
-			free_rangecoder( coder );
-			free_databuffer( compdata );
+			rangecoder_free( coder );
+			databuffer_free( compdata );
 
 
-			compdata = create_databuffer( image->imagedata->size / 2 + 1 );
+			compdata = databuffer_create( image->imagedata->size / 2 + 1 );
 			if( compdata == NULL )
 				return 0;
 
-			coder = create_rangecoder( 1 );
+			coder = rangecoder_create( 1 );
 			if( coder == NULL )
 				return 0;
 
 			rangecode_compress( coder, image->imagedata, compdata );
-			pad_data( compdata );
+			databuffer_pad( compdata );
 
 			fwrite( &(compdata->size), sizeof( compdata->size ), 1, qti );
 			fwrite( &(image->imagedata->size), sizeof( image->imagedata->size ), 1, qti );
@@ -312,8 +312,8 @@ int write_qti( struct qti *image, int compress, char filename[] )
 
 			size += sizeof( compdata->size ) + sizeof( image->imagedata->size ) + compdata->size;
 
-			free_rangecoder( coder );
-			free_databuffer( compdata );
+			rangecoder_free( coder );
+			databuffer_free( compdata );
 		}
 		else
 		{
@@ -336,12 +336,12 @@ int write_qti( struct qti *image, int compress, char filename[] )
 	}
 	else
 	{
-		perror( "write_qti" );
+		perror( "qti_write" );
 		return 0;
 	}
 }
 
-int create_qti( int width, int height, int minsize, int maxdepth, struct qti *image )
+int qti_create( int width, int height, int minsize, int maxdepth, struct qti *image )
 {
 	image->width = width;
 	image->height = height;
@@ -349,22 +349,22 @@ int create_qti( int width, int height, int minsize, int maxdepth, struct qti *im
 	image->maxdepth = maxdepth;
 	image->transform = 0;
 
-	image->imagedata = create_databuffer( 1024*512 );
+	image->imagedata = databuffer_create( 1024*512 );
 	if( image->imagedata == NULL )
 		return 0;
 
-	image->commanddata = create_databuffer( 1204 );
+	image->commanddata = databuffer_create( 1204 );
 	if( image->commanddata == NULL )
 		return 0;
 	
 	return 1;
 }
 
-void free_qti( struct qti *image )
+void qti_free( struct qti *image )
 {
-	free_databuffer( image->imagedata );
+	databuffer_free( image->imagedata );
 	image->imagedata = NULL;
-	free_databuffer( image->commanddata );
+	databuffer_free( image->commanddata );
 	image->commanddata = NULL;
 }
 
@@ -374,24 +374,6 @@ unsigned int qti_getsize( struct qti *image )
 	
 	size += image->imagedata->size*8+image->imagedata->bits;
 	size += image->commanddata->size*8+image->commanddata->bits;
-	
-	return size;
-}
-
-unsigned int qti_getcsize( struct qti *image )
-{
-	unsigned int size=0;
-	
-	size += image->commanddata->size*8+image->commanddata->bits;
-	
-	return size;
-}
-
-unsigned int qti_getdsize( struct qti *image )
-{
-	unsigned int size=0;
-	
-	size += image->imagedata->size*8+image->imagedata->bits;
 	
 	return size;
 }

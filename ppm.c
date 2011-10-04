@@ -6,7 +6,7 @@
 
 #include "ppm.h"
 
-int read_ppm( struct image *image, char filename[] )
+int ppm_read( struct image *image, char filename[] )
 {
 	FILE *ppm;
 	char buffer[256];
@@ -32,7 +32,7 @@ int read_ppm( struct image *image, char filename[] )
 	{
 		if( fgets( buffer, sizeof( buffer ) - 1, ppm ) == NULL )
 		{
-			fputs( "read_ppm: Cannot read file\n", stderr );
+			fputs( "ppm_read: Cannot read file\n", stderr );
 			if( ppm != stdin )
 				fclose( ppm );
 			return 0;
@@ -40,7 +40,7 @@ int read_ppm( struct image *image, char filename[] )
 
 		if( strcmp( buffer, "P6\n" ) != 0 )
 		{
-			fputs( "read_ppm: File is not a ppm file\n", stderr );
+			fputs( "ppm_read: File is not a ppm file\n", stderr );
 			if( ppm != stdin )
 				fclose( ppm );
 			return 0;
@@ -50,7 +50,7 @@ int read_ppm( struct image *image, char filename[] )
 		{
 			if( fgets( buffer, sizeof( buffer ) - 1, ppm ) == NULL )
 			{
-				fputs( "read_ppm: Cannot read file\n", stderr );
+				fputs( "ppm_read: Cannot read file\n", stderr );
 				if( ppm != stdin )
 					fclose( ppm );
 				return 0;
@@ -60,7 +60,7 @@ int read_ppm( struct image *image, char filename[] )
 
 		if( sscanf( buffer, "%i %i\n", &width, &height ) != 2 )
 		{
-			fputs( "read_ppm: Cannot read image dimension\n", stderr );
+			fputs( "ppm_read: Cannot read image dimension\n", stderr );
 			if( ppm != stdin )
 				fclose( ppm );
 			return 0;
@@ -70,7 +70,7 @@ int read_ppm( struct image *image, char filename[] )
 		{
 			if( fgets( buffer, sizeof( buffer ) - 1, ppm ) == NULL )
 			{
-				fputs( "read_ppm: Cannot read file\n", stderr );
+				fputs( "ppm_read: Cannot read file\n", stderr );
 				if( ppm != stdin )
 					fclose( ppm );
 				return 0;
@@ -80,7 +80,7 @@ int read_ppm( struct image *image, char filename[] )
 
 		if( sscanf( buffer, "%i\n", &maxval ) != 1 )
 		{
-			fputs( "read_ppm: Cannot read maximum pixel value\n", stderr );
+			fputs( "ppm_read: Cannot read maximum pixel value\n", stderr );
 			if( ppm != stdin )
 				fclose( ppm );
 			return 0;
@@ -95,7 +95,7 @@ int read_ppm( struct image *image, char filename[] )
 		{
 			if( fread( image->pixels, sizeof( *(image->pixels) ), width*height, ppm ) != width*height )
 			{
-				fputs( "read_ppm: Short read on image data\n", stderr );
+				fputs( "ppm_read: Short read on image data\n", stderr );
 				if( ppm != stdin )
 					fclose( ppm );
 				return 0;
@@ -103,7 +103,7 @@ int read_ppm( struct image *image, char filename[] )
 		}
 		else
 		{
-			perror( "read_ppm" );
+			perror( "ppm_read" );
 			return 0;
 		}
 
@@ -114,12 +114,12 @@ int read_ppm( struct image *image, char filename[] )
 	}
 	else
 	{
-		perror( "read_ppm" );
+		perror( "ppm_read" );
 		return 0;
 	}
 }
 
-int write_ppm( struct image *image, char filename[] )
+int ppm_write( struct image *image, char filename[] )
 {
 	FILE *ppm;
 
@@ -145,7 +145,7 @@ int write_ppm( struct image *image, char filename[] )
 
 		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height, ppm ) != image->width*image->height )
 		{
-			fputs( "read_ppm: Short write on image data\n", stderr );
+			fputs( "ppm_read: Short write on image data\n", stderr );
 
 			if( ppm != stdout )
 				fclose( ppm );
@@ -159,7 +159,7 @@ int write_ppm( struct image *image, char filename[] )
 	}
 	else
 	{
-		perror( "write_ppm" );
+		perror( "ppm_write" );
 		return 0;
 	}
 }

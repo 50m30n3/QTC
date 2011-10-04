@@ -95,64 +95,64 @@ int main( int argc, char *argv[] )
 
 	if( mode == 'c' )
 	{
-		if( ! read_ppm( &image, infile ) )
+		if( ! ppm_read( &image, infile ) )
 			return 0;
 
 		insize = image.width * image.height * 3;
 
 		if( transform == 1 )
-			transform_image_fast( &image );
+			image_transform_fast( &image );
 		else if( transform == 2 )
-			transform_image( &image );
+			image_transform( &image );
 
-		if( ! compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+		if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
 			return 0;
 
 		bsize = qti_getsize( &compimage );
 
 		compimage.transform = transform;
 		
-		if( ! ( outsize = write_qti( &compimage, rangecomp, outfile ) ) )
+		if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )
 			return 0;
 		
-		free_image( &image );
-		free_qti( &compimage );
+		image_free( &image );
+		qti_free( &compimage );
 		
 		if( verbose )
 			fprintf( stderr, "In:%lub Buff:%lub,%f%% Out:%lub,%f%%\n", insize, bsize/8, (bsize/8)*100.0/insize, outsize, outsize*100.0/insize );
 	}
 	else if( mode == 'd' )
 	{
-		if( ! read_qti( &compimage, infile ) )
+		if( ! qti_read( &compimage, infile ) )
 			return 0;
 
-		if( ! decompress( &compimage, NULL, &image ) )
+		if( ! qtc_decompress( &compimage, NULL, &image ) )
 			return 0;
 	
 		if( compimage.transform == 1 )
-			transform_image_fast_rev( &image );
+			image_transform_fast_rev( &image );
 		else if( compimage.transform == 2 )
-			transform_image_rev( &image );
+			image_transform_rev( &image );
 		
-		if( ! write_ppm( &image, outfile ) )
+		if( ! ppm_write( &image, outfile ) )
 			return 0;
 		
-		free_image( &image );
-		free_qti( &compimage );
+		image_free( &image );
+		qti_free( &compimage );
 	}
 	else if( mode == 'a' )
 	{
-		if( ! read_qti( &compimage, infile ) )
+		if( ! qti_read( &compimage, infile ) )
 			return 0;
 
-		if( ! decompress_ccode( &compimage, &image, 0 ) )
+		if( ! qtc_decompress_ccode( &compimage, &image, 0 ) )
 			return 0;
 
-		if( ! write_ppm( &image, outfile ) )
+		if( ! ppm_write( &image, outfile ) )
 			return 0;
 		
-		free_image( &image );
-		free_qti( &compimage );
+		image_free( &image );
+		qti_free( &compimage );
 	}
 	else
 	{

@@ -190,32 +190,32 @@ int main( int argc, char *argv[] )
 			else
 				keyframe = framenum % ( keyrate * framerate ) == 0;
 
-			if( ! read_ppm( &image, infile ) )
+			if( ! ppm_read( &image, infile ) )
 				return 0;
 
 			if( framenum == 0 )
 			{
-				create_qtv( image.width, image.height, framerate, index, &video );
-				write_qtv_header( &video, outfile );
+				qtv_create( image.width, image.height, framerate, index, &video );
+				qtv_write_header( &video, outfile );
 				
-				create_image( &refimage, image.width, image.height );
+				image_create( &refimage, image.width, image.height );
 			}
 
 			insize += ( image.width * image.height * 3 );
 
 			if( transform == 1 )
-				transform_image_fast( &image );
+				image_transform_fast( &image );
 			else if( transform == 2 )
-				transform_image( &image );
+				image_transform( &image );
 
 			if( keyframe )
 			{
-				if( ! compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+				if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
 					return 0;
 			}
 			else
 			{
-				if( ! compress( &image, &refimage, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+				if( ! qtc_compress( &image, &refimage, &compimage, maxerror, minsize, maxdepth, lazyness ) )
 					return 0;
 			}
 
@@ -223,13 +223,13 @@ int main( int argc, char *argv[] )
 
 			compimage.transform = transform;
 
-			if( ! ( outsize += write_qtv_frame( &video, &compimage, rangecomp, keyframe ) ) )
+			if( ! ( outsize += qtv_write_frame( &video, &compimage, rangecomp, keyframe ) ) )
 				return 0;
 
-			copy_image( &image, &refimage );
+			image_copy( &image, &refimage );
 
-			free_image( &image );
-			free_qti( &compimage );
+			image_free( &image );
+			qti_free( &compimage );
 			
 			if( ( infile == NULL ) || ( strcmp( infile, "-" ) == 0 ) )
 			{
@@ -264,10 +264,10 @@ int main( int argc, char *argv[] )
 		while( ! done );
 
 		if( index )
-			outsize += write_qtv_index( &video );
+			outsize += qtv_write_index( &video );
 
-		free_image( &refimage );
-		free_qtv( &video );
+		image_free( &refimage );
+		qtv_free( &video );
 
 		if( verbose )
 		{
@@ -284,41 +284,41 @@ int main( int argc, char *argv[] )
 
 		refimage.pixels = NULL;
 
-		if( ! read_qtv_header( &video, infile ) )
+		if( ! qtv_read_header( &video, infile ) )
 			return 0;
 
-		seek_qtv( &video, startframe );
+		qtv_seek( &video, startframe );
 
-		create_image( &refimage, video.width, video.height );
+		image_create( &refimage, video.width, video.height );
 
 		do
 		{
-			if( ! read_qtv_frame( &video, &compimage, &keyframe ) )
+			if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
 				return 0;
 
 			if( keyframe )
 			{
-				if( ! decompress( &compimage, NULL, &image ) )
+				if( ! qtc_decompress( &compimage, NULL, &image ) )
 					return 0;
 			}
 			else
 			{
-				if( ! decompress( &compimage, &refimage, &image ) )
+				if( ! qtc_decompress( &compimage, &refimage, &image ) )
 					return 0;
 			}
 
-			copy_image( &image, &refimage );
+			image_copy( &image, &refimage );
 
 			if( compimage.transform == 1 )
-				transform_image_fast_rev( &image );
+				image_transform_fast_rev( &image );
 			else if( compimage.transform == 2 )
-				transform_image_rev( &image );
+				image_transform_rev( &image );
 	
-			if( ! write_ppm( &image, outfile ) )
+			if( ! ppm_write( &image, outfile ) )
 				return 0;
 
-			free_image( &image );
-			free_qti( &compimage );
+			image_free( &image );
+			qti_free( &compimage );
 
 			if( ( outfile != NULL ) && ( strcmp( outfile, "-" ) != 0 ) )
 			{
@@ -329,15 +329,15 @@ int main( int argc, char *argv[] )
 			if( interrupt )
 				done = 1;
 
-			if( ! can_read_frame( &video ) )
+			if( ! qtv_can_read_frame( &video ) )
 				done = 1;
 
 			framenum++;
 		}
 		while( !done );
 
-		free_image( &refimage );
-		free_qtv( &video );
+		image_free( &refimage );
+		qtv_free( &video );
 	}
 	else if( mode == 'a' )
 	{
@@ -346,24 +346,24 @@ int main( int argc, char *argv[] )
 
 		refimage.pixels = NULL;
 
-		if( ! read_qtv_header( &video, infile ) )
+		if( ! qtv_read_header( &video, infile ) )
 			return 0;
 
-		create_image( &refimage, video.width, video.height );
+		image_create( &refimage, video.width, video.height );
 
 		do
 		{
-			if( ! read_qtv_frame( &video, &compimage, &keyframe ) )
+			if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
 				return 0;
 
-			if( ! decompress_ccode( &compimage, &image, !keyframe ) )
+			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe ) )
 				return 0;
 
-			if( ! write_ppm( &image, outfile ) )
+			if( ! ppm_write( &image, outfile ) )
 				return 0;
 
-			free_image( &image );
-			free_qti( &compimage );
+			image_free( &image );
+			qti_free( &compimage );
 
 			if( ( outfile != NULL ) && ( strcmp( outfile, "-" ) != 0 ) )
 			{
@@ -374,14 +374,14 @@ int main( int argc, char *argv[] )
 			if( interrupt )
 				done = 1;
 
-			if( ! can_read_frame( &video ) )
+			if( ! qtv_can_read_frame( &video ) )
 				done = 1;
 
 			framenum++;
 		}
 		while( !done );
 
-		free_qtv( &video );
+		qtv_free( &video );
 	}
 	else
 	{

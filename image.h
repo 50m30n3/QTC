@@ -21,13 +21,13 @@ struct image
 	struct pixel *pixels;
 };
 
-extern int create_image( struct image *image, int width, int height );
-extern void free_image( struct image *image );
-extern void copy_image( struct image *in, struct image *out );
-extern void transform_image_fast( struct image *image );
-extern void transform_image_fast_rev( struct image *image );
-extern void transform_image( struct image *image );
-extern void transform_image_rev( struct image *image );
+extern int image_create( struct image *image, int width, int height );
+extern void image_free( struct image *image );
+extern void image_copy( struct image *in, struct image *out );
+extern void image_transform_fast( struct image *image );
+extern void image_transform_fast_rev( struct image *image );
+extern void image_transform( struct image *image );
+extern void image_transform_rev( struct image *image );
 
 
 #endif

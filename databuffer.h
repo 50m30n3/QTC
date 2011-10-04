@@ -10,13 +10,13 @@ struct databuffer
 	unsigned int pos, bitpos;
 };
 
-extern struct databuffer *create_databuffer( unsigned int size );
-extern void free_databuffer( struct databuffer *buffer );
-extern int pad_data( struct databuffer *buffer );
-extern int add_data( unsigned int data, struct databuffer *buffer, int bits );
-extern int add_data_byte( unsigned char data, struct databuffer *buffer );
-extern unsigned int get_data( struct databuffer *buffer, int bits );
-extern unsigned char get_data_byte( struct databuffer *buffer );
+extern struct databuffer *databuffer_create( unsigned int size );
+extern void databuffer_free( struct databuffer *buffer );
+extern int databuffer_pad( struct databuffer *buffer );
+extern int databuffer_add_bits( unsigned int data, struct databuffer *buffer, int bits );
+extern int databuffer_add_byte( unsigned char data, struct databuffer *buffer );
+extern unsigned int databuffer_get_bits( struct databuffer *buffer, int bits );
+extern unsigned char databuffer_get_byte( struct databuffer *buffer );
 
 #endif
 

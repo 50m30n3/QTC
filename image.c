@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-int create_image( struct image *image, int width, int height )
+int image_create( struct image *image, int width, int height )
 {
 	image->width = width;
 	image->height = height;
@@ -12,7 +12,7 @@ int create_image( struct image *image, int width, int height )
 
 	if( image->pixels == NULL )
 	{
-		perror( "create_image" );
+		perror( "image_create" );
 		return 0;
 	}
 	else
@@ -21,7 +21,7 @@ int create_image( struct image *image, int width, int height )
 	}
 }
 
-void free_image( struct image *image )
+void image_free( struct image *image )
 {
 	if( image->pixels != NULL )
 	{
@@ -30,7 +30,7 @@ void free_image( struct image *image )
 	}
 }
 
-void copy_image( struct image *in, struct image *out )
+void image_copy( struct image *in, struct image *out )
 {
 	int i;
 
@@ -38,7 +38,7 @@ void copy_image( struct image *in, struct image *out )
 		out->pixels[i] = in->pixels[i];
 }
 
-void transform_image_fast( struct image *image )
+void image_transform_fast( struct image *image )
 {
 	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
@@ -86,7 +86,7 @@ void transform_image_fast( struct image *image )
 	}
 }
 
-void transform_image_fast_rev( struct image *image )
+void image_transform_fast_rev( struct image *image )
 {
 	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
@@ -133,7 +133,7 @@ void transform_image_fast_rev( struct image *image )
 	}
 }
 
-void transform_image( struct image *image )
+void image_transform( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;
@@ -207,7 +207,7 @@ void transform_image( struct image *image )
 	}
 }
 
-void transform_image_rev( struct image *image )
+void image_transform_rev( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;

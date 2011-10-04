@@ -3,12 +3,12 @@
 
 #include "databuffer.h"
 
-struct databuffer *create_databuffer( unsigned int size )
+struct databuffer *databuffer_create( unsigned int size )
 {
 	struct databuffer *buffer = malloc( sizeof( struct databuffer ) );
 	if( buffer == NULL )
 	{
-		perror( "create_databuffer: malloc" );
+		perror( "databuffer_create: malloc" );
 		return NULL;
 	}
 
@@ -25,7 +25,7 @@ struct databuffer *create_databuffer( unsigned int size )
 	buffer->data = malloc( sizeof( unsigned char ) * buffer->datasize );
 	if( buffer->data == NULL )
 	{
-		perror( "create_databuffer: malloc" );
+		perror( "databuffer_create: malloc" );
 		free( buffer );
 		return NULL;
 	}
@@ -37,13 +37,13 @@ struct databuffer *create_databuffer( unsigned int size )
 	return buffer;
 }
 
-void free_databuffer( struct databuffer *buffer )
+void databuffer_free( struct databuffer *buffer )
 {
 	free( buffer->data );
 	free( buffer );
 }
 
-int add_data( unsigned int data, struct databuffer *buffer, int bits )
+int databuffer_add_bits( unsigned int data, struct databuffer *buffer, int bits )
 {
 	int i;
 
@@ -61,7 +61,7 @@ int add_data( unsigned int data, struct databuffer *buffer, int bits )
 				buffer->data = realloc( buffer->data, buffer->datasize );
 				if( buffer->data == NULL )
 				{
-					perror( "add_data: realloc" );
+					perror( "databuffer_add_bits: realloc" );
 					return 0;
 				}
 			}
@@ -73,7 +73,7 @@ int add_data( unsigned int data, struct databuffer *buffer, int bits )
 	return 1;
 }
 
-int add_data_byte( unsigned char data, struct databuffer *buffer )
+int databuffer_add_byte( unsigned char data, struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
 	{
@@ -84,7 +84,7 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 			buffer->data = realloc( buffer->data, buffer->datasize );
 			if( buffer->data == NULL )
 			{
-				perror( "add_data_byte: realloc" );
+				perror( "databuffer_add_byte: realloc" );
 				return 0;
 			}
 		}
@@ -101,7 +101,7 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 		if( buffer->data == NULL )
 		{
 			fprintf( stderr, "%i\n", buffer->datasize );
-			perror( "add_data_byte: realloc" );
+			perror( "databuffer_add_byte: realloc" );
 			return 0;
 		}
 	}
@@ -109,7 +109,7 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 	return 1;
 }
 
-int pad_data( struct databuffer *buffer )
+int databuffer_pad( struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
 	{
@@ -120,7 +120,7 @@ int pad_data( struct databuffer *buffer )
 			buffer->data = realloc( buffer->data, buffer->datasize );
 			if( buffer->data == NULL )
 			{
-				perror( "pad_data: realloc" );
+				perror( "databuffer_pad: realloc" );
 				return 0;
 			}
 		}
@@ -131,7 +131,7 @@ int pad_data( struct databuffer *buffer )
 	return 1;
 }
 
-unsigned int get_data( struct databuffer *buffer, int bits )
+unsigned int databuffer_get_bits( struct databuffer *buffer, int bits )
 {
 	unsigned int data = 0;
 	int i;
@@ -150,7 +150,7 @@ unsigned int get_data( struct databuffer *buffer, int bits )
 	return data;
 }
 
-unsigned char get_data_byte( struct databuffer *buffer )
+unsigned char databuffer_get_byte( struct databuffer *buffer )
 {
 	unsigned char data;
 

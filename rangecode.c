@@ -9,21 +9,21 @@ unsigned const int maxrange = 0xFFFFFFFF;
 unsigned const int top = 0x01<<24;
 unsigned const int bottom = 0x01<<16;
 
-struct rangecoder *create_rangecoder( int order )
+struct rangecoder *rangecoder_create( int order )
 {
 	struct rangecoder *coder;
 	int i, j;
 
 	if( ( order < 0 ) || ( order > 1 ) )
 	{
-		perror( "create_rangecoder: out of order" );
+		perror( "rangecoder_create: out of order" );
 		return NULL;
 	}
 
 	coder = malloc( sizeof( *coder ) );
 	if( coder == NULL )
 	{
-		perror( "create_rangecoder: malloc" );
+		perror( "rangecoder_create: malloc" );
 		return NULL;
 	}
 
@@ -34,7 +34,7 @@ struct rangecoder *create_rangecoder( int order )
 		coder->freq = malloc( sizeof( *coder->freq ) * 257 );
 		if( coder->freq == NULL )
 		{
-			perror( "create_rangecoder: malloc" );
+			perror( "rangecoder_create: malloc" );
 			return NULL;
 		}
 
@@ -47,7 +47,7 @@ struct rangecoder *create_rangecoder( int order )
 		coder->freq = malloc( sizeof( *coder->freq ) * 257 * 256 );
 		if( coder->freq == NULL )
 		{
-			perror( "create_rangecoder: malloc" );
+			perror( "rangecoder_create: malloc" );
 			return NULL;
 		}
 
@@ -63,7 +63,7 @@ struct rangecoder *create_rangecoder( int order )
 	return coder;
 }
 
-void reset_model( struct rangecoder *coder )
+void rangecoder_reset( struct rangecoder *coder )
 {
 	int i, j;
 
@@ -85,7 +85,7 @@ void reset_model( struct rangecoder *coder )
 	}
 }
 
-void free_rangecoder( struct rangecoder *coder )
+void rangecoder_free( struct rangecoder *coder )
 {
 	free( coder->freq );
 	free( coder );
@@ -108,7 +108,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 
 	for( count=0; count<in->size; count++ )
 	{
-		symbol = get_data_byte( in );
+		symbol = databuffer_get_byte( in );
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
@@ -126,7 +126,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 			if( ( range < bottom ) && ( ( (low^(low+range)) >= top ) ) )
 				range = (-low)&(bottom-1);
 
-			add_data_byte( ( low >> 24 ) & 0xFF, out );
+			databuffer_add_byte( ( low >> 24 ) & 0xFF, out );
 			low <<= 8;
 			range <<= 8;
 		}
@@ -155,7 +155,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 
 	for( i=0; i<4; i++ )
 	{
-		add_data_byte( ( low >> 24 ) & 0xFF, out );
+		databuffer_add_byte( ( low >> 24 ) & 0xFF, out );
 		low <<= 8;
 	}
 
@@ -178,7 +178,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 	for( i=0; i<4; i++ )
 	{
 		code <<= 8;
-		code |= get_data_byte( in ) & 0xFF;
+		code |= databuffer_get_byte( in ) & 0xFF;
 	}
 
 	lastsym = 0x00;
@@ -205,7 +205,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 
 		symbol = i-1;
 
-		add_data_byte( symbol & 0xFF, out );
+		databuffer_add_byte( symbol & 0xFF, out );
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
@@ -224,7 +224,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 				range = (-low)&(bottom-1);
 
 			code <<= 8;
-			code |= get_data_byte( in ) & 0xFF;
+			code |= databuffer_get_byte( in ) & 0xFF;
 
 			low <<= 8;
 			range <<= 8;
