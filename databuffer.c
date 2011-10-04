@@ -155,9 +155,12 @@ unsigned char databuffer_get_byte( struct databuffer *buffer )
 	unsigned char data;
 
 	if( buffer->bitpos != 0 )
-		buffer->bitpos = 0;
+	{
+		buffer->rbuffer = buffer->data[ buffer->pos++ ];
+	}
 
-	data = buffer->data[ buffer->pos++ ];
+	data = buffer->rbuffer;
+	buffer->bitpos = 8;
 
 	return data;
 }
