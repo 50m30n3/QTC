@@ -330,12 +330,15 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 						else
 						{
 							for( y=y1; y<y2; y++ )
-							for( x=x1; x<x2; x++ )
 							{
-								i = x + y*output->width;
-								output->pixels[ i ].r = get_data_byte( imagedata );
-								output->pixels[ i ].g = get_data_byte( imagedata );
-								output->pixels[ i ].b = get_data_byte( imagedata );
+								i = x1 + y*input->width;
+								for( x=x1; x<x2; x++ )
+								{
+									output->pixels[ i ].r = get_data_byte( imagedata );
+									output->pixels[ i ].g = get_data_byte( imagedata );
+									output->pixels[ i ].b = get_data_byte( imagedata );
+									i++;
+								}
 							}
 						}
 					}
@@ -343,12 +346,15 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 				else
 				{
 					for( y=y1; y<y2; y++ )
-					for( x=x1; x<x2; x++ )
 					{
-						i = x + y*output->width;
-						output->pixels[ i ].r = get_data_byte( imagedata );
-						output->pixels[ i ].g = get_data_byte( imagedata );
-						output->pixels[ i ].b = get_data_byte( imagedata );
+						i = x1 + y*input->width;
+						for( x=x1; x<x2; x++ )
+						{
+							output->pixels[ i ].r = get_data_byte( imagedata );
+							output->pixels[ i ].g = get_data_byte( imagedata );
+							output->pixels[ i ].b = get_data_byte( imagedata );
+							i++;
+						}
 					}
 				}
 			}
@@ -359,8 +365,13 @@ int decompress( struct qti *input, struct image *refimage, struct image *output 
 				color.b = get_data_byte( imagedata );
 
 				for( y=y1; y<y2; y++ )
-				for( x=x1; x<x2; x++ )
-					output->pixels[ x + y*output->width  ] = color;
+				{
+					i = x1 + y*input->width;
+					for( x=x1; x<x2; x++ )
+					{
+						output->pixels[ i++ ] = color;
+					}
+				}
 			}
 		}
 	
