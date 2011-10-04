@@ -72,7 +72,8 @@ int main( int argc, char *argv[] )
 	int maxdepth;
 	int maxerror;
 	int lazyness;
-	int framerate, keyrate;
+	int index;
+	int framerate, keyrate, startframe;
 	char mode;
 	char *infile, *outfile;
 
@@ -85,11 +86,13 @@ int main( int argc, char *argv[] )
 	lazyness = 0;
 	framerate = 25;
 	keyrate = 0;
+	index = 0;
+	startframe = 0;
 	mode = 'c';
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvt:s:d:l:e:r:k:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvxf:t:s:d:l:e:r:k:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -106,8 +109,17 @@ int main( int argc, char *argv[] )
 				verbose = 1;
 			break;
 
+			case 'x':
+				index = 1;
+			break;
+
 			case 's':
 				if( sscanf( optarg, "%i", &minsize ) != 1 )
+					fputs( "ERROR: Can not parse command line\n", stderr );
+			break;
+
+			case 'f':
+				if( sscanf( optarg, "%i", &startframe ) != 1 )
 					fputs( "ERROR: Can not parse command line\n", stderr );
 			break;
 
@@ -174,7 +186,7 @@ int main( int argc, char *argv[] )
 		do
 		{
 			if( keyrate == 0 )
-				keyframe = framenum  == 0;
+				keyframe = framenum == 0;
 			else
 				keyframe = framenum % ( keyrate * framerate ) == 0;
 
@@ -183,7 +195,7 @@ int main( int argc, char *argv[] )
 
 			if( framenum == 0 )
 			{
-				create_qtv( image.width, image.height, framerate, &video );
+				create_qtv( image.width, image.height, framerate, index, &video );
 				write_qtv_header( &video, outfile );
 				
 				create_image( &refimage, image.width, image.height );
@@ -251,6 +263,9 @@ int main( int argc, char *argv[] )
 		}
 		while( ! done );
 
+		if( index )
+			outsize += write_qtv_index( &video );
+
 		free_image( &refimage );
 		free_qtv( &video );
 
@@ -271,6 +286,8 @@ int main( int argc, char *argv[] )
 
 		if( ! read_qtv_header( &video, infile ) )
 			return 0;
+
+		seek_qtv( &video, startframe );
 
 		create_image( &refimage, video.width, video.height );
 
