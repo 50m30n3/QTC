@@ -16,9 +16,12 @@ struct databuffer *create_databuffer( unsigned int size )
 		size = 256;
 
 	buffer->size = 0;
-	buffer->datasize = size;
-	buffer->pos = 0;
 	buffer->bits = 0;
+
+	buffer->pos = 0;
+	buffer->bitpos = 8;
+
+	buffer->datasize = size;
 	buffer->data = malloc( sizeof( unsigned char ) * buffer->datasize );
 	if( buffer->data == NULL )
 	{
@@ -28,6 +31,8 @@ struct databuffer *create_databuffer( unsigned int size )
 	}
 	
 	buffer->data[ 0 ] = 0;
+	buffer->wbuffer = 0;
+	buffer->rbuffer = 0;
 	
 	return buffer;
 }
@@ -44,13 +49,12 @@ int add_data( unsigned int data, struct databuffer *buffer, int bits )
 
 	for( i=0; i<bits; i++ )
 	{
-		buffer->data[ buffer->size ] |= (data&0x01)<<buffer->bits++;
+		buffer->wbuffer |= (data&0x01)<<buffer->bits++;
 		data >>= 1;
 
 		if( buffer->bits >= 8 )
 		{
-			buffer->bits = 0;
-			buffer->size++;
+			buffer->data[ buffer->size++ ] = buffer->wbuffer;
 			if( buffer->size >= buffer->datasize )
 			{
 				buffer->datasize *= 2;
@@ -61,7 +65,8 @@ int add_data( unsigned int data, struct databuffer *buffer, int bits )
 					return 0;
 				}
 			}
-			buffer->data[ buffer->size ] = 0;
+			buffer->wbuffer = 0;
+			buffer->bits = 0;
 		}
 	}
 	
@@ -72,8 +77,7 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
 	{
-		buffer->bits = 0;
-		buffer->size++;
+		buffer->data[ buffer->size++ ] = buffer->wbuffer;
 		if( buffer->size >= buffer->datasize )
 		{
 			buffer->datasize *= 2;
@@ -84,12 +88,12 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 				return 0;
 			}
 		}
-		buffer->data[ buffer->size ] = 0;
+		buffer->wbuffer = 0;
+		buffer->bits = 0;
 	}
 
-	buffer->data[ buffer->size ] = data;
-	buffer->size++;
 
+	buffer->data[ buffer->size++ ] = data;
 	if( buffer->size >= buffer->datasize )
 	{
 		buffer->datasize *= 2;
@@ -101,7 +105,6 @@ int add_data_byte( unsigned char data, struct databuffer *buffer )
 			return 0;
 		}
 	}
-	buffer->data[ buffer->size ] = 0;
 	
 	return 1;
 }
@@ -110,8 +113,7 @@ int pad_data( struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
 	{
-		buffer->bits = 0;
-		buffer->size++;
+		buffer->data[ buffer->size++ ] = buffer->wbuffer;
 		if( buffer->size >= buffer->datasize )
 		{
 			buffer->datasize *= 2;
@@ -122,7 +124,8 @@ int pad_data( struct databuffer *buffer )
 				return 0;
 			}
 		}
-		buffer->data[ buffer->size ] = 0;
+		buffer->wbuffer = 0;
+		buffer->bits = 0;
 	}
 	
 	return 1;
@@ -135,8 +138,13 @@ unsigned int get_data( struct databuffer *buffer, int bits )
 	
 	for( i=0; i<bits; i++ )
 	{
-		data |= ((buffer->data[ buffer->pos/8 ]>>(buffer->pos%8))&0x01)<<i;
-		buffer->pos++;
+		if( buffer->bitpos >= 8 )
+		{
+			buffer->rbuffer = buffer->data[ buffer->pos++ ];
+			buffer->bitpos = 0;
+		}
+
+		data |= ((buffer->rbuffer>>buffer->bitpos++)&0x01)<<i;
 	}
 
 	return data;
@@ -146,12 +154,10 @@ unsigned char get_data_byte( struct databuffer *buffer )
 {
 	unsigned char data;
 
-	if( buffer->pos%8 != 0 )
-		buffer->pos += (8-buffer->pos%8);
+	if( buffer->bitpos != 0 )
+		buffer->bitpos = 0;
 
-	data = buffer->data[ buffer->pos/8 ];
-
-	buffer->pos += 8;
+	data = buffer->data[ buffer->pos++ ];
 
 	return data;
 }

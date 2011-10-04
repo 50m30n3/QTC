@@ -4,8 +4,10 @@
 struct databuffer
 {
 	unsigned char *data;
+	unsigned char wbuffer, rbuffer;
 	unsigned int datasize;
-	unsigned int size, pos, bits;
+	unsigned int size, bits;
+	unsigned int pos, bitpos;
 };
 
 extern struct databuffer *create_databuffer( unsigned int size );
