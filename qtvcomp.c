@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
 	unsigned long int insize, bsize, outsize;
 	int done, tmp, keyframe, framenum;
 	int transform;
-	int rangecomp;
+	int rangecomp, compress;
 	int minsize;
 	int maxdepth;
 	int maxerror;
@@ -229,7 +229,12 @@ int main( int argc, char *argv[] )
 
 			compimage.transform = transform;
 
-			if( ! ( outsize += qtv_write_frame( &video, &compimage, rangecomp, keyframe ) ) )
+			if( qti_getsize( &compimage ) <= 4 )
+				compress = 0;
+			else
+				compress = rangecomp;
+
+			if( ! ( outsize += qtv_write_frame( &video, &compimage, compress, keyframe ) ) )
 				return 0;
 
 			image_copy( &image, &refimage );
