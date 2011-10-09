@@ -360,6 +360,8 @@ int main( int argc, char *argv[] )
 		if( ! qtv_read_header( &video, infile ) )
 			return 0;
 
+		qtv_seek( &video, startframe );
+
 		image_create( &refimage, video.width, video.height );
 
 		do
