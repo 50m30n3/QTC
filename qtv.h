@@ -29,7 +29,7 @@ extern int qtv_write_frame( struct qtv *video, struct qti *image, int compress, 
 extern int qtv_read_header( struct qtv *video, char filename[] );
 extern int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe );
 extern int qtv_can_read_frame( struct qtv *video );
-extern void qtv_seek( struct qtv *video, int frame );
+extern int qtv_seek( struct qtv *video, int frame );
 extern int qtv_write_index( struct qtv *video );
 extern void qtv_free( struct qtv *video );
 

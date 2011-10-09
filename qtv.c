@@ -94,7 +94,7 @@ int qtv_read_header( struct qtv *video, char filename[] )
 
 			if( fseek( qtv, -sizeof( idx_offset ), SEEK_END ) == -1 )
 			{
-				fputs( "qtv_read_header: fseek:\n", stderr );
+				perror( "qtv_read_header: fseek" );
 				fclose( qtv );
 				return 0;
 			}
@@ -108,7 +108,7 @@ int qtv_read_header( struct qtv *video, char filename[] )
 
 			if( fseek( qtv, -idx_offset, SEEK_END ) == -1 )
 			{
-				fputs( "qtv_read_header: fseek:\n", stderr );
+				perror( "qtv_read_header: fseek" );
 				fclose( qtv );
 				return 0;
 			}
@@ -149,7 +149,7 @@ int qtv_read_header( struct qtv *video, char filename[] )
 
 			if( fseek( qtv, 18, SEEK_SET ) == -1 )
 			{
-				fputs( "qtv_read_header: fseek:\n", stderr );
+				perror( "qtv_read_header: fseek" );
 				fclose( qtv );
 				return 0;
 			}
@@ -600,7 +600,7 @@ int qtv_write_index( struct qtv *video )
 	return size;
 }
 
-void qtv_seek( struct qtv *video, int frame )
+int qtv_seek( struct qtv *video, int frame )
 {
 	int i;
 	
@@ -612,14 +612,24 @@ void qtv_seek( struct qtv *video, int frame )
 				break;
 			
 			video->framenum = i;
-			fseek( video->file, video->index[i].offset, SEEK_SET );
+			if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
+			{
+				perror( "qtv_seek: fseek" );
+				return 0;
+			}
 		}
 	}
 	else
 	{
 		video->framenum = 0;
-		fseek( video->file, 18, SEEK_SET );
+		if( fseek( video->file, 18, SEEK_SET ) == -1 )
+		{
+			perror( "qtv_seek: fseek" );
+			return 0;
+		}
 	}
+	
+	return 1;
 }
 
 void qtv_free( struct qtv *video )
