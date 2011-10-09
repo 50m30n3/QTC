@@ -4,7 +4,7 @@
 struct qtv_index
 {
 	int frame;
-	int offset;
+	long int offset;
 };
 
 struct qtv

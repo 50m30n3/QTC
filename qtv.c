@@ -19,7 +19,7 @@ int qtv_read_header( struct qtv *video, char filename[] )
 	int width, height, framerate;
 	unsigned char version, flags;
 	int numframes, idx_size, frame;
-	unsigned int offset, idx_offset;
+	long int offset, idx_offset;
 
 	if( filename == NULL )
 	{
@@ -572,7 +572,7 @@ int qtv_write_index( struct qtv *video )
 {
 	FILE *qtv;
 	int i;
-	unsigned int size;
+	long int size;
 
 	if( ! video->has_index )
 		return 0;
@@ -608,7 +608,7 @@ int qtv_seek( struct qtv *video, int frame )
 	{
 		for( i=0; i<video->idx_size; i++ )
 		{
-			if( video->index[i].frame >= frame )
+			if( video->index[i].frame > frame )
 				break;
 			
 			video->framenum = i;
