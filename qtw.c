@@ -605,6 +605,8 @@ int qtw_write_index( struct qtw *video )
 
 	qtw = video->file;
 
+	video->numblocks++;
+
 	size = 0;
 	
 	fwrite( &(video->numframes), sizeof( video->numframes ), 1, qtw );
