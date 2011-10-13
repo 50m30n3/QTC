@@ -610,13 +610,15 @@ int qtv_seek( struct qtv *video, int frame )
 		{
 			if( video->index[i].frame > frame )
 				break;
-			
-			video->framenum = i;
-			if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
-			{
-				perror( "qtv_seek: fseek" );
-				return 0;
-			}
+		}
+
+		i--;
+
+		video->framenum = video->index[i].frame;
+		if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
+		{
+			perror( "qtv_seek: fseek" );
+			return 0;
 		}
 	}
 	else
