@@ -550,6 +550,7 @@ int qtw_write_block( struct qtw *video )
 	fclose( video->blockfile );
 
 	video->blocknum++;
+	video->numblocks++;
 
 	snprintf( blockname, 256, "%s.%06i", video->basename, video->blocknum );
 		
