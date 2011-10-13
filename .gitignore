@@ -1,5 +1,7 @@
 *.o
 qticomp
 qtvcomp
+qtwcomp
 *.qtv
 *.qti
+*.qtw

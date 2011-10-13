@@ -1,4 +1,4 @@
-BINARIES = qtvcomp qticomp
+BINARIES = qtvcomp qticomp qtwcomp
 CC = gcc
 CFLAGS = -Wall -O4 -march=native
 LDFLAGS = -lm
@@ -15,8 +15,9 @@ all: $(BINARIES)
 	$(CC) $(CFLAGS) -c $<
 
 
-qtvcomp: qtvcomp.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.o
 qticomp: qticomp.o databuffer.o image.o ppm.o qtc.o qti.o rangecode.o
+qtvcomp: qtvcomp.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.o
+qtwcomp: qtwcomp.o databuffer.o image.o ppm.o qtc.o qti.o qtw.o rangecode.o
 
 
 databuffer.o: databuffer.c databuffer.h
@@ -27,8 +28,9 @@ qti.o: qti.c databuffer.h rangecode.h qti.h
 qticomp.o: qticomp.c image.h qti.h qtc.h ppm.h
 qtv.o: qtv.c databuffer.h rangecode.h qti.h qtv.h
 qtvcomp.o: qtvcomp.c image.h qti.h qtc.h qtv.h ppm.h
+qtw.o: qtw.c databuffer.h rangecode.h qti.h qtw.h
+qtwcomp.o: qtwcomp.c image.h qti.h qtc.h qtw.h ppm.h
 rangecode.o: rangecode.c databuffer.h rangecode.h
-
 
 
 .PHONY: clean
