@@ -83,47 +83,43 @@ int qtw_read_header( struct qtw *video, char filename[] )
 		video->width = width;
 		video->height = height;
 		video->framerate = framerate;
-		video->has_index = flags&0x01;
-		
-		if( video->has_index )
+
+		if( ( fread( &numframes, sizeof( numframes ), 1, qtw ) != 1 ) ||
+			( fread( &numblocks, sizeof( numblocks ), 1, qtw ) != 1 ) ||
+			( fread( &idx_size, sizeof( idx_size ), 1, qtw ) != 1 ) )
 		{
-			if( ( fread( &numframes, sizeof( numframes ), 1, qtw ) != 1 ) ||
-				( fread( &numblocks, sizeof( numblocks ), 1, qtw ) != 1 ) ||
-				( fread( &idx_size, sizeof( idx_size ), 1, qtw ) != 1 ) )
+			fputs( "qtw_read_header: Cannot read index header\n", stderr );
+			fclose( qtw );
+			return 0;
+		}
+
+		video->numframes = numframes;
+		video->numblocks = numblocks;
+		video->idx_size = idx_size;
+
+		video->idx_datasize = video->idx_size;
+		video->index = malloc( sizeof( *video->index ) * video->idx_datasize );
+		if( video->index == NULL )
+		{
+			perror( "qtw_read_header: malloc" );
+			fclose( qtw );
+			return 0;
+		}
+
+		for( i=0; i<video->idx_size; i++ )
+		{
+			if( ( fread( &frame, sizeof( frame ), 1, qtw ) != 1 ) ||
+				( fread( &blocknum, sizeof( blocknum ), 1, qtw ) != 1 ) ||
+				( fread( &offset, sizeof( offset ), 1, qtw ) != 1 ) )
 			{
-				fputs( "qtw_read_header: Cannot read index header\n", stderr );
+				fputs( "qtw_read_header: Cannot read index entry\n", stderr );
 				fclose( qtw );
 				return 0;
 			}
 
-			video->numframes = numframes;
-			video->numblocks = numblocks;
-			video->idx_size = idx_size;
-
-			video->idx_datasize = video->idx_size;
-			video->index = malloc( sizeof( *video->index ) * video->idx_datasize );
-			if( video->index == NULL )
-			{
-				perror( "qtw_read_header: malloc" );
-				fclose( qtw );
-				return 0;
-			}
-
-			for( i=0; i<video->idx_size; i++ )
-			{
-				if( ( fread( &frame, sizeof( frame ), 1, qtw ) != 1 ) ||
-					( fread( &blocknum, sizeof( blocknum ), 1, qtw ) != 1 ) ||
-					( fread( &offset, sizeof( offset ), 1, qtw ) != 1 ) )
-				{
-					fputs( "qtw_read_header: Cannot read index entry\n", stderr );
-					fclose( qtw );
-					return 0;
-				}
-
-				video->index[i].frame = frame;
-				video->index[i].block = blocknum;
-				video->index[i].offset = offset;
-			}
+			video->index[i].frame = frame;
+			video->index[i].block = blocknum;
+			video->index[i].offset = offset;
 		}
 
 		video->cmdcoder = rangecoder_create( 0 );
@@ -361,22 +357,7 @@ int qtw_read_frame( struct qtw *video, struct qti *image, int *keyframe )
 
 int qtw_can_read_frame( struct qtw *video )
 {
-	int tmp;
-
-	if( video->has_index )
-	{
-		return (video->framenum < video->numframes);
-	}
-	else
-	{
-		tmp = getc( video->blockfile );
-		if( feof( video->blockfile ) )
-			return 0;
-		else
-			ungetc( tmp, video->blockfile );
-
-		return 1;
-	}
+	return (video->framenum < video->numframes);
 }
 
 int qtw_write_header( struct qtw *video, char filename[] )
@@ -411,7 +392,7 @@ int qtw_write_header( struct qtw *video, char filename[] )
 
 		version = VERSION;
 		
-		flags = video->has_index&0x01;
+		flags = 0;
 		
 		fwrite( &(version), sizeof( version ), 1, qtw );
 		fwrite( &(video->width), sizeof( video->width ), 1, qtw );
@@ -531,7 +512,7 @@ int qtw_write_frame( struct qtw *video, struct qti *image, int compress, int key
 			size += sizeof( image->imagedata->size ) + image->imagedata->size;
 		}
 
-		if( ( video->has_index ) && ( keyframe ) )
+		if( keyframe )
 		{
 			video->index[video->idx_size].frame = video->numframes;
 			video->index[video->idx_size].block = video->blocknum;
@@ -584,28 +565,24 @@ int qtw_write_block( struct qtw *video )
 	return 1;
 }
 
-int qtw_create( int width, int height, int framerate, int index, struct qtw *video )
+int qtw_create( int width, int height, int framerate, struct qtw *video )
 {
 	video->width = width;
 	video->height = height;
 	video->framerate = framerate;
 	video->file = NULL;
-	video->has_index = index;
 	video->numframes = 0;
 	video->framenum = 0;
 	video->numblocks = 0;
 	video->blocknum = 0;
 
-	if( index )
+	video->idx_size = 0;
+	video->idx_datasize = 256;
+	video->index = malloc( sizeof( *video->index ) * video->idx_datasize );
+	if( video->index == NULL )
 	{
-		video->idx_size = 0;
-		video->idx_datasize = 256;
-		video->index = malloc( sizeof( *video->index ) * video->idx_datasize );
-		if( video->index == NULL )
-		{
-			perror( "qtw_create: malloc" );
-			return 0;
-		}
+		perror( "qtw_create: malloc" );
+		return 0;
 	}
 
 	video->cmdcoder = rangecoder_create( 0 );
@@ -624,9 +601,6 @@ int qtw_write_index( struct qtw *video )
 	FILE *qtw;
 	int i;
 	long int size;
-
-	if( ! video->has_index )
-		return 0;
 
 	qtw = video->file;
 
@@ -654,47 +628,35 @@ int qtw_seek( struct qtw *video, int frame )
 	int i;
 	char blockname[256];
 	
-	if( video->has_index )
+	for( i=0; i<video->idx_size; i++ )
 	{
-		for( i=0; i<video->idx_size; i++ )
+		if( video->index[i].frame > frame )
+			break;
+	}
+
+	i--;
+
+	if( video->blocknum != video->index[i].block )
+	{
+		fclose( video->blockfile );
+
+		video->blocknum = video->index[i].block;
+
+		snprintf( blockname, 256, "%s.%06i", video->basename, video->blocknum );
+
+		video->blockfile = fopen( blockname, "rb" );
+		if( video->blockfile == NULL )
 		{
-			if( video->index[i].frame > frame )
-				break;
-		}
-
-		i--;
-
-		if( video->blocknum != video->index[i].block )
-		{
-			fclose( video->blockfile );
-
-			video->blocknum = video->index[i].block;
-
-			snprintf( blockname, 256, "%s.%06i", video->basename, video->blocknum );
-
-			video->blockfile = fopen( blockname, "rb" );
-			if( video->blockfile == NULL )
-			{
-				perror( "qtw_seek: fopen" );
-				return 0;
-			}
-		}
-
-		video->framenum = video->index[i].frame;
-		if( fseek( video->blockfile, video->index[i].offset, SEEK_SET ) == -1 )
-		{
-			perror( "qtw_seek: fseek" );
+			perror( "qtw_seek: fopen" );
 			return 0;
 		}
 	}
-	else
+
+	video->framenum = video->index[i].frame;
+	if( fseek( video->blockfile, video->index[i].offset, SEEK_SET ) == -1 )
 	{
-		video->framenum = 0;
-		if( fseek( video->file, 18, SEEK_SET ) == -1 )
-		{
-			perror( "qtw_seek: fseek" );
-			return 0;
-		}
+		perror( "qtw_seek: fseek" );
+		return 0;
 	}
 	
 	return 1;
@@ -707,8 +669,7 @@ void qtw_free( struct qtw *video )
 	rangecoder_free( video->imgcoder );
 	video->imgcoder = NULL;
 	
-	if( video->has_index )
-		free( video->index );
+	free( video->index );
 	
 	if( ( video->file ) && ( video->file != stdout ) )
 		fclose( video->file );

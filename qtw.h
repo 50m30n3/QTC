@@ -22,12 +22,11 @@ struct qtw
 	struct rangecoder *cmdcoder;
 	struct rangecoder *imgcoder;
 	
-	int has_index;
 	struct qtw_index *index;
 	int idx_size, idx_datasize;
 };
 
-extern int qtw_create( int width, int height, int framerate, int index, struct qtw *video );
+extern int qtw_create( int width, int height, int framerate, struct qtw *video );
 extern int qtw_write_header( struct qtw *video, char filename[] );
 extern int qtw_write_frame( struct qtw *video, struct qti *image, int compress, int keyframe );
 extern int qtw_write_block( struct qtw *video );

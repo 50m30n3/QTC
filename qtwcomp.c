@@ -72,7 +72,6 @@ int main( int argc, char *argv[] )
 	int maxdepth;
 	int maxerror;
 	int lazyness;
-	int index;
 	int framerate, keyrate, startframe, numframes;
 	int blockrate, numblocks;
 	char mode;
@@ -88,14 +87,13 @@ int main( int argc, char *argv[] )
 	framerate = 25;
 	keyrate = 10;
 	blockrate = 10;
-	index = 0;
 	startframe = 0;
 	numframes = -1;
 	mode = 'c';
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvxf:n:t:s:d:l:e:r:k:b:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvf:n:t:s:d:l:e:r:k:b:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -110,10 +108,6 @@ int main( int argc, char *argv[] )
 
 			case 'v':
 				verbose = 1;
-			break;
-
-			case 'x':
-				index = 1;
 			break;
 
 			case 's':
@@ -209,7 +203,7 @@ int main( int argc, char *argv[] )
 
 			if( framenum == 0 )
 			{
-				qtw_create( image.width, image.height, framerate, index, &video );
+				qtw_create( image.width, image.height, framerate, &video );
 				qtw_write_header( &video, outfile );
 				
 				image_create( &refimage, image.width, image.height );
@@ -290,8 +284,7 @@ int main( int argc, char *argv[] )
 		}
 		while( ( ! done ) && ( framenum != numframes ) );
 
-		if( index )
-			outsize += qtw_write_index( &video );
+		outsize += qtw_write_index( &video );
 
 		image_free( &refimage );
 		qtw_free( &video );
