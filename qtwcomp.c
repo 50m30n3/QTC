@@ -64,7 +64,7 @@ int main( int argc, char *argv[] )
 	struct qtw video;
 
 	int opt, verbose;
-	unsigned long int insize, bsize, outsize;
+	unsigned long int insize, bsize, outsize, size;
 	int done, tmp, keyframe, framenum;
 	int transform;
 	int rangecomp, compress;
@@ -244,8 +244,10 @@ int main( int argc, char *argv[] )
 			else
 				compress = rangecomp;
 
-			if( ! ( outsize += qtw_write_frame( &video, &compimage, compress, keyframe ) ) )
+			if( ! ( size = qtw_write_frame( &video, &compimage, compress, keyframe ) ) )
 				return 0;
+
+			outsize += size;
 
 			image_copy( &image, &refimage );
 
@@ -274,10 +276,11 @@ int main( int argc, char *argv[] )
 
 			if( verbose )
 			{
-				fprintf( stderr, "\r\033[2KFrame:%i Block:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%%", framenum, numblocks,
-					insize/(framenum/framerate+1)/1024,
-					bsize/8/(framenum/framerate+1)/1024, (bsize/8)*100.0/insize,
-					outsize/(framenum/framerate+1)/1024, outsize*100.0/insize );
+				fprintf( stderr, "Frame:%i Block:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, numblocks,
+					(insize*8)/(framenum+1)*framerate/1000,
+					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
+					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
+					(size*8)*framerate/1000 );
 			}
 			
 			framenum++;
@@ -291,7 +294,7 @@ int main( int argc, char *argv[] )
 
 		if( verbose )
 		{
-			fprintf( stderr, "\nIn:%lumb Buff:%lumb,%f%% Out:%lumb,%f%%\n",
+			fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%%\n",
 				insize/1024/1024,
 				bsize/8/1024/1024, (bsize/8)*100.0/insize,
 				outsize/1024/1024, outsize*100.0/insize );

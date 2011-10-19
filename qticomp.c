@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
 		qti_free( &compimage );
 		
 		if( verbose )
-			fprintf( stderr, "In:%lub Buff:%lub,%f%% Out:%lub,%f%%\n", insize, bsize/8, (bsize/8)*100.0/insize, outsize, outsize*100.0/insize );
+			fprintf( stderr, "In:%luB Buff:%luB,%f%% Out:%luB,%f%%\n", insize, bsize/8, (bsize/8)*100.0/insize, outsize, outsize*100.0/insize );
 	}
 	else if( mode == 'd' )
 	{
