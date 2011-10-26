@@ -287,11 +287,14 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	
 		if( ( refimage != NULL ) && ( status == 0 ) )
 		{
-			for( x=x1; x<x2; x++ )
 			for( y=y1; y<y2; y++ )
 			{
-				i = x + y*output->width;
-				output->pixels[ i ] = refimage->pixels[ i ];
+				i = x1 + y*input->width;
+				for( x=x1; x<x2; x++ )
+				{
+					output->pixels[ i ] = refimage->pixels[ i ];
+					i++;
+				}
 			}
 		}
 		else
