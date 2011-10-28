@@ -73,7 +73,7 @@ int main( int argc, char *argv[] )
 	int maxerror;
 	int lazyness;
 	int framerate, keyrate, startframe, numframes;
-	int blockrate, numblocks;
+	int blockrate, numblocks, blocksize;
 	char mode;
 	char *infile, *outfile;
 
@@ -86,7 +86,7 @@ int main( int argc, char *argv[] )
 	lazyness = 0;
 	framerate = 25;
 	keyrate = 10;
-	blockrate = 10;
+	blockrate = 1024;
 	startframe = 0;
 	numframes = -1;
 	mode = 'c';
@@ -186,6 +186,8 @@ int main( int argc, char *argv[] )
 		done = 0;
 		framenum = 0;
 		numblocks = 0;
+		
+		blocksize = 0;
 
 		insize = 0;
 		bsize = 0;
@@ -198,6 +200,13 @@ int main( int argc, char *argv[] )
 			else
 				keyframe = framenum % ( keyrate * framerate ) == 0;
 
+			if( blocksize >= blockrate*1024 )
+			{
+				qtw_write_block( &video );
+				numblocks++;
+				blocksize = 0;
+			}
+
 			if( ! ppm_read( &image, infile ) )
 				return 0;
 
@@ -207,14 +216,6 @@ int main( int argc, char *argv[] )
 				qtw_write_header( &video, outfile );
 				
 				image_create( &refimage, image.width, image.height );
-			}
-			else
-			{
-				if( framenum % ( blockrate * framerate ) == 0 )
-				{
-					qtw_write_block( &video );
-					numblocks++;
-				}
 			}
 
 			insize += ( image.width * image.height * 3 );
@@ -248,6 +249,7 @@ int main( int argc, char *argv[] )
 				return 0;
 
 			outsize += size;
+			blocksize += size;
 
 			image_copy( &image, &refimage );
 
