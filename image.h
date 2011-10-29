@@ -28,7 +28,8 @@ extern void image_transform_fast( struct image *image );
 extern void image_transform_fast_rev( struct image *image );
 extern void image_transform( struct image *image );
 extern void image_transform_rev( struct image *image );
-
+extern void image_transform_multi( struct image *image );
+extern void image_transform_multi_rev( struct image *image );
 
 #endif
 

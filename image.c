@@ -172,18 +172,16 @@ void image_transform( struct image *image )
 			cerr += abs(p1.g - p.g);
 			cerr += abs(p1.b - p.b);
 
-			p2 = pixels[ i ];
-
 			if( ( aerr < berr ) && ( aerr < cerr ) )
-				p1 = pixels[ ia ];
+				p2 = pixels[ ia ];
 			else if( berr < cerr )
-				p1 = pixels[ ib ];
+				p2 = pixels[ ib ];
 			else
-				p1 = pixels[ ic ];
+				p2 = pixels[ ic ];
 
-			pixels[ i ].r -= p1.r;
-			pixels[ i ].g -= p1.g;
-			pixels[ i ].b -= p1.b;
+			pixels[ i ].r -= p2.r;
+			pixels[ i ].g -= p2.g;
+			pixels[ i ].b -= p2.b;
 		}
 		
 		i = y*width;
@@ -277,6 +275,187 @@ void image_transform_rev( struct image *image )
 			pixels[ i ].r += p1.r;
 			pixels[ i ].g += p1.g;
 			pixels[ i ].b += p1.b;
+		}
+	}
+}
+
+void image_transform_multi( struct image *image )
+{
+	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	struct pixel pa, pb, pc, p2;
+	struct pixel *pixels;
+	struct color p;
+
+	width = image->width;
+	height = image->height;
+	pixels = image->pixels;
+
+	for( y=height-1; y>0; y-- )
+	{
+		for( x=width-1; x>0; x-- )
+		{
+			i = x+y*width;
+			ia = i-1;
+			ib = i-width;
+			ic = i-1-width;
+
+			p.r = pixels[ ia ].r + pixels[ ib ].r - pixels[ ic ].r;
+			p.g = pixels[ ia ].g + pixels[ ib ].g - pixels[ ic ].g;
+			p.b = pixels[ ia ].b + pixels[ ib ].b - pixels[ ic ].b;
+
+			pa = pixels[ ia ];
+			pb = pixels[ ib ];
+			pc = pixels[ ic ];
+
+
+			aerr = abs(pa.r - p.r);
+			berr = abs(pb.r - p.r);
+			cerr = abs(pc.r - p.r);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.r = pa.r;
+			else if( berr < cerr )
+				p2.r = pb.r;
+			else
+				p2.r = pc.r;
+
+
+			aerr = abs(pa.g - p.g);
+			berr = abs(pb.g - p.g);
+			cerr = abs(pc.g - p.g);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.g = pa.g;
+			else if( berr < cerr )
+				p2.g = pb.g;
+			else
+				p2.g = pc.g;
+
+
+			aerr = abs(pa.b - p.b);
+			berr = abs(pb.b - p.b);
+			cerr = abs(pc.b - p.b);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.b = pa.b;
+			else if( berr < cerr )
+				p2.b = pb.b;
+			else
+				p2.b = pc.b;
+
+
+			pixels[ i ].r -= p2.r;
+			pixels[ i ].g -= p2.g;
+			pixels[ i ].b -= p2.b;
+		}
+		
+		i = y*width;
+
+		pb = pixels[ i-width ];
+		
+		pixels[ i ].r -= pb.r;
+		pixels[ i ].g -= pb.g;
+		pixels[ i ].b -= pb.b;
+	}
+
+	for( x=width-1; x>0; x-- )
+	{
+		i = x;
+
+		pa = pixels[ i-1 ];
+
+		pixels[ i ].r -= pa.r;
+		pixels[ i ].g -= pa.g;
+		pixels[ i ].b -= pa.b;
+	}
+}
+
+void image_transform_multi_rev( struct image *image )
+{
+	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	struct pixel pa, pb, pc, p2;
+	struct pixel *pixels;
+	struct color p;
+
+	width = image->width;
+	height = image->height;
+	pixels = image->pixels;
+
+	for( x=1; x<width; x++ )
+	{
+		i = x;
+
+		pa = pixels[ i-1 ];
+
+		pixels[ i ].r += pa.r;
+		pixels[ i ].g += pa.g;
+		pixels[ i ].b += pa.b;
+	}
+
+	for( y=1; y<height; y++ )
+	{
+		i = y*width;
+
+		pb = pixels[ i-width ];
+		
+		pixels[ i ].r += pb.r;
+		pixels[ i ].g += pb.g;
+		pixels[ i ].b += pb.b;
+		
+		for( x=1; x<width; x++ )
+		{
+			i = x+y*width;
+			ia = i-1;
+			ib = i-width;
+			ic = i-1-width;
+
+			p.r = pixels[ ia ].r + pixels[ ib ].r - pixels[ ic ].r;
+			p.g = pixels[ ia ].g + pixels[ ib ].g - pixels[ ic ].g;
+			p.b = pixels[ ia ].b + pixels[ ib ].b - pixels[ ic ].b;
+
+			pa = pixels[ ia ];
+			pb = pixels[ ib ];
+			pc = pixels[ ic ];
+
+
+			aerr = abs(pa.r - p.r);
+			berr = abs(pb.r - p.r);
+			cerr = abs(pc.r - p.r);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.r = pa.r;
+			else if( berr < cerr )
+				p2.r = pb.r;
+			else
+				p2.r = pc.r;
+
+
+			aerr = abs(pa.g - p.g);
+			berr = abs(pb.g - p.g);
+			cerr = abs(pc.g - p.g);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.g = pa.g;
+			else if( berr < cerr )
+				p2.g = pb.g;
+			else
+				p2.g = pc.g;
+
+
+			aerr = abs(pa.b - p.b);
+			berr = abs(pb.b - p.b);
+			cerr = abs(pc.b - p.b);
+
+			if( ( aerr < berr ) && ( aerr < cerr ) )
+				p2.b = pa.b;
+			else if( berr < cerr )
+				p2.b = pb.b;
+			else
+				p2.b = pc.b;
+
+			pixels[ i ].r += p2.r;
+			pixels[ i ].g += p2.g;
+			pixels[ i ].b += p2.b;
 		}
 	}
 }
