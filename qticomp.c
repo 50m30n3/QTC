@@ -115,8 +115,16 @@ int main( int argc, char *argv[] )
 		else if( transform == 3 )
 			image_transform_multi( &image );
 
-		if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
-			return 0;
+		if( colordiff )
+		{
+			if( ! qtc_compress_color_diff( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+				return 0;
+		}
+		else
+		{
+			if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+				return 0;
+		}
 
 		bsize = qti_getsize( &compimage );
 
@@ -137,8 +145,16 @@ int main( int argc, char *argv[] )
 		if( ! qti_read( &compimage, infile ) )
 			return 0;
 
-		if( ! qtc_decompress( &compimage, NULL, &image ) )
-			return 0;
+		if( compimage.colordiff )
+		{
+			if( ! qtc_decompress_color_diff( &compimage, NULL, &image ) )
+				return 0;
+		}
+		else
+		{
+			if( ! qtc_decompress( &compimage, NULL, &image ) )
+				return 0;
+		}
 
 		if( compimage.transform == 1 )
 			image_transform_fast_rev( &image );

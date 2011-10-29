@@ -237,13 +237,29 @@ int main( int argc, char *argv[] )
 
 			if( keyframe )
 			{
-				if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
-					return 0;
+				if( colordiff )
+				{
+					if( ! qtc_compress_color_diff( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+						return 0;
+				}
+				else
+				{
+					if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+						return 0;
+				}
 			}
 			else
 			{
-				if( ! qtc_compress( &image, &refimage, &compimage, maxerror, minsize, maxdepth, lazyness ) )
-					return 0;
+				if( colordiff )
+				{
+					if( ! qtc_compress_color_diff( &image, &refimage, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+						return 0;
+				}
+				else
+				{
+					if( ! qtc_compress( &image, &refimage, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+						return 0;
+				}
 			}
 
 			bsize += qti_getsize( &compimage );
@@ -334,13 +350,29 @@ int main( int argc, char *argv[] )
 
 			if( keyframe )
 			{
-				if( ! qtc_decompress( &compimage, NULL, &image ) )
-					return 0;
+				if( compimage.colordiff )
+				{
+					if( ! qtc_decompress_color_diff( &compimage, NULL, &image ) )
+						return 0;
+				}
+				else
+				{
+					if( ! qtc_decompress( &compimage, NULL, &image ) )
+						return 0;
+				}
 			}
 			else
 			{
-				if( ! qtc_decompress( &compimage, &refimage, &image ) )
-					return 0;
+				if( compimage.colordiff )
+				{
+					if( ! qtc_decompress_color_diff( &compimage, &refimage, &image ) )
+						return 0;
+				}
+				else
+				{
+					if( ! qtc_decompress( &compimage, &refimage, &image ) )
+						return 0;
+				}
 			}
 
 			image_copy( &image, &refimage );
