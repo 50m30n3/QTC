@@ -184,6 +184,7 @@ int qtw_read_frame( struct qtw *video, struct qti *image, int *keyframe )
 		image->maxdepth = maxdepth;
 		image->transform = flags&0x03;
 		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
+		image->colordiff = ( ( flags & (0x01<<3) ) >> 3 ) & 0x01;
 		*keyframe = ( ( flags & (0x01<<7) ) >> 7 ) & 0x01;
 
 		if( compress )
@@ -445,6 +446,7 @@ int qtw_write_frame( struct qtw *video, struct qti *image, int compress, int key
 		flags = 0;
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
+		flags |= ( image->colordiff & 0x01 ) << 3;
 		flags |= ( keyframe & 0x01 ) << 7;
 		
 		fwrite( &(flags), sizeof( flags ), 1, qtw );

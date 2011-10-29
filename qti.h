@@ -4,7 +4,7 @@
 struct qti
 {
 	int width, height;
-	int transform;
+	int transform, colordiff;
 	int minsize, maxdepth;
 
 	struct databuffer *imagedata;

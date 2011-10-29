@@ -15,7 +15,7 @@ int main( int argc, char *argv[] )
 
 	int opt, verbose;
 	unsigned long int insize, bsize, outsize;
-	int transform;
+	int transform, colordiff;
 	int rangecomp;
 	int minsize;
 	int maxdepth;
@@ -26,6 +26,7 @@ int main( int argc, char *argv[] )
 
 	verbose = 0;
 	transform = 0;
+	colordiff = 0;
 	rangecomp = 0;
 	minsize = 2;
 	maxdepth = 16;
@@ -35,7 +36,7 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvt:s:d:l:e:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvyt:s:d:l:e:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -46,6 +47,10 @@ int main( int argc, char *argv[] )
 
 			case 'c':
 				rangecomp = 1;
+			break;
+
+			case 'y':
+				colordiff = 1;
 			break;
 
 			case 'v':
@@ -100,6 +105,9 @@ int main( int argc, char *argv[] )
 
 		insize = image.width * image.height * 3;
 
+		if( colordiff )
+			image_color_diff( &image );
+
 		if( transform == 1 )
 			image_transform_fast( &image );
 		else if( transform == 2 )
@@ -113,6 +121,7 @@ int main( int argc, char *argv[] )
 		bsize = qti_getsize( &compimage );
 
 		compimage.transform = transform;
+		compimage.colordiff = colordiff;
 		
 		if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )
 			return 0;
@@ -137,7 +146,10 @@ int main( int argc, char *argv[] )
 			image_transform_rev( &image );
 		else if( compimage.transform == 3 )
 			image_transform_multi_rev( &image );
-		
+
+		if( compimage.colordiff )
+			image_color_diff_rev( &image );
+
 		if( ! ppm_write( &image, outfile ) )
 			return 0;
 		

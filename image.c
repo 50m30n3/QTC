@@ -38,6 +38,34 @@ void image_copy( struct image *in, struct image *out )
 		out->pixels[i] = in->pixels[i];
 }
 
+void image_color_diff( struct image *image )
+{
+	int i;
+	struct pixel *pixels;
+
+	pixels = image->pixels;
+
+	for( i=0; i<image->width*image->height; i++ )
+	{
+		pixels[ i ].r -= pixels[ i ].g;
+		pixels[ i ].b -= pixels[ i ].g;
+	}
+}
+
+void image_color_diff_rev( struct image *image )
+{
+	int i;
+	struct pixel *pixels;
+
+	pixels = image->pixels;
+
+	for( i=0; i<image->width*image->height; i++ )
+	{
+		pixels[ i ].r += pixels[ i ].g;
+		pixels[ i ].b += pixels[ i ].g;
+	}
+}
+
 void image_transform_fast( struct image *image )
 {
 	int x, y, i, width, height;
