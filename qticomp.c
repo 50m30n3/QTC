@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvyt:s:d:l:e:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvy:t:s:d:l:e:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -50,7 +50,8 @@ int main( int argc, char *argv[] )
 			break;
 
 			case 'y':
-				colordiff = 1;
+				if( sscanf( optarg, "%i", &colordiff ) != 1 )
+					fputs( "ERROR: Can not parse command line\n", stderr );
 			break;
 
 			case 'v':
@@ -105,7 +106,7 @@ int main( int argc, char *argv[] )
 
 		insize = image.width * image.height * 3;
 
-		if( colordiff )
+		if( colordiff >= 1 )
 			image_color_diff( &image );
 
 		if( transform == 1 )
@@ -115,7 +116,7 @@ int main( int argc, char *argv[] )
 		else if( transform == 3 )
 			image_transform_multi( &image );
 
-		if( colordiff )
+		if( colordiff >= 2 )
 		{
 			if( ! qtc_compress_color_diff( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
 				return 0;
@@ -145,7 +146,7 @@ int main( int argc, char *argv[] )
 		if( ! qti_read( &compimage, infile ) )
 			return 0;
 
-		if( compimage.colordiff )
+		if( compimage.colordiff >= 2 )
 		{
 			if( ! qtc_decompress_color_diff( &compimage, NULL, &image ) )
 				return 0;
@@ -163,7 +164,7 @@ int main( int argc, char *argv[] )
 		else if( compimage.transform == 3 )
 			image_transform_multi_rev( &image );
 
-		if( compimage.colordiff )
+		if( compimage.colordiff >= 1 )
 			image_color_diff_rev( &image );
 
 		if( ! ppm_write( &image, outfile ) )

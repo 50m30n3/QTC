@@ -83,7 +83,7 @@ int qti_read( struct qti *image, char filename[] )
 		image->maxdepth = maxdepth;
 		image->transform = flags&0x03;
 		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
-		image->colordiff = ( ( flags & (0x01<<3) ) >> 3 ) & 0x01;
+		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
 
 		if( compress )
 		{
@@ -259,7 +259,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		flags = 0;
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
-		flags |= ( image->colordiff & 0x01 ) << 3;
+		flags |= ( image->colordiff & 0x03 ) << 3;
 		version = VERSION;
 		
 		fwrite( &(version), sizeof( version ), 1, qti );
