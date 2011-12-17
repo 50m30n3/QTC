@@ -93,7 +93,7 @@ int ppm_read( struct image *image, char filename[] )
 
 		if( image->pixels != NULL )
 		{
-			if( fread( image->pixels, sizeof( *(image->pixels) ), width*height, ppm ) != width*height )
+			if( fread( image->pixels, sizeof( *(image->pixels) ), width*height, ppm ) != (unsigned int)(width*height) )
 			{
 				fputs( "ppm_read: Short read on image data\n", stderr );
 				if( ppm != stdin )
@@ -143,7 +143,7 @@ int ppm_write( struct image *image, char filename[] )
 	{
 		fprintf( ppm, "P6\n%i %i\n255\n", image->width, image->height );
 
-		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height, ppm ) != image->width*image->height )
+		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height, ppm ) != (unsigned int)(image->width*image->height ) )
 		{
 			fputs( "ppm_read: Short write on image data\n", stderr );
 

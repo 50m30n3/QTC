@@ -143,7 +143,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 	int x, y, cx, cy, i, si, ci;
 	int xmin, xmax, ymin, ymax;
 	unsigned char alpha;
-	XFixesCursorImage *xcim;
+	XFixesCursorImage *xcim = NULL;
 
 	if( grabber->mouse )
 	{
@@ -179,7 +179,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 		}
 	}
 
-	if( grabber->mouse )
+	if( xcim )
 	{
 		cx = xcim->x - xcim->xhot - grabber->x;
 		cy = xcim->y - xcim->yhot - grabber->y;

@@ -15,7 +15,8 @@ int interrupt;
 
 void sig_exit( int sig )
 {
-	interrupt = 1;
+	if( ( sig == SIGINT ) || ( sig == SIGTERM ) )
+		interrupt = 1;
 }
 
 unsigned long int get_time( void )
