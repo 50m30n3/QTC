@@ -2,6 +2,7 @@
 qticomp
 qtvcomp
 qtwcomp
+qtvcap
 *.qtv
 *.qti
 *.qtw
