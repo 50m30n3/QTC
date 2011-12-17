@@ -1,0 +1,10 @@
+#!/bin/bash
+
+stats="$(xwininfo -stats)"
+
+width=$(grep "Width:" <<< "$stats" | tr -d " " | cut -d":" -f2 )
+height=$(grep "Height:" <<< "$stats" | tr -d " " | cut -d":" -f2 )
+x=$(grep "Absolute upper-left X:" <<< "$stats" | tr -d " " | cut -d":" -f2 )
+y=$(grep "Absolute upper-left Y:" <<< "$stats" | tr -d " " | cut -d":" -f2 )
+
+echo "${width}x${height}+${x},${y}"
