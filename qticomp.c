@@ -19,7 +19,6 @@ int main( int argc, char *argv[] )
 	int rangecomp;
 	int minsize;
 	int maxdepth;
-	int maxerror;
 	int lazyness;
 	char mode;
 	char *infile, *outfile;
@@ -30,13 +29,12 @@ int main( int argc, char *argv[] )
 	rangecomp = 0;
 	minsize = 2;
 	maxdepth = 16;
-	maxerror = 0;
 	lazyness = 0;
 	mode = 'c';
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvy:t:s:d:l:e:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvy:t:s:d:l:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -70,11 +68,6 @@ int main( int argc, char *argv[] )
 
 			case 'l':
 				if( sscanf( optarg, "%i", &lazyness ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
-			break;
-
-			case 'e':
-				if( sscanf( optarg, "%i", &maxerror ) != 1 )
 					fputs( "ERROR: Can not parse command line\n", stderr );
 			break;
 
@@ -118,12 +111,12 @@ int main( int argc, char *argv[] )
 
 		if( colordiff >= 2 )
 		{
-			if( ! qtc_compress_color_diff( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+			if( ! qtc_compress_color_diff( &image, NULL, &compimage, minsize, maxdepth, lazyness ) )
 				return 0;
 		}
 		else
 		{
-			if( ! qtc_compress( &image, NULL, &compimage, maxerror, minsize, maxdepth, lazyness ) )
+			if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness ) )
 				return 0;
 		}
 

@@ -7,7 +7,7 @@
 
 #include "qtc.h"
 
-int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int maxerror, int minsize, int maxdepth, int lazyness )
+int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness )
 {
 	struct databuffer *commanddata, *imagedata;
 
@@ -21,98 +21,21 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	{
 		int x, y, sx, sy, i;
 		struct pixel p1, p2;
-		struct color avgcolor;
 		int error;
 
 		if( depth >= lazyness )
 		{
-			error = 0;
-
 			if( refimage != NULL )
 			{
-				if( maxerror == 0 )
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-						for( x=x1; x<x2; x++ )
-						{
-							p1 = input->pixels[ i ];
-							p2 = refimage->pixels[ i ];
-
-							if( ( p1.r != p2.r ) || ( p1.g != p2.g ) || ( p1.b != p2.b ) )
-							{
-								error = 1;
-								break;
-							}
-
-							i++;				
-						}
-				
-						if( error )
-							break;
-					}
-			
-					if( error )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-				else
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-
-						for( x=x1; x<x2; x++ )
-						{
-							p1 = input->pixels[ i ];
-							p2 = refimage->pixels[ i ];
-							
-							error += abs( p1.r - p2.r );
-							error += abs( p1.g - p2.g );
-							error += abs( p1.b - p2.b );
-
-							if( error > maxerror )
-								break;
-
-							i++;
-						}
-				
-						if( error > maxerror )
-							break;
-					}
-			
-					if( error > maxerror )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-			}
-
-
-			error = 0;
-
-			if( maxerror == 0 )
-			{
-				p1 = input->pixels[ x1 + y1*input->width ];
+				error = 0;
 
 				for( y=y1; y<y2; y++ )
 				{
 					i = x1 + y*input->width;
 					for( x=x1; x<x2; x++ )
 					{
-						p2 = input->pixels[ i++ ];
+						p1 = input->pixels[ i ];
+						p2 = refimage->pixels[ i ];
 
 						if( ( p1.r != p2.r ) || ( p1.g != p2.g ) || ( p1.b != p2.b ) )
 						{
@@ -120,73 +43,61 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 							break;
 						}
 
-						if( error )
-							break;
+						i++;				
 					}
-	
+			
 					if( error )
 						break;
 				}
-			}
-			else
-			{
-				avgcolor.r = 0;
-				avgcolor.g = 0;
-				avgcolor.b = 0;
-
-				for( y=y1; y<y2; y++ )
+		
+				if( error )
 				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						p1 = input->pixels[ i++ ];
-					
-						avgcolor.r += p1.r;
-						avgcolor.g += p1.g;
-						avgcolor.b += p1.b;
-					}
+					databuffer_add_bits( 1, commanddata, 1 );
 				}
-
-				p1.r = avgcolor.r / ((x2-x1)*(y2-y1));
-				p1.g = avgcolor.g / ((x2-x1)*(y2-y1));
-				p1.b = avgcolor.b / ((x2-x1)*(y2-y1));
-
-//				p1 = input->pixels[ (x1+(x2-x1)/2) + (y1+(y2-y1)/2)*input->width ];
-
-				for( y=y1; y<y2; y++ )
+				else
 				{
-					i = x1 + y*input->width;
+					databuffer_add_bits( 0, commanddata, 1 );
+					return;
+				}
+			}
 
-					for( x=x1; x<x2; x++ )
+
+			error = 0;
+
+			p1 = input->pixels[ x1 + y1*input->width ];
+
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*input->width;
+				for( x=x1; x<x2; x++ )
+				{
+					p2 = input->pixels[ i++ ];
+
+					if( ( p1.r != p2.r ) || ( p1.g != p2.g ) || ( p1.b != p2.b ) )
 					{
-						p2 = input->pixels[ i++ ];
-						
-						error += abs( p1.r - p2.r );
-						error += abs( p1.g - p2.g );
-						error += abs( p1.b - p2.b );
-
-						if( error > maxerror )
-							break;
-			
+						error = 1;
+						break;
 					}
 
-					if( error > maxerror )
+					if( error )
 						break;
 				}
-			}
 
+				if( error )
+					break;
+			}
 		}
 		else
 		{
 			if( refimage != NULL )
 				databuffer_add_bits( 1, commanddata, 1 );
 
-			error = maxerror+1;
+			error = 1;
 			
 			p1 = input->pixels[ x1 + y1*input->width ];
 		}
 
-		if( error > maxerror )
+		if( error )
 		{
 			databuffer_add_bits( 0, commanddata, 1 );
 			if( depth < maxdepth )
@@ -520,7 +431,7 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 }
 
 
-int qtc_compress_color_diff( struct image *input, struct image *refimage, struct qti *output, int maxerror, int minsize, int maxdepth, int lazyness )
+int qtc_compress_color_diff( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness )
 {
 	struct databuffer *commanddata, *imagedata;
 
@@ -534,147 +445,78 @@ int qtc_compress_color_diff( struct image *input, struct image *refimage, struct
 	{
 		int x, y, sx, sy, i;
 		struct pixel p1;
-		int avgcolor;
 		int error;
 
 		if( depth >= lazyness )
 		{
-			error = 0;
-
 			if( refimage != NULL )
 			{
-				if( maxerror == 0 )
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-						for( x=x1; x<x2; x++ )
-						{
-							if( input->pixels[ i ].g != refimage->pixels[ i ].g )
-							{
-								error = 1;
-								break;
-							}
-
-							i++;				
-						}
-				
-						if( error )
-							break;
-					}
-			
-					if( error )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-				else
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-
-						for( x=x1; x<x2; x++ )
-						{
-							error += abs( input->pixels[ i ].g - refimage->pixels[ i ].g );
-
-							if( error > maxerror )
-								break;
-
-							i++;
-						}
-				
-						if( error > maxerror )
-							break;
-					}
-			
-					if( error > maxerror )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-			}
-
-
-			error = 0;
-
-			if( maxerror == 0 )
-			{
-				p1 = input->pixels[ x1 + y1*input->width ];
+				error = 0;
 
 				for( y=y1; y<y2; y++ )
 				{
 					i = x1 + y*input->width;
 					for( x=x1; x<x2; x++ )
 					{
-						if( p1.g != input->pixels[ i++ ].g )
+						if( input->pixels[ i ].g != refimage->pixels[ i ].g )
 						{
 							error = 1;
 							break;
 						}
 
-						if( error )
-							break;
+						i++;				
 					}
-	
+			
 					if( error )
 						break;
 				}
-			}
-			else
-			{
-				avgcolor = 0;
-
-				for( y=y1; y<y2; y++ )
+		
+				if( error )
 				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-						avgcolor += input->pixels[ i++ ].g;
+					databuffer_add_bits( 1, commanddata, 1 );
 				}
-
-				avgcolor /= ((x2-x1)*(y2-y1));
-				p1.g = avgcolor;
-
-				for( y=y1; y<y2; y++ )
+				else
 				{
-					i = x1 + y*input->width;
+					databuffer_add_bits( 0, commanddata, 1 );
+					return;
+				}
+			}
 
-					for( x=x1; x<x2; x++ )
+
+			error = 0;
+
+			p1 = input->pixels[ x1 + y1*input->width ];
+
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*input->width;
+				for( x=x1; x<x2; x++ )
+				{
+					if( p1.g != input->pixels[ i++ ].g )
 					{
-						error += abs( avgcolor - input->pixels[ i++ ].g );
-
-						if( error > maxerror )
-							break;
-			
+						error = 1;
+						break;
 					}
 
-					if( error > maxerror )
+					if( error )
 						break;
 				}
-			}
 
+				if( error )
+					break;
+			}
 		}
 		else
 		{
 			if( refimage != NULL )
 				databuffer_add_bits( 1, commanddata, 1 );
 
-			error = maxerror+1;
+			error = 1;
 			
 			p1 = input->pixels[ x1 + y1*input->width ];
 		}
 
-		if( error > maxerror )
+		if( error )
 		{
 			databuffer_add_bits( 0, commanddata, 1 );
 			if( depth < maxdepth )
@@ -738,97 +580,21 @@ int qtc_compress_color_diff( struct image *input, struct image *refimage, struct
 	{
 		int x, y, sx, sy, i;
 		struct pixel p1, p2;
-		struct color avgcolor;
 		int error;
 
 		if( depth >= lazyness )
 		{
-			error = 0;
-
 			if( refimage != NULL )
 			{
-				if( maxerror == 0 )
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-						for( x=x1; x<x2; x++ )
-						{
-							p1 = input->pixels[ i ];
-							p2 = refimage->pixels[ i ];
-
-							if( ( p1.r != p2.r ) || ( p1.b != p2.b ) )
-							{
-								error = 1;
-								break;
-							}
-
-							i++;				
-						}
-				
-						if( error )
-							break;
-					}
-			
-					if( error )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-				else
-				{
-					for( y=y1; y<y2; y++ )
-					{
-						i = x1 + y*input->width;
-
-						for( x=x1; x<x2; x++ )
-						{
-							p1 = input->pixels[ i ];
-							p2 = refimage->pixels[ i ];
-							
-							error += abs( p1.r - p2.r );
-							error += abs( p1.b - p2.b );
-
-							if( error > maxerror )
-								break;
-
-							i++;
-						}
-				
-						if( error > maxerror )
-							break;
-					}
-			
-					if( error > maxerror )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						return;
-					}
-				}
-			}
-
-
-			error = 0;
-
-			if( maxerror == 0 )
-			{
-				p1 = input->pixels[ x1 + y1*input->width ];
+				error = 0;
 
 				for( y=y1; y<y2; y++ )
 				{
 					i = x1 + y*input->width;
 					for( x=x1; x<x2; x++ )
 					{
-						p2 = input->pixels[ i++ ];
+						p1 = input->pixels[ i ];
+						p2 = refimage->pixels[ i ];
 
 						if( ( p1.r != p2.r ) || ( p1.b != p2.b ) )
 						{
@@ -836,67 +602,61 @@ int qtc_compress_color_diff( struct image *input, struct image *refimage, struct
 							break;
 						}
 
-						if( error )
-							break;
+						i++;				
 					}
-	
+			
 					if( error )
 						break;
 				}
-			}
-			else
-			{
-				avgcolor.r = 0;
-				avgcolor.b = 0;
-
-				for( y=y1; y<y2; y++ )
+		
+				if( error )
 				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						p1 = input->pixels[ i++ ];
-					
-						avgcolor.r += p1.r;
-						avgcolor.b += p1.b;
-					}
+					databuffer_add_bits( 1, commanddata, 1 );
 				}
-
-				p1.r = avgcolor.r / ((x2-x1)*(y2-y1));
-				p1.b = avgcolor.b / ((x2-x1)*(y2-y1));
-
-				for( y=y1; y<y2; y++ )
+				else
 				{
-					i = x1 + y*input->width;
+					databuffer_add_bits( 0, commanddata, 1 );
+					return;
+				}
+			}
 
-					for( x=x1; x<x2; x++ )
+
+			error = 0;
+
+			p1 = input->pixels[ x1 + y1*input->width ];
+
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*input->width;
+				for( x=x1; x<x2; x++ )
+				{
+					p2 = input->pixels[ i++ ];
+
+					if( ( p1.r != p2.r ) || ( p1.b != p2.b ) )
 					{
-						p2 = input->pixels[ i++ ];
-						
-						error += abs( p1.r - p2.r );
-						error += abs( p1.b - p2.b );
-
-						if( error > maxerror )
-							break;
-			
+						error = 1;
+						break;
 					}
 
-					if( error > maxerror )
+					if( error )
 						break;
 				}
-			}
 
+				if( error )
+					break;
+			}
 		}
 		else
 		{
 			if( refimage != NULL )
 				databuffer_add_bits( 1, commanddata, 1 );
 
-			error = maxerror+1;
+			error = 1;
 			
 			p1 = input->pixels[ x1 + y1*input->width ];
 		}
 
-		if( error > maxerror )
+		if( error )
 		{
 			databuffer_add_bits( 0, commanddata, 1 );
 			if( depth < maxdepth )
