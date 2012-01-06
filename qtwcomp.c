@@ -227,8 +227,6 @@ int main( int argc, char *argv[] )
 				image_transform_fast( &image );
 			else if( transform == 2 )
 				image_transform( &image );
-			else if( transform == 3 )
-				image_transform_multi( &image );
 
 			if( keyframe )
 			{
@@ -376,8 +374,6 @@ int main( int argc, char *argv[] )
 				image_transform_fast_rev( &image );
 			else if( compimage.transform == 2 )
 				image_transform_rev( &image );
-			else if( compimage.transform == 3 )
-				image_transform_multi_rev( &image );
 
 			if( compimage.colordiff >= 1 )
 				image_color_diff_rev( &image );

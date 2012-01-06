@@ -234,8 +234,6 @@ int main( int argc, char *argv[] )
 			image_transform_fast( &image );
 		else if( transform == 2 )
 			image_transform( &image );
-		else if( transform == 3 )
-			image_transform_multi( &image );
 
 		if( keyframe )
 		{
