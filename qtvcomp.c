@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
 			else
 				keyframe = framenum % ( keyrate * framerate ) == 0;
 
-			if( blocksize >= blockrate*1024 )
+			if( ( qtw ) && ( blocksize >= blockrate*1024 ) )
 			{
 				qtv_write_block( &video );
 				numblocks++;
