@@ -102,6 +102,8 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 
 		video->framenum = 0;
 		video->numframes = 0;
+		video->blocknum = 0;
+		video->numblocks = 0;
 		video->width = width;
 		video->height = height;
 		video->framerate = framerate;
@@ -111,7 +113,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		if( qtv == stdin )
 			video->has_index = 0;
 
-		if( is_qtw && !video->has_index )
+		if( ( is_qtw ) && ( ! video->has_index ) )
 		{
 			fputs( "qtv_read_header: Cannot read QTW files without index\n", stderr );
 			return 0;
