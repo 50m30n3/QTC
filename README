@@ -1,0 +1,237 @@
+QTC by 50m30n3 2012
+
+
+OVERVIEW
+
+Like PNG, but for video!
+
+The QTC codec is a losless video and still image codec for "pixel graphics".
+It uses quad trees to quickly find and encode constant and unchanged areas in
+image sequences or single images.
+
+QTC is designed for "pixel graphics". Its main goal is to loslessy encode screen
+captures at high frame rates. It is not suited for encoding photos, film,
+or captures of computer games, although it is certainly capable of doing so.
+
+QTC uses full 24bit RGB color internally to avoid conversion artefacts.
+Encoding and decoding should be bit exact under all circumstances.
+
+There are currently 3 file formats associated with this codec:
+	QTI - Still image container
+	QTV - Video container
+	QTW - Video container for Web usage
+
+QTW files are split into multiple blocks to make streaming using Javascript and
+HTTP easier.
+
+Both video file containers support indexing and seeking. Adapting the codec for
+other container formats should be trivial and is left as an excercise for the
+reader. (HAHAHAHAHA)
+
+The supplied programs implement a full featured QTC decoder and encoder in plain
+C code. The only exception is the quad tree compressor itself which uses local
+functions. This is not supported by all compilers.
+This reference implementation is not tweaked for speed or minimal file size.
+All parameters are set on a per file basis, but the format is theoretically
+capable of varying parameters dynamically per frame.
+A lot of algorithmical and micro optimizations are omitted for the sake of
+clarity.
+
+Programs:
+	qtienc - Still image encoder
+	qtidec - Still image decoder
+	qtvenc - Video encoder
+	qtvdec - Video decoder
+	qtvcap - Screen capture program
+
+Aside from the screen capture program, which is build for the X Window System,
+all programs should be portable and rely on no external dependencies.
+
+
+USAGE
+
+All programs read and write binary ppm files for uncompressed files.
+The video en/decoders read/write image sequences in the form of img001.ppm,
+img002.ppm, img003.ppm.... Simply pass the name of the first file.
+
+qtienc:
+	-t [0..2]		-	Use image transforms (0)
+	-c				-	Compress output data
+	-y [0..2]		-	Use fakeyuv transform (0)
+	-v				-	Be verbose
+	-s [1..]		-	Minimal block size (2)
+	-d [0..]		-	Maximum recursion depth (16)
+	-l [0..]		-	Lazyness
+	-i filename		-	Input file (-)
+	-o filename		-	Output file (-)
+
+qtidec:
+	-a				-	Analyze image
+	-i filename		-	Input file (-)
+	-o filename		-	Output file (-)
+
+qtvenc:
+	-t [0..2]		-	Use image transforms (0)
+	-c				-	Compress output data
+	-w				-	Create QTW file
+	-y [0..2]		-	Use fakeyuv transform (0)
+	-v				-	Be verbose
+	-x				-	Create index (Needs keyframes)
+	-s [1..]		-	Minimal block size (2)
+	-n [1..]		-	Limit number of frames to encode
+	-r [1..]		-	Framerate (25)
+	-k [1..]		-	Place keyframes every X seconds
+	-b [1..]		-	Maximum size of one QTW block in kiB (1024)
+	-d [0..]		-	Maximum recursion depth (16)
+	-l [0..]		-	Lazyness
+	-i filename		-	Input file (-)
+	-o filename		-	Output file (-)
+
+qtvdec:
+	-w				-	Create QTW file
+	-a				-	Analyze image
+	-f [1..]		-	Begin decoding at specific frame (Needs index)
+	-n [1..]		-	Limit number of frames to decode
+	-i filename		-	Input file (-)
+	-o filename		-	Output file (-)
+
+qtvcap:
+	-t [0..2]		-	Use image transforms (0)
+	-c				-	Compress output data
+	-y [0..2]		-	Use fakeyuv transform (0)
+	-v				-	Be verbose
+	-x				-	Create index (Needs keyframes)
+	-m				-	Capture Mouse
+	-g geometry		-	Specify capture region
+	-s [1..]		-	Minimal block size (2)
+	-n [1..]		-	Limit number of frames to encode
+	-r [1..]		-	Framerate (25)
+	-k [1..]		-	Place keyframes every X seconds
+	-d [0..]		-	Maximum recursion depth (16)
+	-l [0..]		-	Lazyness
+	-i filename		-	Input screen ($DISPLAY)
+	-o filename		-	Output file (-)
+
+
+OPTIONS
+
+-t:
+	0 - Don't use image transforms (faster, big)
+	1 - Use simplified paeth transform (fast, small)
+	2 - Use full paeth transform (slow, smaller)
+
+-c:
+	Compress output data using entropy coding (slower, smaller)
+
+-y:
+	0 - Don't transform color data (fast, big)
+	1 - Transform color data using fakeyuv transform (fast, small)
+	2 - Also seperate color data during compression (still pretty fast, smaller)
+
+-v:
+	Print some stats like compression ratio and FPS
+
+-s:
+	Minimal block size. Small values reduce the amount of data after quad tree
+	compression. Makes entropy coding slightly less efficient.
+	When using entropy coding 4-8 is optimal, otherwise 1-2.
+	Bigger is faster.
+
+-d:
+	Maximum recursion depth during quad tree compression. Setting this to 0
+	disables the quad tree compression.
+
+-l:
+	Subdivide quad tree n times before beginning real compression.
+	Saves a bit of time but introduces a tiny overhead.
+	Values around 3 make sense for FullHD material.
+
+-i:
+	Input file name. File to read input from. When not set or "-" read from
+	stdin. For image sequences specify the first file. Numbers need leading
+	zeroes. For QTW files pass the file without number postfix.
+	For qtvcap this contains the X screen to capture from.
+
+-o:
+	Output file name. File to write output to. When not set or "-" write to
+	stdout. For image sequences specify the first file. Numbers need leading
+	zeroes. For QTW files additional block files with numbered postfixes are
+	created.
+
+-a:
+	Create a color coded analysis image showing types of blocks and
+	subdivisions. Green blocks are simplified blocks, red blocks are literal
+	blocks, blue blocks are reference blocks. 
+
+-w:
+	Create a QTW file instead of a QTV file. QTW files are designed for web
+	usage and Javascript streaming. The file itself only contains the header and
+	index. The video data is written to sequentially numbered block files for
+	easier streaming and seeking using Javascript and HTTP.
+	QTW files always have an index.
+
+-x:
+	Append an index to the file containing a list of keyframes, thier offset,
+	and in the case of QTW files, thier block number. This allows for seeking
+	inside the video stream.
+
+-n:
+	Only encode a certain number of frames.
+
+-r:
+	Framerate.
+
+-k:
+	Keyframe rate. Place a keyframe every X seconds. Higher values increase the
+	file size since keyframes are bigger, but allow for more accurate seeking.
+	Every 5-10 seconds sould be ok.
+
+-b:
+	Maximum size of one QTW block in kb. Smaller values create more files and
+	therefore more server requests but allow for smaller buffer and seek times.
+
+-m:
+	Include mouse cursor in screen capture.
+
+-g:
+	Specify the capture region. The region is in the format WxH+X,Y.
+	W and H are the size of the region, X and Y the offset from the top left
+	screen corner.
+	You can use the "getgeom" script to query the geomery of a window by
+	clicking ok it.
+
+
+EXAMPLES
+
+Encode a still image (simple):
+$ qtienc -i image.ppm -o image.qti
+
+Encode a still image (high compression):
+$ qtienc -y2 -t2 -s8 -c -i image.ppm -o image.qti
+
+Encode an image sequence (simple):
+$ qtvenc -i frame0000.ppm -o video.qtv
+
+Encode an image sequence (fast):
+$ qtvenc -l3 -i frame0000.ppm -o video.qtv
+
+Encode an image sequence (high compression):
+$ qtvenc -y2 -t2 -s4 -c -i frame0000.ppm -o video.qtv
+
+Reencode a video:
+$ qtvdec -i video_old.qtv | qtvenc -y2 -t2 -s4 -c -o video_new.qtv
+
+Reencode a video for web into a seperate directory:
+$ mkdir video.qtw
+$ qtvdec -i video.qtv | qtvenc -y2 -t2 -s4 -c -o video.qtw/video
+
+Decode a video into an image sequence:
+$ qtvdec -i video.qtv -o frame0000.ppm
+
+Capture a fullscreen video:
+$ qtvcap -l3 -m -o capture.qtv
+
+Capture a video of a single window:
+$ qtvcap -l3 -m -g $(getgeom) -o capture.qtv
+
+
