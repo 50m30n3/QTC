@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
 		{
 			case 't':
 				if( sscanf( optarg, "%i", &transform ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -t\n", stderr );
 			break;
 
 			case 'c':
@@ -75,7 +75,7 @@ int main( int argc, char *argv[] )
 
 			case 'y':
 				if( sscanf( optarg, "%i", &colordiff ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -y\n", stderr );
 			break;
 
 			case 'v':
@@ -88,37 +88,37 @@ int main( int argc, char *argv[] )
 
 			case 's':
 				if( sscanf( optarg, "%i", &minsize ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -s\n", stderr );
 			break;
 
 			case 'n':
 				if( sscanf( optarg, "%i", &numframes ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -n\n", stderr );
 			break;
 
 			case 'r':
 				if( sscanf( optarg, "%i", &framerate ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -r\n", stderr );
 			break;
 
 			case 'k':
 				if( sscanf( optarg, "%i", &keyrate ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -k\n", stderr );
 			break;
 
 			case 'b':
 				if( sscanf( optarg, "%i", &blockrate ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -b\n", stderr );
 			break;
 
 			case 'd':
 				if( sscanf( optarg, "%i", &maxdepth ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -d\n", stderr );
 			break;
 
 			case 'l':
 				if( sscanf( optarg, "%i", &lazyness ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -l\n", stderr );
 			break;
 
 			case 'i':
@@ -131,10 +131,64 @@ int main( int argc, char *argv[] )
 
 			default:
 			case '?':
-				fputs( "ERROR: Can not parse command line\n", stderr );
+				fputs( "main: Can not parse command line: unknown option\n", stderr );
 				return 1;
 			break;
 		}
+	}
+
+	if( ( transform < 0 ) || ( transform > 2 ) )
+	{
+		fputs( "main: Transform mode out of range\n", stderr );
+		return 1;
+	}
+
+	if( ( colordiff < 0 ) || ( colordiff > 2 ) )
+	{
+		fputs( "main: Fakeyuv mode out of range\n", stderr );
+		return 1;
+	}
+
+	if( minsize < 0 )
+	{
+		fputs( "main: Mininmal block size out of range\n", stderr );
+		return 1;
+	}
+
+	if( maxdepth < 0 )
+	{
+		fputs( "main: Maximum recursion depth out of range\n", stderr );
+		return 1;
+	}
+
+	if( lazyness < 0 )
+	{
+		fputs( "main: Lazyness recursion depth out of range\n", stderr );
+		return 1;
+	}
+
+	if( numframes < -1 )
+	{
+		fputs( "main: Number of frames out of range\n", stderr );
+		return 1;
+	}
+
+	if( framerate < 0 )
+	{
+		fputs( "main: Frame rate out of range\n", stderr );
+		return 1;
+	}
+
+	if( keyrate < 0 )
+	{
+		fputs( "main: Keyframe rate out of range\n", stderr );
+		return 1;
+	}
+
+	if( blockrate < 0 )
+	{
+		fputs( "main: Maximum block size out of range\n", stderr );
+		return 1;
 	}
 
 	interrupt = 0;

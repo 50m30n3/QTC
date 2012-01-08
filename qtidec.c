@@ -38,7 +38,7 @@ int main( int argc, char *argv[] )
 
 			default:
 			case '?':
-				fputs( "ERROR: Can not parse command line\n", stderr );
+				fputs( "main: Can not parse command line: unknown option\n", stderr );
 				return 1;
 			break;
 		}

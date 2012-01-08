@@ -51,12 +51,12 @@ int main( int argc, char *argv[] )
 
 			case 'f':
 				if( sscanf( optarg, "%i", &startframe ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -f\n", stderr );
 			break;
 
 			case 'n':
 				if( sscanf( optarg, "%i", &numframes ) != 1 )
-					fputs( "ERROR: Can not parse command line\n", stderr );
+					fputs( "main: Can not parse command line: -n\n", stderr );
 			break;
 
 			case 'i':
@@ -69,10 +69,22 @@ int main( int argc, char *argv[] )
 
 			default:
 			case '?':
-				fputs( "ERROR: Can not parse command line\n", stderr );
+				fputs( "main: Can not parse command line: unknown option\n", stderr );
 				return 1;
 			break;
 		}
+	}
+
+	if( startframe < 0 )
+	{
+		fputs( "main: Start frame out of range\n", stderr );
+		return 1;
+	}
+
+	if( numframes < -1 )
+	{
+		fputs( "main: Number of frames out of range\n", stderr );
+		return 1;
 	}
 
 	interrupt = 0;
