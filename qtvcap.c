@@ -261,7 +261,7 @@ int main( int argc, char *argv[] )
 		if( delay > 0 )
 			usleep( delay );
 		
-		fps = fps*0.75 + 0.25*(1000000l/(get_time()-start));
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
 
