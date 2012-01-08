@@ -8,28 +8,46 @@
 
 #include "qtv.h"
 
-#define FILEVERSION "QTV1"
+#define QTV_MAGIC "QTV1"
+#define QTW_MAGIC "QTW1"
 #define VERSION 4
 
-int qtv_read_header( struct qtv *video, char filename[] )
+int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 {
-	FILE * qtv;
+	FILE *qtv, *block;
 	int i;
-	char header[4];
+	char header[4], *magic;
 	int width, height, framerate;
 	unsigned char version, flags;
-	int numframes, idx_size, frame;
+	int numframes, idx_size, numblocks, frame, blocknum;
 	long int offset, idx_offset;
+	char blockname[256];
 
 	if( filename == NULL )
 	{
-		qtv = stdin;
+		if( is_qtw )
+		{
+			fputs( "qtv_read_header: Cannot read QTW from stdin\n", stderr );
+			return 0;
+		}
+		else
+		{
+			qtv = stdin;
+		}
 	}
 	else
 	{
 		if( strcmp( filename, "-" ) == 0 )
 		{
-			qtv = stdin;
+			if( is_qtw )
+			{
+				fputs( "qtv_read_header: Cannot read QTW from stdin\n", stderr );
+				return 0;
+			}
+			else
+			{
+				qtv = stdin;
+			}
 		}
 		else
 		{
@@ -49,7 +67,12 @@ int qtv_read_header( struct qtv *video, char filename[] )
 			return 0;
 		}
 
-		if( strncmp( header, FILEVERSION, 4 ) != 0 )
+		if( is_qtw )
+			magic = QTW_MAGIC;
+		else
+			magic = QTV_MAGIC;
+
+		if( strncmp( header, magic, 4 ) != 0 )
 		{
 			fputs( "qtv_read_header: Invalid header\n", stderr );
 			if( qtv != stdin )
@@ -82,46 +105,70 @@ int qtv_read_header( struct qtv *video, char filename[] )
 		video->width = width;
 		video->height = height;
 		video->framerate = framerate;
+		video->is_qtw = is_qtw;
 		video->has_index = flags&0x01;
-		
+
+		if( qtv == stdin )
+			video->has_index = 0;
+
+		if( is_qtw && !video->has_index )
+		{
+			fputs( "qtv_read_header: Cannot read QTW files without index\n", stderr );
+			return 0;
+		}
+
 		if( video->has_index )
 		{
-			if( qtv == stdin )
+			if( !is_qtw )
 			{
-				fputs( "qtv_read_header: Cannot read indexed video from stdin\n", stderr );
-				return 0;
-			}
-
-			if( fseek( qtv, -sizeof( idx_offset ), SEEK_END ) == -1 )
-			{
-				perror( "qtv_read_header: fseek" );
-				fclose( qtv );
-				return 0;
-			}
+				if( fseek( qtv, -sizeof( idx_offset ), SEEK_END ) == -1 )
+				{
+					perror( "qtv_read_header: fseek" );
+					fclose( qtv );
+					return 0;
+				}
 			
-			if( fread( &idx_offset, sizeof( idx_offset ), 1, qtv ) != 1 )
-			{
-				fputs( "qtv_read_header: Cannot read index offset\n", stderr );
-				fclose( qtv );
-				return 0;
+				if( fread( &idx_offset, sizeof( idx_offset ), 1, qtv ) != 1 )
+				{
+					fputs( "qtv_read_header: Cannot read index offset\n", stderr );
+					fclose( qtv );
+					return 0;
+				}
+
+				if( fseek( qtv, -idx_offset, SEEK_END ) == -1 )
+				{
+					perror( "qtv_read_header: fseek" );
+					fclose( qtv );
+					return 0;
+				}
 			}
 
-			if( fseek( qtv, -idx_offset, SEEK_END ) == -1 )
+			if( is_qtw )
 			{
-				perror( "qtv_read_header: fseek" );
-				fclose( qtv );
-				return 0;
+				if( ( fread( &numframes, sizeof( numframes ), 1, qtv ) != 1 ) ||
+					( fread( &numblocks, sizeof( numblocks ), 1, qtv ) != 1 ) ||
+					( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
+				{
+					fputs( "qtv_read_header: Cannot read index header\n", stderr );
+					fclose( qtv );
+					return 0;
+				}
 			}
-
-			if( ( fread( &numframes, sizeof( numframes ), 1, qtv ) != 1 ) ||
-				( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
+			else
 			{
-				fputs( "qtv_read_header: Cannot read index header\n", stderr );
-				fclose( qtv );
-				return 0;
+				numblocks = 0;
+
+				if( ( fread( &numframes, sizeof( numframes ), 1, qtv ) != 1 ) ||
+					( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
+				{
+					fputs( "qtv_read_header: Cannot read index header\n", stderr );
+					fclose( qtv );
+					return 0;
+				}
 			}
 
 			video->numframes = numframes;
+			video->numblocks = numblocks;
 			video->idx_size = idx_size;
 
 			video->idx_datasize = video->idx_size;
@@ -135,23 +182,43 @@ int qtv_read_header( struct qtv *video, char filename[] )
 
 			for( i=0; i<video->idx_size; i++ )
 			{
-				if( ( fread( &frame, sizeof( frame ), 1, qtv ) != 1 ) ||
-					( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
+				if( is_qtw )
 				{
-					fputs( "qtv_read_header: Cannot read index entry\n", stderr );
-					fclose( qtv );
-					return 0;
+					if( ( fread( &frame, sizeof( frame ), 1, qtv ) != 1 ) ||
+						( fread( &blocknum, sizeof( blocknum ), 1, qtv ) != 1 ) ||
+						( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
+					{
+						fputs( "qtv_read_header: Cannot read index entry\n", stderr );
+						fclose( qtv );
+						return 0;
+					}
+				}
+				else
+				{
+					blocknum = 0;
+
+					if( ( fread( &frame, sizeof( frame ), 1, qtv ) != 1 ) ||
+						( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
+					{
+						fputs( "qtv_read_header: Cannot read index entry\n", stderr );
+						fclose( qtv );
+						return 0;
+					}
 				}
 
 				video->index[i].frame = frame;
+				video->index[i].block = blocknum;
 				video->index[i].offset = offset;
 			}
 
-			if( fseek( qtv, 18, SEEK_SET ) == -1 )
+			if( ! is_qtw )
 			{
-				perror( "qtv_read_header: fseek" );
-				fclose( qtv );
-				return 0;
+				if( fseek( qtv, 18, SEEK_SET ) == -1 )
+				{
+					perror( "qtv_read_header: fseek" );
+					fclose( qtv );
+					return 0;
+				}
 			}
 		}
 
@@ -162,7 +229,27 @@ int qtv_read_header( struct qtv *video, char filename[] )
 		video->imgcoder = rangecoder_create( 1 );
 		if( video->imgcoder == NULL )
 			return 0;
+
+		video->filename = strdup( filename );
+
+		if( is_qtw )
+		{
+			snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
 		
+			block = fopen( blockname, "rb" );
+			if( block == NULL )
+			{
+				perror( "qtw_read_header: fopen" );
+				return 0;
+			}
+			
+			video->streamfile = block;
+		}
+		else
+		{
+			video->streamfile = NULL;
+		}
+
 		return 1;
 	}
 	else
@@ -174,15 +261,20 @@ int qtv_read_header( struct qtv *video, char filename[] )
 
 int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 {
-	FILE * qtv;
+	FILE *qtv;
 	struct databuffer *compdata;
 	struct rangecoder *coder;
 	int minsize, maxdepth;
 	int compress;
+	int tmp;
 	unsigned char flags;
 	unsigned int size;
+	char blockname[256];
 
-	qtv = video->file;
+	if( video->is_qtw )
+		qtv = video->streamfile;
+	else
+		qtv = video->file;
 	
 	if( qtv != NULL )
 	{
@@ -342,6 +434,32 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 
 		video->framenum++;
 
+		if( video->is_qtw )
+		{
+			tmp = getc( qtv );
+			if( feof( qtv ) )
+			{
+				fclose( qtv );
+
+				video->blocknum++;
+
+				snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+
+				qtv = fopen( blockname, "rb" );
+				if( qtv == NULL )
+				{
+					perror( "qtw_read_frame: fopen" );
+					return 0;
+				}
+
+				video->streamfile = qtv;
+			}
+			else
+			{
+				ungetc( tmp, qtv );
+			}
+		}
+
 		return 1;
 	}
 	else
@@ -373,18 +491,35 @@ int qtv_can_read_frame( struct qtv *video )
 
 int qtv_write_header( struct qtv *video, char filename[] )
 {
-	FILE * qtv;
+	FILE *qtv, *block;
 	unsigned char version, flags;
+	char blockname[256];
 
 	if( filename == NULL )
 	{
-		qtv = stdout;
+		if( video->is_qtw )
+		{
+			fputs( "qtv_write_header: Cannot write QTW to stdout\n", stderr );
+			return 0;
+		}
+		else
+		{
+			qtv = stdout;
+		}
 	}
 	else
 	{
 		if( strcmp( filename, "-" ) == 0 )
 		{
-			qtv = stdout;
+			if( video->is_qtw )
+			{
+				fputs( "qtv_write_header: Cannot write QTW to stdout\n", stderr );
+				return 0;
+			}
+			else
+			{
+				qtv = stdout;
+			}
 		}
 		else
 		{
@@ -396,7 +531,10 @@ int qtv_write_header( struct qtv *video, char filename[] )
 	{
 		video->file = qtv;
 
-		fwrite( FILEVERSION, 1, 4, qtv );
+		if( video->is_qtw )
+			fwrite( QTW_MAGIC, 1, 4, qtv );
+		else
+			fwrite( QTV_MAGIC, 1, 4, qtv );
 
 		version = VERSION;
 		
@@ -407,6 +545,26 @@ int qtv_write_header( struct qtv *video, char filename[] )
 		fwrite( &(video->height), sizeof( video->height ), 1, qtv );
 		fwrite( &(video->framerate), sizeof( video->framerate ), 1, qtv );
 		fwrite( &flags, sizeof( flags ), 1, qtv );
+
+		video->filename = strdup( filename );
+
+		if( video->is_qtw )
+		{
+			snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+		
+			block = fopen( blockname, "wb" );
+			if( block == NULL )
+			{
+				perror( "qtw_write_header: fopen" );
+				return 0;
+			}
+
+			video->streamfile = block;
+		}
+		else
+		{
+			video->streamfile = NULL;
+		}
 
 		return 1;
 	}
@@ -425,7 +583,10 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 	unsigned char flags;
 	unsigned int size, offset;
 
-	qtv = video->file;
+	if( video->is_qtw )
+		qtv = video->streamfile;
+	else
+		qtv = video->file;
 
 	if( ( image->width != video->width ) || ( image->height != video->height ) )
 	{
@@ -511,6 +672,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 		if( ( video->has_index ) && ( keyframe ) )
 		{
 			video->index[video->idx_size].frame = video->numframes;
+			video->index[video->idx_size].block = video->blocknum;
 			video->index[video->idx_size].offset = offset;
 			video->idx_size++;
 			if( video->idx_size > video->idx_datasize )
@@ -537,15 +699,50 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 	}
 }
 
-int qtv_create( int width, int height, int framerate, int index, struct qtv *video )
+int qtv_write_block( struct qtv *video )
+{
+	FILE *block;
+	char blockname[256];
+
+	if( !video->is_qtw )
+	{
+		fputs( "qtv_write_block: cannot switch blocks on non QTW video\n", stderr );
+		return 0;
+	}
+
+	fclose( video->streamfile );
+
+	video->blocknum++;
+	video->numblocks++;
+
+	snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+		
+	block = fopen( blockname, "wb" );
+	if( block == NULL )
+	{
+		perror( "qtw_block: fopen" );
+		return 0;
+	}
+
+	video->streamfile = block;
+
+	return 1;
+}
+
+int qtv_create( int width, int height, int framerate, int index, int is_qtw, struct qtv *video )
 {
 	video->width = width;
 	video->height = height;
 	video->framerate = framerate;
+	video->is_qtw = is_qtw;
 	video->file = NULL;
-	video->has_index = index;
+	video->streamfile = NULL;
+	video->filename = NULL;
+	video->has_index = index || is_qtw;
 	video->numframes = 0;
 	video->framenum = 0;
+	video->numblocks = 0;
+	video->blocknum = 0;
 
 	if( index )
 	{
@@ -577,27 +774,42 @@ int qtv_write_index( struct qtv *video )
 	long int size;
 
 	if( ! video->has_index )
+	{
+		fputs( "qtv_write_index: video has no index\n", stderr );
 		return 0;
+	}
 
 	qtv = video->file;
 
-	size = 0;
-	
+	if( video->is_qtw )
+		video->numblocks++;
+
 	fwrite( &(video->numframes), sizeof( video->numframes ), 1, qtv );
+	if( video->is_qtw )
+		fwrite( &(video->numblocks), sizeof( video->numblocks ), 1, qtv );
 	fwrite( &(video->idx_size), sizeof( video->idx_size ), 1, qtv );
 	
-	size += sizeof( video->numframes ) + sizeof( video->idx_size );
+	size = sizeof( video->numframes ) + sizeof( video->idx_size );
+	if( video->is_qtw )
+		size += sizeof( video->numblocks );
 	
 	for( i=0; i<video->idx_size; i++ )
 	{
 		fwrite( &(video->index[i].frame), sizeof( video->index[i].frame ), 1, qtv );
+		if( video->is_qtw )
+			fwrite( &(video->index[i].block), sizeof( video->index[i].block ), 1, qtv );
 		fwrite( &(video->index[i].offset), sizeof( video->index[i].offset ), 1, qtv );
-		size += sizeof( video->index[i].frame ) + sizeof( video->index[i].offset );
-	}
-	
-	size += sizeof( size );
 
-	fwrite( &size, sizeof( size ), 1, qtv );
+		size += sizeof( video->index[i].frame ) + sizeof( video->index[i].offset );
+		if( video->is_qtw )
+			size += sizeof( video->index[i].block );
+	}
+
+	if( !video->is_qtw )
+	{
+		size += sizeof( size );
+		fwrite( &size, sizeof( size ), 1, qtv );
+	}
 	
 	return size;
 }
@@ -605,6 +817,7 @@ int qtv_write_index( struct qtv *video )
 int qtv_seek( struct qtv *video, int frame )
 {
 	int i;
+	char blockname[256];
 	
 	if( video->has_index )
 	{
@@ -615,6 +828,22 @@ int qtv_seek( struct qtv *video, int frame )
 		}
 
 		i--;
+
+		if( ( video->is_qtw ) && ( video->blocknum != video->index[i].block ) )
+		{
+			fclose( video->streamfile );
+
+			video->blocknum = video->index[i].block;
+
+			snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+
+			video->streamfile = fopen( blockname, "rb" );
+			if( video->streamfile == NULL )
+			{
+				perror( "qtw_seek: fopen" );
+				return 0;
+			}
+		}
 
 		video->framenum = video->index[i].frame;
 		if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
@@ -647,6 +876,18 @@ void qtv_free( struct qtv *video )
 		free( video->index );
 	
 	if( ( video->file ) && ( video->file != stdout ) )
+	{
 		fclose( video->file );
+		video->file = NULL;
+	}
+
+	if( ( video->streamfile ) && ( video->streamfile != stdout ) )
+	{
+		fclose( video->streamfile );
+		video->streamfile = NULL;
+	}
+	
+	if( video->filename )
+		free( video->filename );
 }
 

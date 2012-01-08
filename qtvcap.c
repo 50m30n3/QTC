@@ -179,7 +179,7 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )
 		{
-			qtv_create( image.width, image.height, framerate, index, &video );
+			qtv_create( image.width, image.height, framerate, index, 0, &video );
 			qtv_write_header( &video, outfile );
 			
 			image_create( &refimage, image.width, image.height );

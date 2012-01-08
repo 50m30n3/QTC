@@ -4,6 +4,7 @@
 struct qtv_index
 {
 	int frame;
+	int block;
 	long int offset;
 };
 
@@ -12,8 +13,12 @@ struct qtv
 	int width, height;
 	int framerate;
 	int numframes, framenum;
-	
-	FILE *file;
+	int numblocks, blocknum;
+
+	int is_qtw;
+
+	FILE *file, *streamfile;
+	char *filename;
 
 	struct rangecoder *cmdcoder;
 	struct rangecoder *imgcoder;
@@ -23,10 +28,11 @@ struct qtv
 	int idx_size, idx_datasize;
 };
 
-extern int qtv_create( int width, int height, int framerate, int index, struct qtv *video );
+extern int qtv_create( int width, int height, int framerate, int index, int is_qtw, struct qtv *video );
 extern int qtv_write_header( struct qtv *video, char filename[] );
 extern int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int keyframe );
-extern int qtv_read_header( struct qtv *video, char filename[] );
+extern int qtv_write_block( struct qtv *video );
+extern int qtv_read_header( struct qtv *video, int is_qtw, char filename[] );
 extern int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe );
 extern int qtv_can_read_frame( struct qtv *video );
 extern int qtv_seek( struct qtv *video, int frame );
