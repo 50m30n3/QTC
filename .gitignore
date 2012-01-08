@@ -1,7 +1,7 @@
 *.o
-qticomp
+qtienc
+qtidec
 qtvcomp
-qtwcomp
 qtvcap
 *.qtv
 *.qti
