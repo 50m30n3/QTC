@@ -74,6 +74,8 @@ int main( int argc, char *argv[] )
 	int lazyness;
 	int index;
 	int framerate, keyrate, startframe, numframes;
+	int blockrate, numblocks, blocksize;
+	int qtw;
 	char mode;
 	char *infile, *outfile;
 
@@ -89,11 +91,13 @@ int main( int argc, char *argv[] )
 	index = 0;
 	startframe = 0;
 	numframes = -1;
+	blockrate = 1024;
+	qtw = 0;
 	mode = 'c';
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvxy:f:n:t:s:d:l:r:k:m:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "cvxwy:f:n:t:s:d:l:r:k:b:m:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -104,6 +108,10 @@ int main( int argc, char *argv[] )
 
 			case 'c':
 				rangecomp = 1;
+			break;
+
+			case 'w':
+				qtw = 1;
 			break;
 
 			case 'y':
@@ -141,6 +149,11 @@ int main( int argc, char *argv[] )
 
 			case 'k':
 				if( sscanf( optarg, "%i", &keyrate ) != 1 )
+					fputs( "ERROR: Can not parse command line\n", stderr );
+			break;
+
+			case 'b':
+				if( sscanf( optarg, "%i", &blockrate ) != 1 )
 					fputs( "ERROR: Can not parse command line\n", stderr );
 			break;
 
@@ -184,6 +197,9 @@ int main( int argc, char *argv[] )
 	{
 		done = 0;
 		framenum = 0;
+		numblocks = 0;
+		
+		blocksize = 0;
 
 		insize = 0;
 		bsize = 0;
@@ -196,12 +212,19 @@ int main( int argc, char *argv[] )
 			else
 				keyframe = framenum % ( keyrate * framerate ) == 0;
 
+			if( blocksize >= blockrate*1024 )
+			{
+				qtv_write_block( &video );
+				numblocks++;
+				blocksize = 0;
+			}
+
 			if( ! ppm_read( &image, infile ) )
 				return 0;
 
 			if( framenum == 0 )
 			{
-				qtv_create( image.width, image.height, framerate, index, 0, &video );
+				qtv_create( image.width, image.height, framerate, index, qtw, &video );
 				qtv_write_header( &video, outfile );
 				
 				image_create( &refimage, image.width, image.height );
@@ -258,6 +281,7 @@ int main( int argc, char *argv[] )
 				return 0;
 
 			outsize += size;
+			blocksize += size;
 
 			image_copy( &image, &refimage );
 
@@ -286,11 +310,22 @@ int main( int argc, char *argv[] )
 
 			if( verbose )
 			{
-				fprintf( stderr, "Frame:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum,
-					(insize*8)/(framenum+1)*framerate/1000,
-					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
-					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
-					(size*8)*framerate/1000 );
+				if( qtw )
+				{
+					fprintf( stderr, "Frame:%i Block:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, numblocks,
+						(insize*8)/(framenum+1)*framerate/1000,
+						bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
+						(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
+						(size*8)*framerate/1000 );
+				}
+				else
+				{
+					fprintf( stderr, "Frame:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum,
+						(insize*8)/(framenum+1)*framerate/1000,
+						bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
+						(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
+						(size*8)*framerate/1000 );
+				}
 			}
 			
 			framenum++;
@@ -318,7 +353,7 @@ int main( int argc, char *argv[] )
 
 		refimage.pixels = NULL;
 
-		if( ! qtv_read_header( &video, 0, infile ) )
+		if( ! qtv_read_header( &video, qtw, infile ) )
 			return 0;
 
 		qtv_seek( &video, startframe );
@@ -399,7 +434,7 @@ int main( int argc, char *argv[] )
 
 		refimage.pixels = NULL;
 
-		if( ! qtv_read_header( &video, 0, infile ) )
+		if( ! qtv_read_header( &video, qtw, infile ) )
 			return 0;
 
 		qtv_seek( &video, startframe );
