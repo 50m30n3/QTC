@@ -25,7 +25,7 @@ int main( int argc, char *argv[] )
 	struct qti compimage;
 	struct qtv video;
 
-	int opt, verbose;
+	int opt, verbose, qtw;
 	unsigned long int insize, bsize, outsize, size;
 	int done, tmp, keyframe, framenum;
 	int transform, colordiff;
@@ -36,7 +36,8 @@ int main( int argc, char *argv[] )
 	int index;
 	int framerate, keyrate, numframes;
 	int blockrate, numblocks, blocksize;
-	int qtw;
+	long int start, frame_start;
+	double fps;
 	char *infile, *outfile;
 
 	verbose = 0;
@@ -151,8 +152,13 @@ int main( int argc, char *argv[] )
 	bsize = 0;
 	outsize = 0;
 
+	fps = 0;
+	start = get_time();
+
 	do
 	{
+		frame_start = get_time();
+
 		if( keyrate == 0 )
 			keyframe = framenum == 0;
 		else
@@ -258,7 +264,7 @@ int main( int argc, char *argv[] )
 		{
 			if( qtw )
 			{
-				fprintf( stderr, "Frame:%i Block:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, numblocks,
+				fprintf( stderr, "Frame:%i FPS:%.2f Block:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, fps, numblocks,
 					(insize*8)/(framenum+1)*framerate/1000,
 					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
 					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
@@ -266,7 +272,7 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
-				fprintf( stderr, "Frame:%i In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum,
+				fprintf( stderr, "Frame:%i FPS:%.2f In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, fps,
 					(insize*8)/(framenum+1)*framerate/1000,
 					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
 					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
@@ -275,8 +281,12 @@ int main( int argc, char *argv[] )
 		}
 		
 		framenum++;
+		
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-frame_start));
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
+
+	fps = 1000000.0/((get_time()-start)/framenum);
 
 	if( index )
 		outsize += qtv_write_index( &video );
@@ -286,10 +296,11 @@ int main( int argc, char *argv[] )
 
 	if( verbose )
 	{
-		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%%\n",
+		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%% FPS:%.2f\n",
 			insize/1024/1024,
 			bsize/8/1024/1024, (bsize/8)*100.0/insize,
-			outsize/1024/1024, outsize*100.0/insize );
+			outsize/1024/1024, outsize*100.0/insize,
+			fps );
 	}
 
 	free( infile );

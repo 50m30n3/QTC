@@ -25,10 +25,9 @@ int main( int argc, char *argv[] )
 	struct qti compimage;
 	struct qtv video;
 
-	int opt, analyze;
+	int opt, analyze, qtw;
 	int done, keyframe, framenum;
 	int startframe, numframes;
-	int qtw;
 	char *infile, *outfile;
 
 	analyze = 0;
