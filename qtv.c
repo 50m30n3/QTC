@@ -244,7 +244,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 			block = fopen( blockname, "rb" );
 			if( block == NULL )
 			{
-				perror( "qtw_read_header: fopen" );
+				perror( "qtv_read_header: fopen" );
 				return 0;
 			}
 			
@@ -453,7 +453,7 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 				qtv = fopen( blockname, "rb" );
 				if( qtv == NULL )
 				{
-					perror( "qtw_read_frame: fopen" );
+					perror( "qtv_read_frame: fopen" );
 					return 0;
 				}
 
@@ -563,7 +563,7 @@ int qtv_write_header( struct qtv *video, char filename[] )
 			block = fopen( blockname, "wb" );
 			if( block == NULL )
 			{
-				perror( "qtw_write_header: fopen" );
+				perror( "qtv_write_header: fopen" );
 				return 0;
 			}
 
@@ -728,7 +728,7 @@ int qtv_write_block( struct qtv *video )
 	block = fopen( blockname, "wb" );
 	if( block == NULL )
 	{
-		perror( "qtw_block: fopen" );
+		perror( "qtv_write_block: fopen" );
 		return 0;
 	}
 
@@ -848,7 +848,7 @@ int qtv_seek( struct qtv *video, int frame )
 			video->streamfile = fopen( blockname, "rb" );
 			if( video->streamfile == NULL )
 			{
-				perror( "qtw_seek: fopen" );
+				perror( "qtv_seek: fopen" );
 				return 0;
 			}
 		}
