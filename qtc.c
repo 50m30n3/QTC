@@ -379,10 +379,6 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 							for( y=y1; y<y2; y++ )
 							for( x=x1; x<x2; x++ )
 							{
-								databuffer_get_bits( imagedata, 8 );
-								databuffer_get_bits( imagedata, 8 );
-								databuffer_get_bits( imagedata, 8 );
-
 								if( ( x == x1 ) || ( y == y1 ) )
 									output->pixels[ x + y*output->width  ].r = 255;
 								else
@@ -396,10 +392,6 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 					for( y=y1; y<y2; y++ )
 					for( x=x1; x<x2; x++ )
 					{
-						databuffer_get_bits( imagedata, 8 );
-						databuffer_get_bits( imagedata, 8 );
-						databuffer_get_bits( imagedata, 8 );
-
 						if( ( x == x1 ) || ( y == y1 ) )
 							output->pixels[ x + y*output->width  ].r = 255;
 						else
@@ -409,10 +401,6 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 			}
 			else
 			{
-				databuffer_get_bits( imagedata, 8 );
-				databuffer_get_bits( imagedata, 8 );
-				databuffer_get_bits( imagedata, 8 );
-
 				for( y=y1; y<y2; y++ )
 				for( x=x1; x<x2; x++ )
 				{
