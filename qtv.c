@@ -232,7 +232,10 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		if( video->imgcoder == NULL )
 			return 0;
 
-		video->filename = strdup( filename );
+		if( filename )
+			video->filename = strdup( filename );
+		else
+			video->filename = NULL;
 
 		if( is_qtw )
 		{
@@ -548,7 +551,10 @@ int qtv_write_header( struct qtv *video, char filename[] )
 		fwrite( &(video->framerate), sizeof( video->framerate ), 1, qtv );
 		fwrite( &flags, sizeof( flags ), 1, qtv );
 
-		video->filename = strdup( filename );
+		if( filename )
+			video->filename = strdup( filename );
+		else
+			video->filename = NULL;
 
 		if( video->is_qtw )
 		{
