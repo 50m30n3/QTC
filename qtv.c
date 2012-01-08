@@ -851,13 +851,22 @@ int qtv_seek( struct qtv *video, int frame )
 				perror( "qtv_seek: fopen" );
 				return 0;
 			}
-		}
 
-		video->framenum = video->index[i].frame;
-		if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
+			video->framenum = video->index[i].frame;
+			if( fseek( video->streamfile, video->index[i].offset, SEEK_SET ) == -1 )
+			{
+				perror( "qtv_seek: fseek" );
+				return 0;
+			}
+		}
+		else
 		{
-			perror( "qtv_seek: fseek" );
-			return 0;
+			video->framenum = video->index[i].frame;
+			if( fseek( video->file, video->index[i].offset, SEEK_SET ) == -1 )
+			{
+				perror( "qtv_seek: fseek" );
+				return 0;
+			}
 		}
 	}
 	else
