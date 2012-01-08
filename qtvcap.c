@@ -1,10 +1,10 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
-#include <sys/time.h>
 
+#include "utils.h"
 #include "image.h"
 #include "x11grab.h"
 #include "qti.h"
@@ -17,15 +17,6 @@ void sig_exit( int sig )
 {
 	if( ( sig == SIGINT ) || ( sig == SIGTERM ) )
 		interrupt = 1;
-}
-
-unsigned long int get_time( void )
-{
-	struct timeval tv;
-
-	gettimeofday( &tv, NULL );
-
-	return tv.tv_sec * 1000000lu + tv.tv_usec;
 }
 
 int main( int argc, char *argv[] )
