@@ -153,11 +153,13 @@ int main( int argc, char *argv[] )
 	if( ( x < 0 ) || ( y < 0 ) )
 	{
 		fputs( "main: Invalid capture coordinates\n", stderr );
+		return 1;
 	}
 
-	if( ( w < 0 ) || ( h < 0 ) )
+	if( ( w < -1 ) || ( h < -1 ) )
 	{
 		fputs( "main: Invalid capture size\n", stderr );
+		return 1;
 	}
 
 	if( minsize < 0 )
@@ -178,7 +180,7 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
-	if( numframes < 0 )
+	if( numframes < -1 )
 	{
 		fputs( "main: Number of frames out of range\n", stderr );
 		return 1;
