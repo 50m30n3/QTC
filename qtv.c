@@ -826,7 +826,10 @@ int qtv_seek( struct qtv *video, int frame )
 {
 	int i;
 	char blockname[256];
-	
+
+	if( frame < 0 )
+		frame = 0;
+
 	if( video->has_index )
 	{
 		for( i=0; i<video->idx_size; i++ )
@@ -837,19 +840,22 @@ int qtv_seek( struct qtv *video, int frame )
 
 		i--;
 
-		if( ( video->is_qtw ) && ( video->blocknum != video->index[i].block ) )
+		if( video->is_qtw )
 		{
-			fclose( video->streamfile );
-
-			video->blocknum = video->index[i].block;
-
-			snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
-
-			video->streamfile = fopen( blockname, "rb" );
-			if( video->streamfile == NULL )
+			if( video->blocknum != video->index[i].block )
 			{
-				perror( "qtv_seek: fopen" );
-				return 0;
+				fclose( video->streamfile );
+
+				video->blocknum = video->index[i].block;
+
+				snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+
+				video->streamfile = fopen( blockname, "rb" );
+				if( video->streamfile == NULL )
+				{
+					perror( "qtv_seek: fopen" );
+					return 0;
+				}
 			}
 
 			video->framenum = video->index[i].frame;
