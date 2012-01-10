@@ -877,12 +877,8 @@ int qtv_seek( struct qtv *video, int frame )
 	}
 	else
 	{
-		video->framenum = 0;
-		if( fseek( video->file, 18, SEEK_SET ) == -1 )
-		{
-			perror( "qtv_seek: fseek" );
-			return 0;
-		}
+		fputs( "qtv_seek: video has no index\n", stderr );
+		return 0;
 	}
 	
 	return 1;
