@@ -38,11 +38,12 @@ A lot of algorithmic and micro optimizations are omitted for the sake of
 clarity.
 
 Programs:
-	qtienc - Still image encoder
-	qtidec - Still image decoder
-	qtvenc - Video encoder
-	qtvdec - Video decoder
-	qtvcap - Screen capture program
+	qtienc  - Still image encoder
+	qtidec  - Still image decoder
+	qtvenc  - Video encoder
+	qtvdec  - Video decoder
+	qtvcap  - Screen capture program
+	qtvplay - Video player
 
 Aside from the screen capture program, which is build for the X Window System,
 all programs should be portable and rely on no external dependencies.
@@ -88,7 +89,7 @@ qtvenc:
 	-o filename		-	Output file (-)
 
 qtvdec:
-	-w				-	Create QTW file
+	-w				-	Read QTW file
 	-a				-	Analyze image
 	-f [1..]		-	Begin decoding at specific frame (Needs index)
 	-n [1..]		-	Limit number of frames to decode
@@ -111,6 +112,18 @@ qtvcap:
 	-l [0..]		-	Laziness
 	-i filename		-	Input screen ($DISPLAY)
 	-o filename		-	Output file (-)
+
+qtvplay:
+	-w				-	Read QTW file
+	-i filename		-	Input file (-)
+	[space]			-	Play/Pause
+	[left]			-	Seek backwards 10sec
+	[right]			-	Seek forwards 10sec
+	[down]			-	Seek backwards 1min
+	[up]			-	Seek forwards 1min
+	[a]				-	Toggle analysis mode
+	[t]				-	Toggle Peath transform
+	[y]				-	Toggle fakeyuv
 
 
 OPTIONS
@@ -221,9 +234,12 @@ $ qtvenc -y2 -t2 -s4 -c -i frame0000.ppm -o video.qtv
 Re-encode a video:
 $ qtvdec -i video_old.qtv | qtvenc -y2 -t2 -s4 -c -o video_new.qtv
 
+Re-encode a video with keyframes and index:
+$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y2 -t2 -s4 -c -o video_new.qtv
+
 Re-encode a video for web into a separate directory:
 $ mkdir video.qtw
-$ qtvdec -i video.qtv | qtvenc -y2 -t2 -s4 -c -o video.qtw/video
+$ qtvdec -i video.qtv | qtvenc -x -k10 -y2 -t2 -s4 -c -o video.qtw/video
 
 Decode a video into an image sequence:
 $ qtvdec -i video.qtv -o frame0000.ppm
@@ -234,4 +250,6 @@ $ qtvcap -l3 -m -o capture.qtv
 Capture a video of a single window:
 $ qtvcap -l3 -m -g $(getgeom) -o capture.qtv
 
+Play back video:
+$ qtvplay -i video.qtv
 
