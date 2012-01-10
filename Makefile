@@ -1,6 +1,6 @@
 BINARIES = qtienc qtidec qtvenc qtvdec qtvplay qtvcap
 CC = gcc
-CFLAGS = -Wall -Wextra -O4 -march=native
+CFLAGS = -g -Wall -Wextra -O4 -march=native
 LDFLAGS = -lm
 X11FLAGS = -lX11 -lXext -lXfixes
 SDLFLAGS = -lSDL
