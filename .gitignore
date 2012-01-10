@@ -4,6 +4,7 @@ qtidec
 qtvenc
 qtvdec
 qtvcap
+qtvplay
 *.qtv
 *.qti
 *.qtw

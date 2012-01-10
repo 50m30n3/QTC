@@ -1,8 +1,9 @@
-BINARIES = qtienc qtidec qtvenc qtvdec qtvcap
+BINARIES = qtienc qtidec qtvenc qtvdec qtvplay qtvcap
 CC = gcc
 CFLAGS = -Wall -Wextra -O4 -march=native
 LDFLAGS = -lm
 X11FLAGS = -lX11 -lXext -lXfixes
+SDLFLAGS = -lSDL
 
 .PHONY: all
 all: $(BINARIES)
@@ -24,6 +25,8 @@ qtvdec: qtvdec.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.
 qtvcap: qtvcap.o utils.o x11grab.o databuffer.o image.o qtc.o qti.o qtv.o rangecode.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(X11FLAGS) $^ -o $@
 
+qtvplay: qtvplay.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(SDLFLAGS) $^ -o $@
 
 databuffer.o: databuffer.c databuffer.h
 image.o: image.c image.h
