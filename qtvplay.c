@@ -25,25 +25,23 @@ int main( int argc, char *argv[] )
 
 	int i, j;
 
-	int opt, analyze, qtw;
+	int opt, analyze, transform, colordiff, qtw;
 	int done, keyframe, playing, step;
 	long int delay, start;
 	char *infile;
 
 	analyze = 0;
+	transform = 1;
+	colordiff = 1;
 	qtw = 0;
 	infile = NULL;
 
-	while( ( opt = getopt( argc, argv, "awi:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "wi:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'w':
 				qtw = 1;
-			break;
-
-			case 'a':
-				analyze = 1;
 			break;
 
 			case 'i':
@@ -64,6 +62,8 @@ int main( int argc, char *argv[] )
 
 	if( ! qtv_read_header( &video, qtw, infile ) )
 		return 0;
+
+	fprintf( stderr, "Video: %ix%i, %iFPS\n", video.width, video.height, video.framerate );
 
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
@@ -126,14 +126,19 @@ int main( int argc, char *argv[] )
 
 				image_copy( &image, &refimage );
 
-				if( compimage.transform == 1 )
-					image_transform_fast_rev( &image );
-				else if( compimage.transform == 2 )
-					image_transform_rev( &image );
+				if( transform )
+				{
+					if( compimage.transform == 1 )
+						image_transform_fast_rev( &image );
+					else if( compimage.transform == 2 )
+						image_transform_rev( &image );
+				}
 
-				if( compimage.colordiff >= 1 )
-					image_color_diff_rev( &image );
-
+				if( colordiff )
+				{
+					if( compimage.colordiff >= 1 )
+						image_color_diff_rev( &image );
+				}
 			}
 			else
 			{
@@ -160,6 +165,7 @@ int main( int argc, char *argv[] )
 		if( ! qtv_can_read_frame( &video ) )
 			done = 1;
 
+
 		while( SDL_PollEvent( &event ) )
 		{
 			switch( event.type )
@@ -173,36 +179,86 @@ int main( int argc, char *argv[] )
 					{
 						case 'q':
 						case SDLK_ESCAPE:
+							fputs( "Quit\n", stderr );
 							done = 1;
 						break;
 
 						case 'a':
-							analyze = !analyze;
+							if( analyze )
+							{
+								fputs( "Analyze OFF\n", stderr );
+								analyze = 0;
+							}
+							else
+							{
+								fputs( "Analyze ON\n", stderr );
+								analyze = 1;
+							}
+						break;
+
+						case 't':
+							if( transform )
+							{
+								fputs( "Transform OFF\n", stderr );
+								transform = 0;
+							}
+							else
+							{
+								fputs( "Transform ON\n", stderr );
+								transform = 1;
+							}
+						break;
+
+						case 'y':
+							if( colordiff )
+							{
+								fputs( "Fakeyuv OFF\n", stderr );
+								colordiff = 0;
+							}
+							else
+							{
+								fputs( "Fakeyuv ON\n", stderr );
+								colordiff = 1;
+							}
 						break;
 
 						case SDLK_SPACE:
-							playing = !playing;
+							if( playing )
+							{
+								fputs( "PAUSE\n", stderr );
+								playing = 0;
+							}
+							else
+							{
+								fputs( "PLAYING\n", stderr );
+								playing = 1;
+							}
 						break;
 
 						case '.':
+							fputs( "Step\n", stderr );
 							playing = 0;
 							step = 1;
 						break;
 
 						case SDLK_LEFT:
 							qtv_seek( &video, video.framenum - 10*video.framerate );
+							fprintf( stderr, "Seek to: %i \n", video.framenum );
 						break;
 
 						case SDLK_RIGHT:
 							qtv_seek( &video, video.framenum + 10*video.framerate );
+							fprintf( stderr, "Seek to: %i \n", video.framenum );
 						break;
 
 						case SDLK_DOWN:
 							qtv_seek( &video, video.framenum - 60*video.framerate );
+							fprintf( stderr, "Seek to: %i \n", video.framenum );
 						break;
 
 						case SDLK_UP:
 							qtv_seek( &video, video.framenum + 60*video.framerate );
+							fprintf( stderr, "Seek to: %i \n", video.framenum );
 						break;
 
 						default:
