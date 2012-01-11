@@ -124,6 +124,7 @@ qtvplay:
 	[a]				-	Toggle analysis mode
 	[t]				-	Toggle Peath transform
 	[y]				-	Toggle fakeyuv
+	[f]				-	Print FPS
 
 
 OPTIONS

@@ -26,13 +26,15 @@ int main( int argc, char *argv[] )
 	int i, j;
 
 	int opt, analyze, transform, colordiff, qtw;
-	int done, keyframe, playing, step;
+	int done, keyframe, playing, step, printfps;
 	long int delay, start;
+	double fps;
 	char *infile;
 
 	analyze = 0;
 	transform = 1;
 	colordiff = 1;
+	printfps = 0;
 	qtw = 0;
 	infile = NULL;
 
@@ -59,6 +61,7 @@ int main( int argc, char *argv[] )
 	done = 0;
 	playing = 1;
 	step = 0;
+	fps = 0.0;
 
 	if( ! qtv_read_header( &video, qtw, infile ) )
 		return 0;
@@ -184,6 +187,10 @@ int main( int argc, char *argv[] )
 							done = 1;
 						break;
 
+						case 'f':
+							printfps = !printfps;
+						break;
+
 						case 'a':
 							if( analyze )
 							{
@@ -276,6 +283,10 @@ int main( int argc, char *argv[] )
 
 		if( delay > 0 )
 			usleep( delay );
+
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
+		if( printfps )
+			fprintf( stderr, "FPS: %.2f\n", fps );
 	}
 	while( ! done );
 
