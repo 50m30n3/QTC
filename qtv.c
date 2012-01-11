@@ -283,6 +283,32 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 	
 	if( qtv != NULL )
 	{
+		if( video->is_qtw )
+		{
+			tmp = getc( qtv );
+			if( feof( qtv ) )
+			{
+				fclose( qtv );
+
+				video->blocknum++;
+
+				snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
+
+				qtv = fopen( blockname, "rb" );
+				if( qtv == NULL )
+				{
+					perror( "qtv_read_frame: fopen" );
+					return 0;
+				}
+
+				video->streamfile = qtv;
+			}
+			else
+			{
+				ungetc( tmp, qtv );
+			}
+		}
+
 		if( ( fread( &flags, sizeof( flags ), 1, qtv ) != 1 ) ||
 			( fread( &minsize, sizeof( minsize ), 1, qtv ) != 1 ) ||
 			( fread( &maxdepth, sizeof( maxdepth ), 1, qtv ) != 1 ) )
@@ -438,32 +464,6 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 		}
 
 		video->framenum++;
-
-		if( video->is_qtw )
-		{
-			tmp = getc( qtv );
-			if( feof( qtv ) )
-			{
-				fclose( qtv );
-
-				video->blocknum++;
-
-				snprintf( blockname, 256, "%s.%06i", video->filename, video->blocknum );
-
-				qtv = fopen( blockname, "rb" );
-				if( qtv == NULL )
-				{
-					perror( "qtv_read_frame: fopen" );
-					return 0;
-				}
-
-				video->streamfile = qtv;
-			}
-			else
-			{
-				ungetc( tmp, qtv );
-			}
-		}
 
 		return 1;
 	}
