@@ -71,7 +71,7 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
-	screen = SDL_SetVideoMode( video.width, video.height, 24, SDL_SWSURFACE );
+	screen = SDL_SetVideoMode( video.width, video.height, 32, SDL_SWSURFACE );
 
 	if( ! screen )
 	{
@@ -152,6 +152,7 @@ int main( int argc, char *argv[] )
 				pixels[j++] = image.pixels[i].b;
 				pixels[j++] = image.pixels[i].g;
 				pixels[j++] = image.pixels[i].r;
+				j++;
 			}
 
 			SDL_Flip( screen );
