@@ -86,6 +86,14 @@ int ppm_read( struct image *image, char filename[] )
 			return 0;
 		}
 
+		if( maxval != 255 )
+		{
+			fputs( "ppm_read: Unsupported bitdepth\n", stderr );
+			if( ppm != stdin )
+				fclose( ppm );
+			return 0;
+		}
+
 		image->width = width;
 		image->height = height;
 
