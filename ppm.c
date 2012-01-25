@@ -11,6 +11,8 @@ int ppm_read( struct image *image, char filename[] )
 	FILE *ppm;
 	char buffer[256];
 	int width, height, maxval;
+	int i, j;
+	unsigned char *rawpixels;
 
 	if( filename == NULL )
 	{
@@ -97,13 +99,14 @@ int ppm_read( struct image *image, char filename[] )
 		image->width = width;
 		image->height = height;
 
-		image->pixels = malloc( sizeof( struct pixel ) * width * height );
+		rawpixels = malloc( sizeof( unsigned char ) * width * height * 3 );
 
-		if( image->pixels != NULL )
+		if( rawpixels != NULL )
 		{
-			if( fread( image->pixels, sizeof( *(image->pixels) ), width*height, ppm ) != (unsigned int)(width*height) )
+			if( fread( rawpixels, sizeof( *(rawpixels) ), width*height*3, ppm ) != (unsigned int)(width*height*3) )
 			{
 				fputs( "ppm_read: Short read on image data\n", stderr );
+				free( rawpixels );
 				if( ppm != stdin )
 					fclose( ppm );
 				return 0;
@@ -112,8 +115,31 @@ int ppm_read( struct image *image, char filename[] )
 		else
 		{
 			perror( "ppm_read" );
+			if( ppm != stdin )
+				fclose( ppm );
 			return 0;
 		}
+
+		image->pixels = malloc( sizeof( unsigned char ) * width * height * 4 );
+		if( image->pixels == NULL )
+		{
+			perror( "ppm_read" );
+			free( rawpixels );
+			if( ppm != stdin )
+				fclose( ppm );
+			return 0;
+		}
+
+		j = 0;
+		for( i=0; i<width*height*3; i+=3 )
+		{
+			image->pixels[j++] = rawpixels[i ];
+			image->pixels[j++] = rawpixels[i+1];
+			image->pixels[j++] = rawpixels[i+2];
+			image->pixels[j++] = 0;
+		}
+
+		free( rawpixels );
 
 		if( ppm != stdin )
 			fclose( ppm );
@@ -151,7 +177,7 @@ int ppm_write( struct image *image, char filename[] )
 	{
 		fprintf( ppm, "P6\n%i %i\n255\n", image->width, image->height );
 
-		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height, ppm ) != (unsigned int)(image->width*image->height ) )
+		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height*3, ppm ) != (unsigned int)(image->width*image->height*3) )
 		{
 			fputs( "ppm_read: Short write on image data\n", stderr );
 

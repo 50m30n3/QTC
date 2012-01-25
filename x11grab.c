@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -140,7 +141,7 @@ void x11grabber_free( struct x11grabber *grabber )
 
 int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 {
-	int x, y, cx, cy, i, si, ci;
+	int x, y, cx, cy, i, ci;
 	int xmin, xmax, ymin, ymax;
 	unsigned char alpha;
 	XFixesCursorImage *xcim = NULL;
@@ -163,7 +164,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 
 	image_create( image, grabber->width, grabber->height );
 
-	for( y=0; y<grabber->height; y++ )
+/*	for( y=0; y<grabber->height; y++ )
 	{
 		i = y*image->width;
 		si = i*4;
@@ -177,7 +178,9 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 			i++;
 			si += 4;
 		}
-	}
+	}*/
+
+	memcpy( image->pixels, grabber->image->data, grabber->width * grabber->height * 4 );
 
 	if( xcim )
 	{
@@ -191,7 +194,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 
 		for( y=ymin; y<ymax; y++ )
 		{
-			i = xmin+y*image->width;
+			i = (xmin+y*image->width)*4;
 			ci = (xmin-cx) + (y-cy)*xcim->width;
 
 			for( x=xmin; x<xmax; x++ )
@@ -202,19 +205,19 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 				{
 					if( alpha == 255 )
 					{
-						image->pixels[i].r = xcim->pixels[ci] >> 0 & 0xff;
-						image->pixels[i].g = xcim->pixels[ci] >> 8 & 0xff;
-						image->pixels[i].b = xcim->pixels[ci] >> 16 & 0xff;
+						image->pixels[i  ] = xcim->pixels[ci] >>  0 & 0xff;
+						image->pixels[i+1] = xcim->pixels[ci] >>  8 & 0xff;
+						image->pixels[i+2] = xcim->pixels[ci] >> 16 & 0xff;
 					}
 					else
 					{
-						image->pixels[i].r = (image->pixels[i].r*(255-alpha)/255) + ((xcim->pixels[ci] >> 0 & 0xff)*alpha/255);
-						image->pixels[i].g = (image->pixels[i].g*(255-alpha)/255) + ((xcim->pixels[ci] >> 8 & 0xff)*alpha/255);
-						image->pixels[i].b = (image->pixels[i].b*(255-alpha)/255) + ((xcim->pixels[ci] >> 16 & 0xff)*alpha/255);
+						image->pixels[i  ] = (image->pixels[i  ]*(255-alpha)/255) + ((xcim->pixels[ci] >>  0 & 0xff)*alpha/255);
+						image->pixels[i+1] = (image->pixels[i+1]*(255-alpha)/255) + ((xcim->pixels[ci] >>  8 & 0xff)*alpha/255);
+						image->pixels[i+2] = (image->pixels[i+2]*(255-alpha)/255) + ((xcim->pixels[ci] >> 16 & 0xff)*alpha/255);
 					}
 				}
 			
-				i++;
+				i+=4;
 				ci++;
 			}
 		}

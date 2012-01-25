@@ -23,8 +23,6 @@ int main( int argc, char *argv[] )
 	SDL_Event event;
 	char *pixels;
 
-	int i, j;
-
 	int opt, analyze, transform, colordiff, qtw;
 	int done, keyframe, playing, step, printfps;
 	long int delay, start;
@@ -149,14 +147,7 @@ int main( int argc, char *argv[] )
 					return 0;	
 			}
 
-			j = 0;
-			for( i=0; i<video.width*video.height; i++ )
-			{
-				pixels[j++] = image.pixels[i].b;
-				pixels[j++] = image.pixels[i].g;
-				pixels[j++] = image.pixels[i].r;
-				j++;
-			}
+			memcpy( screen->pixels, image.pixels, video.width*video.height*4 );
 
 			SDL_Flip( screen );
 

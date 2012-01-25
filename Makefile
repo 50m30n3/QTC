@@ -39,6 +39,7 @@ qtv.o: qtv.c databuffer.h rangecode.h qti.h qtv.h
 qtvcap.o: qtvcap.c utils.h image.h x11grab.h qti.h qtc.h qtv.h
 qtvdec.o: qtvdec.c utils.h image.h qti.h qtc.h qtv.h ppm.h
 qtvenc.o: qtvenc.c utils.h image.h qti.h qtc.h qtv.h ppm.h
+qtvplay.o: qtvplay.c utils.h image.h qti.h qtc.h qtv.h ppm.h
 rangecode.o: rangecode.c databuffer.h rangecode.h
 utils.o: utils.c
 x11grab.o: x11grab.c image.h x11grab.h

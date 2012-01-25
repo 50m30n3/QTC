@@ -1,24 +1,10 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-struct color
-{
-	int r;
-	int g;
-	int b;
-};
-
-struct pixel
-{
-	unsigned char r;
-	unsigned char g;
-	unsigned char b;
-};
-
 struct image
 {
 	int width, height;
-	struct pixel *pixels;
+	unsigned char *pixels;
 };
 
 extern int image_create( struct image *image, int width, int height );

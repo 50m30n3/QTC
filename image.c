@@ -8,7 +8,7 @@ int image_create( struct image *image, int width, int height )
 	image->width = width;
 	image->height = height;
 
-	image->pixels = malloc( sizeof( struct pixel ) * width * height );
+	image->pixels = malloc( sizeof( unsigned char ) * width * height * 4 );
 
 	if( image->pixels == NULL )
 	{
@@ -34,41 +34,41 @@ void image_copy( struct image *in, struct image *out )
 {
 	int i;
 
-	for( i=0; i<in->width*in->height; i++ )
+	for( i=0; i<in->width*in->height*4; i++ )
 		out->pixels[i] = in->pixels[i];
 }
 
 void image_color_diff( struct image *image )
 {
 	int i;
-	struct pixel *pixels;
+	unsigned char *pixels;
 
 	pixels = image->pixels;
 
-	for( i=0; i<image->width*image->height; i++ )
+	for( i=0; i<image->width*image->height*4; i+=4 )
 	{
-		pixels[ i ].r -= pixels[ i ].g;
-		pixels[ i ].b -= pixels[ i ].g;
+		pixels[ i   ] -= pixels[ i+1 ];
+		pixels[ i+2 ] -= pixels[ i+1 ];
 	}
 }
 
 void image_color_diff_rev( struct image *image )
 {
 	int i;
-	struct pixel *pixels;
+	unsigned char *pixels;
 
 	pixels = image->pixels;
 
-	for( i=0; i<image->width*image->height; i++ )
+	for( i=0; i<image->width*image->height*4; i+=4 )
 	{
-		pixels[ i ].r += pixels[ i ].g;
-		pixels[ i ].b += pixels[ i ].g;
+		pixels[ i   ] += pixels[ i+1 ];
+		pixels[ i+2 ] += pixels[ i+1 ];
 	}
 }
 
 void image_transform_fast( struct image *image )
 {
-	int x, y, i, width, height;
+/*	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
 
@@ -111,12 +111,12 @@ void image_transform_fast( struct image *image )
 		pixels[ i ].r -= pa.r;
 		pixels[ i ].g -= pa.g;
 		pixels[ i ].b -= pa.b;
-	}
+	}*/
 }
 
 void image_transform_fast_rev( struct image *image )
 {
-	int x, y, i, width, height;
+/*	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
 
@@ -158,12 +158,12 @@ void image_transform_fast_rev( struct image *image )
 			
 			i++;
 		}
-	}
+	}*/
 }
 
 void image_transform( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+/*	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;
 	struct pixel *pixels;
 	struct color p;
@@ -230,12 +230,12 @@ void image_transform( struct image *image )
 		pixels[ i ].r -= p1.r;
 		pixels[ i ].g -= p1.g;
 		pixels[ i ].b -= p1.b;
-	}
+	}*/
 }
 
 void image_transform_rev( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+/*	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;
 	struct pixel *pixels;
 	struct color p;
@@ -304,6 +304,6 @@ void image_transform_rev( struct image *image )
 			pixels[ i ].g += p1.g;
 			pixels[ i ].b += p1.b;
 		}
-	}
+	}*/
 }
 
