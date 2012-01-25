@@ -164,23 +164,20 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 
 	image_create( image, grabber->width, grabber->height );
 
-/*	for( y=0; y<grabber->height; y++ )
+	for( y=0; y<grabber->height; y++ )
 	{
-		i = y*image->width;
-		si = i*4;
+		i = (y*image->width)*4;
 
 		for( x=0; x<grabber->width; x++ )
 		{
-			image->pixels[i].r = grabber->image->data[si+2];
-			image->pixels[i].g = grabber->image->data[si+1];
-			image->pixels[i].b = grabber->image->data[si];
+			image->pixels[i  ] = grabber->image->data[i+2];
+			image->pixels[i+1] = grabber->image->data[i+1];
+			image->pixels[i+2] = grabber->image->data[i  ];
+			image->pixels[i+3] = 0;
 
-			i++;
-			si += 4;
+			i += 4;
 		}
-	}*/
-
-	memcpy( image->pixels, grabber->image->data, grabber->width * grabber->height * 4 );
+	}
 
 	if( xcim )
 	{
