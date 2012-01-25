@@ -25,7 +25,7 @@ qtvdec: qtvdec.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.
 qtvcap: qtvcap.o utils.o x11grab.o databuffer.o image.o qtc.o qti.o qtv.o rangecode.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(X11FLAGS) $^ -o $@
 
-qtvplay: qtvplay.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.o
+qtvplay: qtvplay.o utils.o databuffer.o image.o qtc.o qti.o qtv.o rangecode.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SDLFLAGS) $^ -o $@
 
 databuffer.o: databuffer.c databuffer.h
