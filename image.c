@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "image.h"
 
@@ -32,10 +33,7 @@ void image_free( struct image *image )
 
 void image_copy( struct image *in, struct image *out )
 {
-	int i;
-
-	for( i=0; i<in->width*in->height*4; i++ )
-		out->pixels[i] = in->pixels[i];
+	memcpy( out->pixels, in->pixels, in->width*in->height*4 );
 }
 
 void image_color_diff( struct image *image )
