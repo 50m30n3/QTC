@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -140,7 +141,7 @@ void x11grabber_free( struct x11grabber *grabber )
 
 int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 {
-	int x, y, cx, cy, i, si, ci;
+	int x, y, cx, cy, i, ci;
 	int xmin, xmax, ymin, ymax;
 	unsigned char alpha;
 	XFixesCursorImage *xcim = NULL;
@@ -163,21 +164,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 
 	image_create( image, grabber->width, grabber->height );
 
-	for( y=0; y<grabber->height; y++ )
-	{
-		i = (y*image->width)*4;
-		si = y*grabber->image->bytes_per_line;
-
-		for( x=0; x<grabber->width; x++ )
-		{
-			image->pixels[i  ] = grabber->image->data[si+2];
-			image->pixels[i++] = grabber->image->data[si+1];
-			image->pixels[i++] = grabber->image->data[si  ];
-			image->pixels[i++] = 0;
-			
-			si += 4;
-		}
-	}
+	memcpy( image->pixels, grabber->image->data, image->width * image->height * 4 );
 
 	if( xcim )
 	{
