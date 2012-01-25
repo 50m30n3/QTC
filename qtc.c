@@ -95,7 +95,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 
 			error = 1;
 			
-			p = input->pixels[ x1 + y1*input->width ];
+			p = inpixels[ x1 + y1*input->width ];
 		}
 
 		if( error )
@@ -135,7 +135,13 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 						{
 							i = x1 + y*input->width;
 							for( x=x1; x<x2; x++ )
-								databuffer_add_bits( inpixels[ i++ ], imagedata, 24 );
+							{
+								p = inpixels[i++];
+
+								databuffer_add_byte( (p>>16)&0xff, imagedata );
+								databuffer_add_byte( (p>>8)&0xff, imagedata );
+								databuffer_add_byte( p&0xff, imagedata );
+							}
 						}
 					}
 				}
@@ -146,14 +152,22 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 				{
 					i = x1 + y*input->width;
 					for( x=x1; x<x2; x++ )
-						databuffer_add_bits( inpixels[ i++ ], imagedata, 24 );
+					{
+						p = inpixels[i++];
+
+							databuffer_add_byte( (p>>16)&0xff, imagedata );
+							databuffer_add_byte( (p>>8)&0xff, imagedata );
+							databuffer_add_byte( p&0xff, imagedata );
+					}
 				}
 			}
 		}
 		else
 		{
 			databuffer_add_bits( 1, commanddata, 1 );
-			databuffer_add_bits( p, imagedata, 24 );
+			databuffer_add_byte( (p>>16)&0xff, imagedata );
+			databuffer_add_byte( (p>>8)&0xff, imagedata );
+			databuffer_add_byte( p&0xff, imagedata );
 		}
 	}
 	
@@ -616,7 +630,7 @@ int qtc_compress_color_diff( struct image *input, struct image *refimage, struct
 
 					if( error )
 						break;
-				}
+				}input->pixels
 
 				if( error )
 					break;
