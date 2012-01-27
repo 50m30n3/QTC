@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness ) )
+		if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, 0 ) )
 			return 0;
 	}
 

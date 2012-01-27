@@ -7,7 +7,7 @@
 
 #include "qtc.h"
 
-int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness )
+int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
 	unsigned int *inpixels, *refpixels;
@@ -138,9 +138,18 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 							{
 								p = inpixels[i++];
 
-								databuffer_add_byte( (p>>16)&0xff, imagedata );
-								databuffer_add_byte( (p>>8)&0xff, imagedata );
-								databuffer_add_byte( p&0xff, imagedata );
+								if( bgra )
+								{
+									databuffer_add_byte( (p>>16)&0xff, imagedata );
+									databuffer_add_byte( (p>>8)&0xff, imagedata );
+									databuffer_add_byte( p&0xff, imagedata );
+								}
+								else
+								{
+									databuffer_add_byte( p&0xff, imagedata );
+									databuffer_add_byte( (p>>8)&0xff, imagedata );
+									databuffer_add_byte( (p>>16)&0xff, imagedata );
+								}
 							}
 						}
 					}
@@ -155,9 +164,18 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					{
 						p = inpixels[i++];
 
+						if( bgra )
+						{
 							databuffer_add_byte( (p>>16)&0xff, imagedata );
 							databuffer_add_byte( (p>>8)&0xff, imagedata );
 							databuffer_add_byte( p&0xff, imagedata );
+						}
+						else
+						{
+							databuffer_add_byte( p&0xff, imagedata );
+							databuffer_add_byte( (p>>8)&0xff, imagedata );
+							databuffer_add_byte( (p>>16)&0xff, imagedata );
+						}
 					}
 				}
 			}
@@ -165,9 +183,19 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 		else
 		{
 			databuffer_add_bits( 1, commanddata, 1 );
-			databuffer_add_byte( (p>>16)&0xff, imagedata );
-			databuffer_add_byte( (p>>8)&0xff, imagedata );
-			databuffer_add_byte( p&0xff, imagedata );
+
+			if( bgra )
+			{
+				databuffer_add_byte( (p>>16)&0xff, imagedata );
+				databuffer_add_byte( (p>>8)&0xff, imagedata );
+				databuffer_add_byte( p&0xff, imagedata );
+			}
+			else
+			{
+				databuffer_add_byte( p&0xff, imagedata );
+				databuffer_add_byte( (p>>8)&0xff, imagedata );
+				databuffer_add_byte( (p>>16)&0xff, imagedata );
+			}
 		}
 	}
 	

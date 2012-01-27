@@ -133,9 +133,9 @@ int ppm_read( struct image *image, char filename[] )
 		j = 0;
 		for( i=0; i<width*height*3; i+=3 )
 		{
-			image->pixels[j++] = rawpixels[i+2];
-			image->pixels[j++] = rawpixels[i+1];
 			image->pixels[j++] = rawpixels[i];
+			image->pixels[j++] = rawpixels[i+1];
+			image->pixels[j++] = rawpixels[i+2];
 			image->pixels[j++] = 0;
 		}
 
