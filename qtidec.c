@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
 
 	if( ! analyze )
 	{
-		if( ! qtc_decompress( &compimage, NULL, &image, compimage.colordiff >= 2 ) )
+		if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )
 			return 0;
 
 		if( compimage.transform == 1 )

@@ -100,12 +100,12 @@ int main( int argc, char *argv[] )
 			{
 				if( keyframe )
 				{
-					if( ! qtc_decompress( &compimage, NULL, &image, compimage.colordiff >= 2 ) )
+					if( ! qtc_decompress( &compimage, NULL, &image, 1, compimage.colordiff >= 2 ) )
 						return 0;
 				}
 				else
 				{
-					if( ! qtc_decompress( &compimage, &refimage, &image, compimage.colordiff >= 2 ) )
+					if( ! qtc_decompress( &compimage, &refimage, &image, 1, compimage.colordiff >= 2 ) )
 						return 0;
 				}
 
