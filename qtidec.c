@@ -49,16 +49,8 @@ int main( int argc, char *argv[] )
 
 	if( ! analyze )
 	{
-		if( compimage.colordiff >= 2 )
-		{
-			if( ! qtc_decompress_color_diff( &compimage, NULL, &image ) )
-				return 0;
-		}
-		else
-		{
-			if( ! qtc_decompress( &compimage, NULL, &image ) )
-				return 0;
-		}
+		if( ! qtc_decompress( &compimage, NULL, &image, compimage.colordiff >= 2 ) )
+			return 0;
 
 		if( compimage.transform == 1 )
 			image_transform_fast_rev( &image );

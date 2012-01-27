@@ -100,7 +100,7 @@ int ppm_read( struct image *image, char filename[] )
 		image->width = width;
 		image->height = height;
 
-		rawpixels = malloc( sizeof( unsigned char ) * width * height * 3 );
+		rawpixels = malloc( sizeof( unsigned char ) * width * height * 3 + 1 );
 
 		if( rawpixels != NULL )
 		{
@@ -136,7 +136,7 @@ int ppm_read( struct image *image, char filename[] )
 		j = 0;
 		for( i=0; i<width*height*3; i+=3 )
 		{
-			pixels[j++] = (*((unsigned int *)((void *)rawpixels+i)))&0x00FFFFFF;
+			pixels[j++] = (*((unsigned int *)(rawpixels+i)))&0x00FFFFFF;
 		}
 
 		free( rawpixels );
@@ -156,6 +156,9 @@ int ppm_read( struct image *image, char filename[] )
 int ppm_write( struct image *image, char filename[] )
 {
 	FILE *ppm;
+	int i, j;
+	unsigned char *rawpixels;
+	unsigned int *pixels;
 
 	if( filename == NULL )
 	{
@@ -175,16 +178,39 @@ int ppm_write( struct image *image, char filename[] )
 
 	if( ppm != NULL )
 	{
+		rawpixels = malloc( sizeof( unsigned char ) * image->width * image->height * 3 + 1 );
+		if( rawpixels == NULL )
+		{
+			perror( "ppm_write" );
+			if( ppm != stdin )
+				fclose( ppm );
+			return 0;
+		}
+
+		pixels = (unsigned int *)image->pixels;
+
+		j = 0;
+		for( i=0; i<image->width*image->height*3; i+=3 )
+		{
+			//(*((unsigned int *)(rawpixels+i))) = pixels[j++];
+			rawpixels[i] = pixels[j]&0xff;
+			rawpixels[i+1] = (pixels[j]>>8)&0xff;
+			rawpixels[i+2] = (pixels[j]>>16)&0xff;
+			j++;
+		}
+
 		fprintf( ppm, "P6\n%i %i\n255\n", image->width, image->height );
 
-		if( fwrite( image->pixels, sizeof( *(image->pixels) ), image->width*image->height*3, ppm ) != (unsigned int)(image->width*image->height*3) )
+		if( fwrite( rawpixels, sizeof( *(rawpixels) ), image->width*image->height*3, ppm ) != (unsigned int)(image->width*image->height*3) )
 		{
-			fputs( "ppm_read: Short write on image data\n", stderr );
-
+			fputs( "ppm_write: Short write on image data\n", stderr );
+			free( rawpixels );
 			if( ppm != stdout )
 				fclose( ppm );
 			return 0;
 		}
+
+		free( rawpixels );
 
 		if( ppm != stdout )
 			fclose( ppm );

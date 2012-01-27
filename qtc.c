@@ -98,6 +98,74 @@ static inline void put_pixels( struct databuffer *databuffer, unsigned int *pixe
 	}
 }
 
+
+static inline unsigned int get_rgb_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer );
+	pixel |= databuffer_get_byte( databuffer ) << 8;
+	pixel |= databuffer_get_byte( databuffer ) << 16;
+
+	return pixel;
+}
+
+static inline unsigned int get_luma_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer ) << 8;
+	
+	return pixel;
+}
+
+static inline unsigned int get_rgb_chroma_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer );
+	pixel |= databuffer_get_byte( databuffer ) << 16;
+
+	return pixel;
+}
+
+static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, int colordiff, int luma )
+{
+	int x, y, i;
+
+	if( ! colordiff )
+	{
+		for( y=y1; y<y2; y++ )
+		{
+			i = x1 + y*width;
+			for( x=x1; x<x2; x++ )
+				pixels[i++] = get_rgb_pixel( databuffer );
+		}
+	}
+	else
+	{
+		if( luma )
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					pixels[i++] = get_luma_pixel( databuffer );
+			}
+		}
+		else
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					pixels[i++] |= get_rgb_chroma_pixel( databuffer );
+			}
+		}
+	}
+}
+
+
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
@@ -278,23 +346,19 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	return 1;
 }
 
-int qtc_decompress( struct qti *input, struct image *refimage, struct image *output )
+
+int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int colordiff )
 {
-/*	struct databuffer *commanddata, *imagedata;
+	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
+	unsigned int *outpixels, *refpixels;
+	unsigned int mask;
+	int luma;
 
-	if( ! image_create( output, input->width, input->height ) )
-		return 0;
-	
-	commanddata = input->commanddata;
-	imagedata = input->imagedata;
-	minsize = input->minsize;
-	maxdepth = input->maxdepth;
-
-	int qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
+	void qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
 		int x, y, sx, sy, i;
-		struct pixel color;
+		unsigned int color;
 		unsigned char status;
 
 		if( refimage != NULL )
@@ -307,7 +371,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 				i = x1 + y*input->width;
 				for( x=x1; x<x2; x++ )
 				{
-					output->pixels[ i ] = refimage->pixels[ i ];
+					outpixels[ i ] = refpixels[ i ];
 					i++;
 				}
 			}
@@ -347,56 +411,94 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 						}
 						else
 						{
-							for( y=y1; y<y2; y++ )
-							{
-								i = x1 + y*input->width;
-								for( x=x1; x<x2; x++ )
-								{
-									output->pixels[ i ].r = databuffer_get_byte( imagedata );
-									output->pixels[ i ].g = databuffer_get_byte( imagedata );
-									output->pixels[ i ].b = databuffer_get_byte( imagedata );
-									i++;
-								}
-							}
+							get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, colordiff, luma );
 						}
 					}
 				}
 				else
 				{
+					get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, colordiff, luma );
+				}
+			}
+			else
+			{
+				if( ! colordiff )
+				{
+					color = get_rgb_pixel( imagedata );
+
 					for( y=y1; y<y2; y++ )
 					{
 						i = x1 + y*input->width;
 						for( x=x1; x<x2; x++ )
 						{
-							output->pixels[ i ].r = databuffer_get_byte( imagedata );
-							output->pixels[ i ].g = databuffer_get_byte( imagedata );
-							output->pixels[ i ].b = databuffer_get_byte( imagedata );
-							i++;
+							outpixels[ i++ ] = color;
+						}
+					}
+				}
+				else
+				{
+					if( luma )
+					{
+						color = get_luma_pixel( imagedata );
+
+						for( y=y1; y<y2; y++ )
+						{
+							i = x1 + y*input->width;
+							for( x=x1; x<x2; x++ )
+							{
+								outpixels[ i++ ] = color;
+							}
+						}
+					}
+					else
+					{
+						color = get_rgb_chroma_pixel( imagedata );
+
+						for( y=y1; y<y2; y++ )
+						{
+							i = x1 + y*input->width;
+							for( x=x1; x<x2; x++ )
+							{
+								outpixels[ i++ ] |= color;
+							}
 						}
 					}
 				}
 			}
-			else
-			{
-				color.r = databuffer_get_byte( imagedata );
-				color.g = databuffer_get_byte( imagedata );
-				color.b = databuffer_get_byte( imagedata );
-
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						output->pixels[ i++ ] = color;
-					}
-				}
-			}
 		}
-	
-		return 1;
 	}
+
+	if( ! image_create( output, input->width, input->height ) )
+		return 0;
 	
-	return qtc_decompress_rec( 0, 0, input->width, input->height, 0 );*/
+	commanddata = input->commanddata;
+	imagedata = input->imagedata;
+	minsize = input->minsize;
+	maxdepth = input->maxdepth;
+
+	outpixels = (unsigned int *)output->pixels;
+
+	if( refimage != NULL )
+		refpixels = (unsigned int *)refimage->pixels;
+
+	if( ! colordiff )
+	{
+		mask = 0x00FFFFFF;
+		luma = 0;
+		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
+	}
+	else
+	{
+		mask = 0x0000FF00;
+		luma = 1;
+		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
+
+		mask = 0x00FF00FF;
+		luma = 0;
+		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
+	}
+
+	return 1;
 }
 
 int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage )

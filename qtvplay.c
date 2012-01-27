@@ -100,29 +100,13 @@ int main( int argc, char *argv[] )
 			{
 				if( keyframe )
 				{
-					if( compimage.colordiff >= 2 )
-					{
-						if( ! qtc_decompress_color_diff( &compimage, NULL, &image ) )
-							return 0;
-					}
-					else
-					{
-						if( ! qtc_decompress( &compimage, NULL, &image ) )
-							return 0;
-					}
+					if( ! qtc_decompress( &compimage, NULL, &image, compimage.colordiff >= 2 ) )
+						return 0;
 				}
 				else
 				{
-					if( compimage.colordiff >= 2 )
-					{
-						if( ! qtc_decompress_color_diff( &compimage, &refimage, &image ) )
-							return 0;
-					}
-					else
-					{
-						if( ! qtc_decompress( &compimage, &refimage, &image ) )
-							return 0;
-					}
+					if( ! qtc_decompress( &compimage, &refimage, &image, compimage.colordiff >= 2 ) )
+						return 0;
 				}
 
 				image_copy( &image, &refimage );
