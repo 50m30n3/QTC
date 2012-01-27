@@ -13,6 +13,7 @@ int ppm_read( struct image *image, char filename[] )
 	int width, height, maxval;
 	int i, j;
 	unsigned char *rawpixels;
+	unsigned int *pixels;
 
 	if( filename == NULL )
 	{
@@ -130,13 +131,12 @@ int ppm_read( struct image *image, char filename[] )
 			return 0;
 		}
 
+		pixels = (unsigned int *)image->pixels;
+
 		j = 0;
 		for( i=0; i<width*height*3; i+=3 )
 		{
-			image->pixels[j++] = rawpixels[i];
-			image->pixels[j++] = rawpixels[i+1];
-			image->pixels[j++] = rawpixels[i+2];
-			image->pixels[j++] = 0;
+			pixels[j++] = (*((unsigned int *)((void *)rawpixels+i)))&0x00FFFFFF;
 		}
 
 		free( rawpixels );
