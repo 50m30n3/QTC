@@ -178,7 +178,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 
 		for( y=ymin; y<ymax; y++ )
 		{
-			i = (xmin+y*image->width)*4;
+			i = xmin+y*image->width;
 			ci = (xmin-cx) + (y-cy)*xcim->width;
 
 			for( x=xmin; x<xmax; x++ )
@@ -189,19 +189,19 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 				{
 					if( alpha == 255 )
 					{
-						image->pixels[i  ] = xcim->pixels[ci] >>  0 & 0xff;
-						image->pixels[i+1] = xcim->pixels[ci] >>  8 & 0xff;
-						image->pixels[i+2] = xcim->pixels[ci] >> 16 & 0xff;
+						image->pixels[i].x = xcim->pixels[ci] >>  0 & 0xff;
+						image->pixels[i].y = xcim->pixels[ci] >>  8 & 0xff;
+						image->pixels[i].z = xcim->pixels[ci] >> 16 & 0xff;
 					}
 					else
 					{
-						image->pixels[i  ] = (image->pixels[i  ]*(255-alpha)/255) + ((xcim->pixels[ci] >>  0 & 0xff)*alpha/255);
-						image->pixels[i+1] = (image->pixels[i+1]*(255-alpha)/255) + ((xcim->pixels[ci] >>  8 & 0xff)*alpha/255);
-						image->pixels[i+2] = (image->pixels[i+2]*(255-alpha)/255) + ((xcim->pixels[ci] >> 16 & 0xff)*alpha/255);
+						image->pixels[i].x = (image->pixels[i].x*(255-alpha)/255) + ((xcim->pixels[ci] >>  0 & 0xff)*alpha/255);
+						image->pixels[i].y = (image->pixels[i].y*(255-alpha)/255) + ((xcim->pixels[ci] >>  8 & 0xff)*alpha/255);
+						image->pixels[i].z = (image->pixels[i].z*(255-alpha)/255) + ((xcim->pixels[ci] >> 16 & 0xff)*alpha/255);
 					}
 				}
 			
-				i+=4;
+				i++;
 				ci++;
 			}
 		}

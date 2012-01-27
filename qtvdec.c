@@ -76,6 +76,12 @@ int main( int argc, char *argv[] )
 		}
 	}
 
+	if( ( analyze < 0 ) || ( analyze > 2 ) )
+	{
+		fputs( "main: Analysis mode out of range\n", stderr );
+		return 1;
+	}
+
 	if( startframe < 0 )
 	{
 		fputs( "main: Start frame out of range\n", stderr );

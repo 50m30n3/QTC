@@ -1,10 +1,18 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+struct pixel
+{
+	unsigned char x;
+	unsigned char y;
+	unsigned char z;
+	unsigned char a;
+};
+
 struct image
 {
 	int width, height;
-	unsigned char *pixels;
+	struct pixel *pixels;
 };
 
 extern int image_create( struct image *image, int width, int height );

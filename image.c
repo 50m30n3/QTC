@@ -9,7 +9,7 @@ int image_create( struct image *image, int width, int height )
 	image->width = width;
 	image->height = height;
 
-	image->pixels = malloc( sizeof( unsigned char ) * width * height * 4 );
+	image->pixels = malloc( sizeof( *image->pixels ) * width * height );
 
 	if( image->pixels == NULL )
 	{
@@ -39,34 +39,34 @@ void image_copy( struct image *in, struct image *out )
 void image_color_diff( struct image *image )
 {
 	int i;
-	unsigned char *pixels;
+	struct pixel *pixels;
 
 	pixels = image->pixels;
 
-	for( i=0; i<image->width*image->height*4; i+=4 )
+	for( i=0; i<image->width*image->height; i++ )
 	{
-		pixels[ i   ] -= pixels[ i+1 ];
-		pixels[ i+2 ] -= pixels[ i+1 ];
+		pixels[ i ].x -= pixels[ i ].y;
+		pixels[ i ].z -= pixels[ i ].y;
 	}
 }
 
 void image_color_diff_rev( struct image *image )
 {
 	int i;
-	unsigned char *pixels;
+	struct pixel *pixels;
 
 	pixels = image->pixels;
 
-	for( i=0; i<image->width*image->height*4; i+=4 )
+	for( i=0; i<image->width*image->height; i++ )
 	{
-		pixels[ i   ] += pixels[ i+1 ];
-		pixels[ i+2 ] += pixels[ i+1 ];
+		pixels[ i ].x += pixels[ i ].y;
+		pixels[ i ].z += pixels[ i ].y;
 	}
 }
 
 void image_transform_fast( struct image *image )
 {
-/*	int x, y, i, width, height;
+	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
 
@@ -84,18 +84,18 @@ void image_transform_fast( struct image *image )
 			pb = pixels[ i-width ];
 			pc = pixels[ i-1-width ];
 
-			pixels[ i ].r -= pa.r + pb.r - pc.r;
-			pixels[ i ].g -= pa.g + pb.g - pc.g;
-			pixels[ i ].b -= pa.b + pb.b - pc.b;
+			pixels[ i ].x -= pa.x + pb.x - pc.x;
+			pixels[ i ].y -= pa.y + pb.y - pc.y;
+			pixels[ i ].z -= pa.z + pb.z - pc.z;
 			
 			i--;
 		}
 		
 		pb = pixels[ i-width ];
 
-		pixels[ i ].r -= pb.r;
-		pixels[ i ].g -= pb.g;
-		pixels[ i ].b -= pb.b;
+		pixels[ i ].x -= pb.x;
+		pixels[ i ].y -= pb.y;
+		pixels[ i ].z -= pb.z;
 		
 		i--;
 	}
@@ -106,15 +106,15 @@ void image_transform_fast( struct image *image )
 
 		pa = pixels[ i-1 ];
 
-		pixels[ i ].r -= pa.r;
-		pixels[ i ].g -= pa.g;
-		pixels[ i ].b -= pa.b;
-	}*/
+		pixels[ i ].x -= pa.x;
+		pixels[ i ].y -= pa.y;
+		pixels[ i ].z -= pa.z;
+	}
 }
 
 void image_transform_fast_rev( struct image *image )
 {
-/*	int x, y, i, width, height;
+	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
 
@@ -128,9 +128,9 @@ void image_transform_fast_rev( struct image *image )
 
 		pa = pixels[ i-1 ];
 
-		pixels[ i ].r += pa.r;
-		pixels[ i ].g += pa.g;
-		pixels[ i ].b += pa.b;
+		pixels[ i ].x += pa.x;
+		pixels[ i ].y += pa.y;
+		pixels[ i ].z += pa.z;
 	}
 
 	i = width;
@@ -138,9 +138,9 @@ void image_transform_fast_rev( struct image *image )
 	{
 		pb = pixels[ i-width ];
 
-		pixels[ i ].r += pb.r;
-		pixels[ i ].g += pb.g;
-		pixels[ i ].b += pb.b;
+		pixels[ i ].x += pb.x;
+		pixels[ i ].y += pb.y;
+		pixels[ i ].z += pb.z;
 		
 		i++;
 
@@ -150,21 +150,21 @@ void image_transform_fast_rev( struct image *image )
 			pb = pixels[ i-width ];
 			pc = pixels[ i-1-width ];
 
-			pixels[ i ].r += pa.r + pb.r - pc.r;
-			pixels[ i ].g += pa.g + pb.g - pc.g;
-			pixels[ i ].b += pa.b + pb.b - pc.b;
+			pixels[ i ].x += pa.x + pb.x - pc.x;
+			pixels[ i ].y += pa.y + pb.y - pc.y;
+			pixels[ i ].z += pa.z + pb.z - pc.z;
 			
 			i++;
 		}
-	}*/
+	}
 }
 
 void image_transform( struct image *image )
 {
-/*	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;
 	struct pixel *pixels;
-	struct color p;
+	int pr, pg, pb;
 
 	width = image->width;
 	height = image->height;
@@ -179,24 +179,24 @@ void image_transform( struct image *image )
 			ib = i-width;
 			ic = i-1-width;
 
-			p.r = pixels[ ia ].r + pixels[ ib ].r - pixels[ ic ].r;
-			p.g = pixels[ ia ].g + pixels[ ib ].g - pixels[ ic ].g;
-			p.b = pixels[ ia ].b + pixels[ ib ].b - pixels[ ic ].b;
+			pr = pixels[ ia ].x + pixels[ ib ].x - pixels[ ic ].x;
+			pg = pixels[ ia ].y + pixels[ ib ].y - pixels[ ic ].y;
+			pb = pixels[ ia ].z + pixels[ ib ].z - pixels[ ic ].z;
 
 			p1 = pixels[ ia ];
-			aerr = abs(p1.r - p.r);
-			aerr += abs(p1.g - p.g);
-			aerr += abs(p1.b - p.b);
+			aerr = abs(p1.x - pr);
+			aerr += abs(p1.y - pg);
+			aerr += abs(p1.z - pb);
 
 			p1 = pixels[ ib ];
-			berr = abs(p1.r - p.r);
-			berr += abs(p1.g - p.g);
-			berr += abs(p1.b - p.b);
+			berr = abs(p1.x - pr);
+			berr += abs(p1.y - pg);
+			berr += abs(p1.z - pb);
 		
 			p1 = pixels[ ic ];
-			cerr = abs(p1.r - p.r);
-			cerr += abs(p1.g - p.g);
-			cerr += abs(p1.b - p.b);
+			cerr = abs(p1.x - pr);
+			cerr += abs(p1.y - pg);
+			cerr += abs(p1.z - pb);
 
 			if( ( aerr < berr ) && ( aerr < cerr ) )
 				p2 = pixels[ ia ];
@@ -205,18 +205,18 @@ void image_transform( struct image *image )
 			else
 				p2 = pixels[ ic ];
 
-			pixels[ i ].r -= p2.r;
-			pixels[ i ].g -= p2.g;
-			pixels[ i ].b -= p2.b;
+			pixels[ i ].x -= p2.x;
+			pixels[ i ].y -= p2.y;
+			pixels[ i ].z -= p2.z;
 		}
 		
 		i = y*width;
 
 		p1 = pixels[ i-width ];
 		
-		pixels[ i ].r -= p1.r;
-		pixels[ i ].g -= p1.g;
-		pixels[ i ].b -= p1.b;
+		pixels[ i ].x -= p1.x;
+		pixels[ i ].y -= p1.y;
+		pixels[ i ].z -= p1.z;
 	}
 
 	for( x=width-1; x>0; x-- )
@@ -225,18 +225,18 @@ void image_transform( struct image *image )
 
 		p1 = pixels[ i-1 ];
 
-		pixels[ i ].r -= p1.r;
-		pixels[ i ].g -= p1.g;
-		pixels[ i ].b -= p1.b;
-	}*/
+		pixels[ i ].x -= p1.x;
+		pixels[ i ].y -= p1.y;
+		pixels[ i ].z -= p1.z;
+	}
 }
 
 void image_transform_rev( struct image *image )
 {
-/*	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
 	struct pixel p1, p2;
 	struct pixel *pixels;
-	struct color p;
+	int pr, pg, pb;
 
 	width = image->width;
 	height = image->height;
@@ -248,9 +248,9 @@ void image_transform_rev( struct image *image )
 
 		p1 = pixels[ i-1 ];
 
-		pixels[ i ].r += p1.r;
-		pixels[ i ].g += p1.g;
-		pixels[ i ].b += p1.b;
+		pixels[ i ].x += p1.x;
+		pixels[ i ].y += p1.y;
+		pixels[ i ].z += p1.z;
 	}
 
 	for( y=1; y<height; y++ )
@@ -259,9 +259,9 @@ void image_transform_rev( struct image *image )
 
 		p1 = pixels[ i-width ];
 		
-		pixels[ i ].r += p1.r;
-		pixels[ i ].g += p1.g;
-		pixels[ i ].b += p1.b;
+		pixels[ i ].x += p1.x;
+		pixels[ i ].y += p1.y;
+		pixels[ i ].z += p1.z;
 		
 		for( x=1; x<width; x++ )
 		{
@@ -270,24 +270,24 @@ void image_transform_rev( struct image *image )
 			ib = i-width;
 			ic = i-1-width;
 
-			p.r = pixels[ ia ].r + pixels[ ib ].r - pixels[ ic ].r;
-			p.g = pixels[ ia ].g + pixels[ ib ].g - pixels[ ic ].g;
-			p.b = pixels[ ia ].b + pixels[ ib ].b - pixels[ ic ].b;
+			pr = pixels[ ia ].x + pixels[ ib ].x - pixels[ ic ].x;
+			pg = pixels[ ia ].y + pixels[ ib ].y - pixels[ ic ].y;
+			pb = pixels[ ia ].z + pixels[ ib ].z - pixels[ ic ].z;
 
 			p1 = pixels[ ia ];
-			aerr = abs(p1.r - p.r);
-			aerr += abs(p1.g - p.g);
-			aerr += abs(p1.b - p.b);
+			aerr = abs(p1.x - pr);
+			aerr += abs(p1.y - pg);
+			aerr += abs(p1.z - pb);
 
 			p1 = pixels[ ib ];
-			berr = abs(p1.r - p.r);
-			berr += abs(p1.g - p.g);
-			berr += abs(p1.b - p.b);
+			berr = abs(p1.x - pr);
+			berr += abs(p1.y - pg);
+			berr += abs(p1.z - pb);
 		
 			p1 = pixels[ ic ];
-			cerr = abs(p1.r - p.r);
-			cerr += abs(p1.g - p.g);
-			cerr += abs(p1.b - p.b);
+			cerr = abs(p1.x - pr);
+			cerr += abs(p1.y - pg);
+			cerr += abs(p1.z - pb);
 
 			p2 = pixels[ i ];
 
@@ -298,10 +298,10 @@ void image_transform_rev( struct image *image )
 			else
 				p1 = pixels[ ic ];
 
-			pixels[ i ].r += p1.r;
-			pixels[ i ].g += p1.g;
-			pixels[ i ].b += p1.b;
+			pixels[ i ].x += p1.x;
+			pixels[ i ].y += p1.y;
+			pixels[ i ].z += p1.z;
 		}
-	}*/
+	}
 }
 
