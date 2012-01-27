@@ -128,16 +128,8 @@ int main( int argc, char *argv[] )
 	else if( transform == 2 )
 		image_transform( &image );
 
-	if( colordiff >= 2 )
-	{
-		if( ! qtc_compress_color_diff( &image, NULL, &compimage, minsize, maxdepth, lazyness ) )
-			return 0;
-	}
-	else
-	{
-		if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, 0 ) )
-			return 0;
-	}
+	if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
+		return 0;
 
 	bsize = qti_getsize( &compimage );
 

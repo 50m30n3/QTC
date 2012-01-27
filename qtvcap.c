@@ -248,29 +248,13 @@ int main( int argc, char *argv[] )
 
 		if( keyframe )
 		{
-			if( colordiff >= 2 )
-			{
-				if( ! qtc_compress_color_diff( &image, NULL, &compimage, minsize, maxdepth, lazyness ) )
-					return 0;
-			}
-			else
-			{
-				if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 1, 0 ) )
-					return 0;
-			}
+			if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 1, colordiff >= 2 ) )
+				return 0;
 		}
 		else
 		{
-			if( colordiff >= 2 )
-			{
-				if( ! qtc_compress_color_diff( &image, &refimage, &compimage, minsize, maxdepth, lazyness ) )
-					return 0;
-			}
-			else
-			{
-				if( ! qtc_compress( &image, &refimage, &compimage, minsize, maxdepth, lazyness, 1, 0 ) )
-					return 0;
-			}
+			if( ! qtc_compress( &image, &refimage, &compimage, minsize, maxdepth, lazyness, 1, colordiff >= 2 ) )
+				return 0;
 		}
 
 		bsize += qti_getsize( &compimage );

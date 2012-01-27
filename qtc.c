@@ -7,21 +7,103 @@
 
 #include "qtc.h"
 
+static inline void put_rgb_pixel( struct databuffer *databuffer, unsigned int pixel )
+{
+	databuffer_add_byte( pixel&0xff, databuffer );
+	databuffer_add_byte( (pixel>>8)&0xff, databuffer );
+	databuffer_add_byte( (pixel>>16)&0xff, databuffer );
+}
+
+static inline void put_bgr_pixel( struct databuffer *databuffer, unsigned int pixel )
+{
+	databuffer_add_byte( (pixel>>16)&0xff, databuffer );
+	databuffer_add_byte( (pixel>>8)&0xff, databuffer );
+	databuffer_add_byte( pixel&0xff, databuffer );
+}
+
+static inline void put_luma_pixel( struct databuffer *databuffer, unsigned int pixel )
+{
+	databuffer_add_byte( (pixel>>8)&0xff, databuffer );
+}
+
+static inline void put_rgb_chroma_pixel( struct databuffer *databuffer, unsigned int pixel )
+{
+	databuffer_add_byte( pixel&0xff, databuffer );
+	databuffer_add_byte( (pixel>>16)&0xff, databuffer );
+}
+
+static inline void put_bgr_chroma_pixel( struct databuffer *databuffer, unsigned int pixel )
+{
+	databuffer_add_byte( (pixel>>16)&0xff, databuffer );
+	databuffer_add_byte( pixel&0xff, databuffer );
+}
+
+static inline void put_pixels( struct databuffer *databuffer, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
+{
+	int x, y, i;
+
+	if( ! colordiff )
+	{
+		if( bgra )
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					put_bgr_pixel( databuffer, pixels[i++] );
+			}
+		}
+		else
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					put_rgb_pixel( databuffer, pixels[i++] );
+			}
+		}
+	}
+	else
+	{
+		if( luma )
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					put_luma_pixel( databuffer, pixels[i++] );
+			}
+		}
+		else
+		{
+			if( bgra )
+			{
+				for( y=y1; y<y2; y++ )
+				{
+					i = x1 + y*width;
+					for( x=x1; x<x2; x++ )
+						put_bgr_chroma_pixel( databuffer, pixels[i++] );
+				}
+			}
+			else
+			{
+				for( y=y1; y<y2; y++ )
+				{
+					i = x1 + y*width;
+					for( x=x1; x<x2; x++ )
+						put_rgb_chroma_pixel( databuffer, pixels[i++] );
+				}
+			}
+		}
+	}
+}
+
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
 	unsigned int *inpixels, *refpixels;
-
-	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
-		return 0;
-	
-	commanddata = output->commanddata;
-	imagedata = output->imagedata;
-
-	inpixels = (unsigned int *)input->pixels;
-
-	if( refimage != NULL )
-		refpixels = (unsigned int *)refimage->pixels;
+	unsigned int mask;
+	int luma;
 
 	void qtc_compress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -40,7 +122,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					i = x1 + y*input->width;
 					for( x=x1; x<x2; x++ )
 					{
-						if( inpixels[ i ] != refpixels[ i ] )
+						if( ( inpixels[ i ] ^ refpixels[ i ] ) & mask )
 						{
 							error = 1;
 							break;
@@ -74,14 +156,11 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 				i = x1 + y*input->width;
 				for( x=x1; x<x2; x++ )
 				{
-					if( p != inpixels[ i++ ] )
+					if( ( p ^ inpixels[ i++ ] ) & mask )
 					{
 						error = 1;
 						break;
 					}
-
-					if( error )
-						break;
 				}
 
 				if( error )
@@ -131,75 +210,70 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					}
 					else
 					{
-						for( y=y1; y<y2; y++ )
-						{
-							i = x1 + y*input->width;
-							for( x=x1; x<x2; x++ )
-							{
-								p = inpixels[i++];
-
-								if( bgra )
-								{
-									databuffer_add_byte( (p>>16)&0xff, imagedata );
-									databuffer_add_byte( (p>>8)&0xff, imagedata );
-									databuffer_add_byte( p&0xff, imagedata );
-								}
-								else
-								{
-									databuffer_add_byte( p&0xff, imagedata );
-									databuffer_add_byte( (p>>8)&0xff, imagedata );
-									databuffer_add_byte( (p>>16)&0xff, imagedata );
-								}
-							}
-						}
+						put_pixels( imagedata, inpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
 					}
 				}
 			}
 			else
 			{
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						p = inpixels[i++];
-
-						if( bgra )
-						{
-							databuffer_add_byte( (p>>16)&0xff, imagedata );
-							databuffer_add_byte( (p>>8)&0xff, imagedata );
-							databuffer_add_byte( p&0xff, imagedata );
-						}
-						else
-						{
-							databuffer_add_byte( p&0xff, imagedata );
-							databuffer_add_byte( (p>>8)&0xff, imagedata );
-							databuffer_add_byte( (p>>16)&0xff, imagedata );
-						}
-					}
-				}
+				put_pixels( imagedata, inpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
 			}
 		}
 		else
 		{
 			databuffer_add_bits( 1, commanddata, 1 );
 
-			if( bgra )
+			if( ! colordiff )
 			{
-				databuffer_add_byte( (p>>16)&0xff, imagedata );
-				databuffer_add_byte( (p>>8)&0xff, imagedata );
-				databuffer_add_byte( p&0xff, imagedata );
+				if( bgra )
+					put_bgr_pixel( imagedata, p );
+				else
+					put_rgb_pixel( imagedata, p );
 			}
 			else
 			{
-				databuffer_add_byte( p&0xff, imagedata );
-				databuffer_add_byte( (p>>8)&0xff, imagedata );
-				databuffer_add_byte( (p>>16)&0xff, imagedata );
+				if( luma )
+				{
+					put_luma_pixel( imagedata, p );
+				}
+				else
+				{
+					if( bgra )
+						put_bgr_chroma_pixel( imagedata, p );
+					else
+						put_rgb_chroma_pixel( imagedata, p );
+				}
 			}
 		}
 	}
+
+	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
+		return 0;
 	
-	qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+	commanddata = output->commanddata;
+	imagedata = output->imagedata;
+
+	inpixels = (unsigned int *)input->pixels;
+
+	if( refimage != NULL )
+		refpixels = (unsigned int *)refimage->pixels;
+
+	if( ! colordiff )
+	{
+		mask = 0x00FFFFFF;
+		luma = 0;
+		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+	}
+	else
+	{
+		mask = 0x0000FF00;
+		luma = 1;
+		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+
+		mask = 0x00FF00FF;
+		luma = 0;
+		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+	}
 	
 	return 1;
 }
@@ -446,307 +520,6 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 	}
 	
 	return qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );*/
-}
-
-
-int qtc_compress_color_diff( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness )
-{
-/*	struct databuffer *commanddata, *imagedata;
-
-	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
-		return 0;
-	
-	commanddata = output->commanddata;
-	imagedata = output->imagedata;
-
-	void qtc_compress_rec_luma( int x1, int y1, int x2, int y2, int depth )
-	{
-		int x, y, sx, sy, i;
-		struct pixel p1;
-		int error;
-
-		if( depth >= lazyness )
-		{
-			if( refimage != NULL )
-			{
-				error = 0;
-
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						if( input->pixels[ i ].g != refimage->pixels[ i ].g )
-						{
-							error = 1;
-							break;
-						}
-
-						i++;				
-					}
-			
-					if( error )
-						break;
-				}
-		
-				if( error )
-				{
-					databuffer_add_bits( 1, commanddata, 1 );
-				}
-				else
-				{
-					databuffer_add_bits( 0, commanddata, 1 );
-					return;
-				}
-			}
-
-
-			error = 0;
-
-			p1 = input->pixels[ x1 + y1*input->width ];
-
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*input->width;
-				for( x=x1; x<x2; x++ )
-				{
-					if( p1.g != input->pixels[ i++ ].g )
-					{
-						error = 1;
-						break;
-					}
-
-					if( error )
-						break;
-				}
-
-				if( error )
-					break;
-			}
-		}
-		else
-		{
-			if( refimage != NULL )
-				databuffer_add_bits( 1, commanddata, 1 );
-
-			error = 1;
-			
-			p1 = input->pixels[ x1 + y1*input->width ];
-		}
-
-		if( error )
-		{
-			databuffer_add_bits( 0, commanddata, 1 );
-			if( depth < maxdepth )
-			{
-				if( ( x2-x1 > minsize ) && ( y2-y1 > minsize ) )
-				{
-					sx = x1 + (x2-x1)/2;
-					sy = y1 + (y2-y1)/2;
-
-					qtc_compress_rec_luma( x1, y1, sx, sy, depth+1 );
-					qtc_compress_rec_luma( x1, sy, sx, y2, depth+1 );
-					qtc_compress_rec_luma( sx, y1, x2, sy, depth+1 );
-					qtc_compress_rec_luma( sx, sy, x2, y2, depth+1 );
-				}
-				else
-				{
-					if( x2-x1 > minsize )
-					{
-						sx = x1 + (x2-x1)/2;
-		
-						qtc_compress_rec_luma( x1, y1, sx, y2, depth+1 );
-						qtc_compress_rec_luma( sx, y1, x2, y2, depth+1 );
-					}
-					else if ( y2-y1 > minsize )
-					{
-						sy = y1 + (y2-y1)/2;
-		
-						qtc_compress_rec_luma( x1, y1, x2, sy, depth+1 );
-						qtc_compress_rec_luma( x1, sy, x2, y2, depth+1 );
-					}
-					else
-					{
-						for( y=y1; y<y2; y++ )
-						{
-							i = x1 + y*input->width;
-							
-							for( x=x1; x<x2; x++ )
-								databuffer_add_byte( input->pixels[ i++ ].g, imagedata );
-						}
-					}
-				}
-			}
-			else
-			{
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-						databuffer_add_byte( input->pixels[ i++ ].g, imagedata );
-				}
-			}
-		}
-		else
-		{
-			databuffer_add_bits( 1, commanddata, 1 );
-			databuffer_add_byte( p1.g, imagedata );
-		}
-	}
-
-	void qtc_compress_rec_chroma( int x1, int y1, int x2, int y2, int depth )
-	{
-		int x, y, sx, sy, i;
-		struct pixel p1, p2;
-		int error;
-
-		if( depth >= lazyness )
-		{
-			if( refimage != NULL )
-			{
-				error = 0;
-
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						p1 = input->pixels[ i ];
-						p2 = refimage->pixels[ i ];
-
-						if( ( p1.r != p2.r ) || ( p1.b != p2.b ) )
-						{
-							error = 1;
-							break;
-						}
-
-						i++;				
-					}
-			
-					if( error )
-						break;
-				}
-		
-				if( error )
-				{
-					databuffer_add_bits( 1, commanddata, 1 );
-				}
-				else
-				{
-					databuffer_add_bits( 0, commanddata, 1 );
-					return;
-				}
-			}
-
-
-			error = 0;
-
-			p1 = input->pixels[ x1 + y1*input->width ];
-
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*input->width;
-				for( x=x1; x<x2; x++ )
-				{
-					p2 = input->pixels[ i++ ];
-
-					if( ( p1.r != p2.r ) || ( p1.b != p2.b ) )
-					{
-						error = 1;
-						break;
-					}
-
-					if( error )
-						break;
-				}input->pixels
-
-				if( error )
-					break;
-			}
-		}
-		else
-		{
-			if( refimage != NULL )
-				databuffer_add_bits( 1, commanddata, 1 );
-
-			error = 1;
-			
-			p1 = input->pixels[ x1 + y1*input->width ];
-		}
-
-		if( error )
-		{
-			databuffer_add_bits( 0, commanddata, 1 );
-			if( depth < maxdepth )
-			{
-				if( ( x2-x1 > minsize ) && ( y2-y1 > minsize ) )
-				{
-					sx = x1 + (x2-x1)/2;
-					sy = y1 + (y2-y1)/2;
-
-					qtc_compress_rec_chroma( x1, y1, sx, sy, depth+1 );
-					qtc_compress_rec_chroma( x1, sy, sx, y2, depth+1 );
-					qtc_compress_rec_chroma( sx, y1, x2, sy, depth+1 );
-					qtc_compress_rec_chroma( sx, sy, x2, y2, depth+1 );
-				}
-				else
-				{
-					if( x2-x1 > minsize )
-					{
-						sx = x1 + (x2-x1)/2;
-		
-						qtc_compress_rec_chroma( x1, y1, sx, y2, depth+1 );
-						qtc_compress_rec_chroma( sx, y1, x2, y2, depth+1 );
-					}
-					else if ( y2-y1 > minsize )
-					{
-						sy = y1 + (y2-y1)/2;
-		
-						qtc_compress_rec_chroma( x1, y1, x2, sy, depth+1 );
-						qtc_compress_rec_chroma( x1, sy, x2, y2, depth+1 );
-					}
-					else
-					{
-						for( y=y1; y<y2; y++ )
-						{
-							i = x1 + y*input->width;
-							
-							for( x=x1; x<x2; x++ )
-							{
-								p1 = input->pixels[ i++ ];
-								databuffer_add_byte( p1.r, imagedata );
-								databuffer_add_byte( p1.b, imagedata );
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*input->width;
-					for( x=x1; x<x2; x++ )
-					{
-						p1 = input->pixels[ i++ ];
-						databuffer_add_byte( p1.r, imagedata );
-						databuffer_add_byte( p1.b, imagedata );
-					}
-				}
-			}
-		}
-		else
-		{
-			databuffer_add_bits( 1, commanddata, 1 );
-			databuffer_add_byte( p1.r, imagedata );
-			databuffer_add_byte( p1.b, imagedata );
-		}
-	}
-
-	qtc_compress_rec_luma( 0, 0, input->width, input->height, 0 );
-	qtc_compress_rec_chroma( 0, 0, input->width, input->height, 0 );
-	*/
-	return 1;
 }
 
 int qtc_decompress_color_diff( struct qti *input, struct image *refimage, struct image *output )
