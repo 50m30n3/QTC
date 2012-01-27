@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "databuffer.h"
 #include "qti.h"
@@ -364,7 +365,10 @@ static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixe
 			{
 				i = x1 + y*width;
 				for( x=x1; x<x2; x++ )
+				{
+					pixels[i] &= 0x00FF00FF;
 					pixels[i++] = get_luma_pixel( databuffer );
+				}
 			}
 		}
 		else
@@ -375,7 +379,10 @@ static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixe
 				{
 					i = x1 + y*width;
 					for( x=x1; x<x2; x++ )
+					{
+						pixels[i] &= 0x0000FF00;
 						pixels[i++] |= get_bgr_chroma_pixel( databuffer );
+					}
 				}
 			}
 			else
@@ -384,7 +391,10 @@ static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixe
 				{
 					i = x1 + y*width;
 					for( x=x1; x<x2; x++ )
+					{
+						pixels[i] &= 0x0000FF00;
 						pixels[i++] |= get_rgb_chroma_pixel( databuffer );
+					}
 				}
 			}
 		}
@@ -405,22 +415,12 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 		unsigned int color;
 		unsigned char status;
 
-		if( refimage != NULL )
+		if( refimage )
 			status = databuffer_get_bits( commanddata, 1 );
-	
-		if( ( refimage != NULL ) && ( status == 0 ) )
-		{
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*input->width;
-				for( x=x1; x<x2; x++ )
-				{
-					outpixels[ i ] = refpixels[ i ];
-					i++;
-				}
-			}
-		}
 		else
+			status = 1;
+
+		if( status != 0 )
 		{
 			status = databuffer_get_bits( commanddata, 1 );
 			if( status == 0 )
@@ -493,7 +493,8 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 							i = x1 + y*input->width;
 							for( x=x1; x<x2; x++ )
 							{
-								outpixels[ i++ ] = color;
+								outpixels[ i ] &= 0x00FF00FF;
+								outpixels[ i++ ] |= color;
 							}
 						}
 					}
@@ -509,6 +510,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 							i = x1 + y*input->width;
 							for( x=x1; x<x2; x++ )
 							{
+								outpixels[ i ] &= 0x0000FF00;
 								outpixels[ i++ ] |= color;
 							}
 						}
@@ -529,7 +531,10 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	outpixels = (unsigned int *)output->pixels;
 
 	if( refimage != NULL )
+	{
 		refpixels = (unsigned int *)refimage->pixels;
+		memcpy( outpixels, refpixels, input->width * input->height * 4 );
+	}
 
 	if( ! colordiff )
 	{
