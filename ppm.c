@@ -192,11 +192,7 @@ int ppm_write( struct image *image, char filename[] )
 		j = 0;
 		for( i=0; i<image->width*image->height*3; i+=3 )
 		{
-			//(*((unsigned int *)(rawpixels+i))) = pixels[j++];
-			rawpixels[i] = pixels[j]&0xff;
-			rawpixels[i+1] = (pixels[j]>>8)&0xff;
-			rawpixels[i+2] = (pixels[j]>>16)&0xff;
-			j++;
+			(*((unsigned int *)(rawpixels+i))) = pixels[j++];
 		}
 
 		fprintf( ppm, "P6\n%i %i\n255\n", image->width, image->height );
