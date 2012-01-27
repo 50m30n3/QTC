@@ -7,6 +7,7 @@
 
 #include "qtc.h"
 
+
 static inline void put_rgb_pixel( struct databuffer *databuffer, unsigned int pixel )
 {
 	databuffer_add_byte( pixel&0xff, databuffer );
@@ -97,119 +98,6 @@ static inline void put_pixels( struct databuffer *databuffer, unsigned int *pixe
 		}
 	}
 }
-
-
-static inline unsigned int get_rgb_pixel( struct databuffer *databuffer )
-{
-	unsigned int pixel;
-
-	pixel = databuffer_get_byte( databuffer );
-	pixel |= databuffer_get_byte( databuffer ) << 8;
-	pixel |= databuffer_get_byte( databuffer ) << 16;
-
-	return pixel;
-}
-
-static inline unsigned int get_bgr_pixel( struct databuffer *databuffer )
-{
-	unsigned int pixel;
-
-	pixel = databuffer_get_byte( databuffer ) << 16;
-	pixel |= databuffer_get_byte( databuffer ) << 8;
-	pixel |= databuffer_get_byte( databuffer );
-
-	return pixel;
-}
-
-static inline unsigned int get_luma_pixel( struct databuffer *databuffer )
-{
-	unsigned int pixel;
-
-	pixel = databuffer_get_byte( databuffer ) << 8;
-	
-	return pixel;
-}
-
-static inline unsigned int get_rgb_chroma_pixel( struct databuffer *databuffer )
-{
-	unsigned int pixel;
-
-	pixel = databuffer_get_byte( databuffer );
-	pixel |= databuffer_get_byte( databuffer ) << 16;
-
-	return pixel;
-}
-
-static inline unsigned int get_bgr_chroma_pixel( struct databuffer *databuffer )
-{
-	unsigned int pixel;
-
-	pixel = databuffer_get_byte( databuffer ) << 16;
-	pixel |= databuffer_get_byte( databuffer );
-
-	return pixel;
-}
-
-static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
-{
-	int x, y, i;
-
-	if( ! colordiff )
-	{
-		if( bgra )
-		{
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*width;
-				for( x=x1; x<x2; x++ )
-					pixels[i++] = get_bgr_pixel( databuffer );
-			}
-		}
-		else
-		{
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*width;
-				for( x=x1; x<x2; x++ )
-					pixels[i++] = get_rgb_pixel( databuffer );
-			}
-		}
-	}
-	else
-	{
-		if( luma )
-		{
-			for( y=y1; y<y2; y++ )
-			{
-				i = x1 + y*width;
-				for( x=x1; x<x2; x++ )
-					pixels[i++] = get_luma_pixel( databuffer );
-			}
-		}
-		else
-		{
-			if( bgra )
-			{
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*width;
-					for( x=x1; x<x2; x++ )
-						pixels[i++] |= get_bgr_chroma_pixel( databuffer );
-				}
-			}
-			else
-			{
-				for( y=y1; y<y2; y++ )
-				{
-					i = x1 + y*width;
-					for( x=x1; x<x2; x++ )
-						pixels[i++] |= get_rgb_chroma_pixel( databuffer );
-				}
-			}
-		}
-	}
-}
-
 
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
 {
@@ -392,6 +280,117 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 }
 
 
+static inline unsigned int get_rgb_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer );
+	pixel |= databuffer_get_byte( databuffer ) << 8;
+	pixel |= databuffer_get_byte( databuffer ) << 16;
+
+	return pixel;
+}
+
+static inline unsigned int get_bgr_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer ) << 16;
+	pixel |= databuffer_get_byte( databuffer ) << 8;
+	pixel |= databuffer_get_byte( databuffer );
+
+	return pixel;
+}
+
+static inline unsigned int get_luma_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer ) << 8;
+	
+	return pixel;
+}
+
+static inline unsigned int get_rgb_chroma_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer );
+	pixel |= databuffer_get_byte( databuffer ) << 16;
+
+	return pixel;
+}
+
+static inline unsigned int get_bgr_chroma_pixel( struct databuffer *databuffer )
+{
+	unsigned int pixel;
+
+	pixel = databuffer_get_byte( databuffer ) << 16;
+	pixel |= databuffer_get_byte( databuffer );
+
+	return pixel;
+}
+
+static inline void get_pixels( struct databuffer *databuffer, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
+{
+	int x, y, i;
+
+	if( ! colordiff )
+	{
+		if( bgra )
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					pixels[i++] = get_bgr_pixel( databuffer );
+			}
+		}
+		else
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					pixels[i++] = get_rgb_pixel( databuffer );
+			}
+		}
+	}
+	else
+	{
+		if( luma )
+		{
+			for( y=y1; y<y2; y++ )
+			{
+				i = x1 + y*width;
+				for( x=x1; x<x2; x++ )
+					pixels[i++] = get_luma_pixel( databuffer );
+			}
+		}
+		else
+		{
+			if( bgra )
+			{
+				for( y=y1; y<y2; y++ )
+				{
+					i = x1 + y*width;
+					for( x=x1; x<x2; x++ )
+						pixels[i++] |= get_bgr_chroma_pixel( databuffer );
+				}
+			}
+			else
+			{
+				for( y=y1; y<y2; y++ )
+				{
+					i = x1 + y*width;
+					for( x=x1; x<x2; x++ )
+						pixels[i++] |= get_rgb_chroma_pixel( databuffer );
+				}
+			}
+		}
+	}
+}
+
 int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
@@ -552,51 +551,76 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	return 1;
 }
 
-int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage )
+
+static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int color, unsigned int linecolor )
 {
-/*	struct databuffer *commanddata, *imagedata;
+	int x, y, i;
+
+	i = x1 + y1*width;
+	for( x=x1; x<x2; x++ )
+	{
+		pixels[ i++ ] |= linecolor;
+	}
+
+	for( y=y1+1; y<y2-1; y++ )
+	{
+		i = x1 + y*width;
+
+		pixels[ i++ ] |= linecolor;
+
+		for( x=x1+1; x<x2-1; x++ )
+		{
+			pixels[ i++ ] += color;
+		}
+
+		pixels[ i++ ] |= linecolor;
+	}
+
+	i = x1 + (y2-1)*width;
+	for( x=x1; x<x2; x++ )
+	{
+		pixels[ i++ ] |= linecolor;
+	}
+}
+
+int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int colordiff, int channel )
+{
+	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
+	unsigned int *outpixels;
 	int i;
 
-	if( ! image_create( output, input->width, input->height ) )
-		return 0;
-	
-	for( i=0; i<input->width*input->height; i++ )
+	void qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
-		output->pixels[i].r = output->pixels[i].g = output->pixels[i].b = 0;
-	}
-	
-	commanddata = input->commanddata;
-	imagedata = input->imagedata;
-	minsize = input->minsize;
-	maxdepth = input->maxdepth;
-
-	int qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
-	{
-		int x, y, sx, sy;
+		int x, y, sx, sy, i;
 		unsigned char status;
+		unsigned int color;
+
+		color = 64/maxdepth;
 
 		for( y=y1; y<y2; y++ )
-		for( x=x1; x<x2; x++ )
 		{
-			output->pixels[ x + y*output->width  ].r += 64/maxdepth;
-			output->pixels[ x + y*output->width  ].g += 64/maxdepth;
-			output->pixels[ x + y*output->width  ].b += 64/maxdepth;
+			i = x1 + y*input->width;
+			for( x=x1; x<x2; x++ )
+			{
+				outpixels[ i ] += color;
+				outpixels[ i ] += color<<8;
+				outpixels[ i ] += color<<16;
+				i++;
+			}
 		}
 
 		if( refimage )
 			status = databuffer_get_bits( commanddata, 1 );
-	
-		if( ( refimage ) && ( status == 0 ) )
+		else
+			status = 1;
+
+		if( status == 0 )
 		{
-			for( y=y1; y<y2; y++ )
-			for( x=x1; x<x2; x++ )
-			{
-				if( ( x == x1 ) || ( y == y1 ) )
-					output->pixels[ x + y*output->width  ].b = 255;
-				else
-					output->pixels[ x + y*output->width  ].b = 128;
-			}
+			if( bgra )
+				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+			else
+				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
 		}
 		else
 		{
@@ -633,45 +657,107 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage 
 						}
 						else
 						{
-							for( y=y1; y<y2; y++ )
-							for( x=x1; x<x2; x++ )
-							{
-								if( ( x == x1 ) || ( y == y1 ) )
-									output->pixels[ x + y*output->width  ].r = 255;
-								else
-									output->pixels[ x + y*output->width  ].r = 128;
-							}
+							if( bgra )
+								put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+							else
+								put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 						}
 					}
 				}
 				else
 				{
-					for( y=y1; y<y2; y++ )
-					for( x=x1; x<x2; x++ )
-					{
-						if( ( x == x1 ) || ( y == y1 ) )
-							output->pixels[ x + y*output->width  ].r = 255;
-						else
-							output->pixels[ x + y*output->width  ].r = 128;
-					}
+					if( bgra )
+						put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+					else
+						put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 				}
 			}
 			else
 			{
-				for( y=y1; y<y2; y++ )
-				for( x=x1; x<x2; x++ )
+				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x00007F00, 0x0000FF00 );
+			}
+		}
+	}
+
+	void qtc_decompress_ccode_dummy_rec( int x1, int y1, int x2, int y2, int depth )
+	{
+		int sx, sy;
+		unsigned char status;
+
+		if( refimage )
+			status = databuffer_get_bits( commanddata, 1 );
+		else
+			status = 1;
+
+		if( status != 0 )
+		{
+			status = databuffer_get_bits( commanddata, 1 );
+			if( status == 0 )
+			{
+				if( depth < maxdepth )
 				{
-					if( ( x == x1 ) || ( y == y1 ) )
-						output->pixels[ x + y*output->width  ].g = 255;
+					if( ( x2-x1 > minsize ) && ( y2-y1 > minsize ) )
+					{
+						sx = x1 + (x2-x1)/2;
+						sy = y1 + (y2-y1)/2;
+
+						qtc_decompress_ccode_dummy_rec( x1, y1, sx, sy, depth+1 );
+						qtc_decompress_ccode_dummy_rec( x1, sy, sx, y2, depth+1 );
+						qtc_decompress_ccode_dummy_rec( sx, y1, x2, sy, depth+1 );
+						qtc_decompress_ccode_dummy_rec( sx, sy, x2, y2, depth+1 );
+					}
 					else
-						output->pixels[ x + y*output->width  ].g = 128;
+					{
+						if( x2-x1 > minsize )
+						{
+							sx = x1 + (x2-x1)/2;
+
+							qtc_decompress_ccode_dummy_rec( x1, y1, sx, y2, depth+1 );
+							qtc_decompress_ccode_dummy_rec( sx, y1, x2, y2, depth+1 );
+						}
+						else if ( y2-y1 > minsize )
+						{
+							sy = y1 + (y2-y1)/2;
+	
+							qtc_decompress_ccode_dummy_rec( x1, y1, x2, sy, depth+1 );
+							qtc_decompress_ccode_dummy_rec( x1, sy, x2, y2, depth+1 );
+						}
+					}
 				}
 			}
 		}
-	
-		return 1;
 	}
+
+	if( ! image_create( output, input->width, input->height ) )
+		return 0;
 	
-	return qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );*/
+	commanddata = input->commanddata;
+	imagedata = input->imagedata;
+	minsize = input->minsize;
+	maxdepth = input->maxdepth;
+
+	outpixels = (unsigned int *)output->pixels;
+
+	for( i=0; i<input->width*input->height; i++ )
+		outpixels[i] = 0;
+
+	if( ! colordiff )
+	{
+		qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );
+	}
+	else
+	{
+		if( channel == 0 )
+		{
+			qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );
+		}
+		else
+		{
+			qtc_decompress_ccode_dummy_rec( 0, 0, input->width, input->height, 0 );
+			qtc_decompress_ccode_rec( 0, 0, input->width, input->height, 0 );
+		}
+	}
+
+	return 1;
 }
 

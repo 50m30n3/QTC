@@ -37,7 +37,7 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "awf:n:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "a:wf:n:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -46,7 +46,8 @@ int main( int argc, char *argv[] )
 			break;
 
 			case 'a':
-				analyze = 1;
+				if( sscanf( optarg, "%i", &analyze ) != 1 )
+					fputs( "main: Can not parse command line: -a\n", stderr );
 			break;
 
 			case 'f':
@@ -108,7 +109,7 @@ int main( int argc, char *argv[] )
 		if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
 			return 0;
 
-		if( !analyze )
+		if( analyze == 0 )
 		{
 			if( keyframe )
 			{
@@ -134,7 +135,7 @@ int main( int argc, char *argv[] )
 		}
 		else
 		{
-			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe ) )
+			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )
 				return 0;	
 		}
 

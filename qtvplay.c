@@ -127,7 +127,7 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
-				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe ) )
+				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, colordiff ) )
 					return 0;	
 			}
 

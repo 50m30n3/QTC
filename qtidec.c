@@ -20,12 +20,13 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "ai:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "a:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'a':
-				analyze = 1;
+				if( sscanf( optarg, "%i", &analyze ) != 1 )
+					fputs( "main: Can not parse command line: -a\n", stderr );
 			break;
 
 			case 'i':
@@ -47,7 +48,7 @@ int main( int argc, char *argv[] )
 	if( ! qti_read( &compimage, infile ) )
 		return 0;
 
-	if( ! analyze )
+	if( analyze == 0 )
 	{
 		if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )
 			return 0;
@@ -62,7 +63,7 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		if( ! qtc_decompress_ccode( &compimage, &image, 0 ) )
+		if( ! qtc_decompress_ccode( &compimage, &image, 0, 0, compimage.colordiff >= 2, analyze-1 ) )
 			return 0;
 	}
 
