@@ -220,7 +220,9 @@ int main( int argc, char *argv[] )
 
 		if( ( qtw ) && ( blocksize >= blockrate*1024 ) )
 		{
-			qtv_write_block( &video );
+			if( ! qtv_write_block( &video ) )
+				return 1;
+
 			numblocks++;
 			blocksize = 0;
 		}
@@ -230,10 +232,20 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )
 		{
-			qtv_create( image.width, image.height, framerate, index, qtw, &video );
-			qtv_write_header( &video, outfile );
-			
-			image_create( &refimage, image.width, image.height );
+			if( ! qtv_create( image.width, image.height, framerate, index, qtw, &video ) )
+				return 0;
+
+			if( ! qtv_write_header( &video, outfile ) )
+				return 0;
+
+			if( ! image_create( &refimage, image.width, image.height ) )
+				return 0;
+		}
+
+		if( ( image.width != video.width ) || ( image.height != video.height ) )
+		{
+			fprintf( stderr, "main: %s: Image size does not match video size.\n", infile );
+			return 0;
 		}
 
 		insize += ( image.width * image.height * 3 );
