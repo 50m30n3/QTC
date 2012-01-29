@@ -230,23 +230,51 @@ int main( int argc, char *argv[] )
 						break;
 
 						case SDLK_LEFT:
-							qtv_seek( &video, video.framenum - 10*video.framerate );
-							fprintf( stderr, "Seek to: %i \n", video.framenum );
+							if( video.has_index )
+							{
+								qtv_seek( &video, video.framenum - 10*video.framerate );
+								fprintf( stderr, "Seek to: %i \n", video.framenum );
+							}
+							else
+							{
+								fputs( "Cannot seek without index\n", stderr );
+							}
 						break;
 
 						case SDLK_RIGHT:
-							qtv_seek( &video, video.framenum + 10*video.framerate );
-							fprintf( stderr, "Seek to: %i \n", video.framenum );
+							if( video.has_index )
+							{
+								qtv_seek( &video, video.framenum + 10*video.framerate );
+								fprintf( stderr, "Seek to: %i \n", video.framenum );
+							}
+							else
+							{
+								fputs( "Cannot seek without index\n", stderr );
+							}
 						break;
 
 						case SDLK_DOWN:
-							qtv_seek( &video, video.framenum - 60*video.framerate );
-							fprintf( stderr, "Seek to: %i \n", video.framenum );
+							if( video.has_index )
+							{
+								qtv_seek( &video, video.framenum - 60*video.framerate );
+								fprintf( stderr, "Seek to: %i \n", video.framenum );
+							}
+							else
+							{
+								fputs( "Cannot seek without index\n", stderr );
+							}
 						break;
 
 						case SDLK_UP:
-							qtv_seek( &video, video.framenum + 60*video.framerate );
-							fprintf( stderr, "Seek to: %i \n", video.framenum );
+							if( video.has_index )
+							{
+								qtv_seek( &video, video.framenum + 60*video.framerate );
+								fprintf( stderr, "Seek to: %i \n", video.framenum );
+							}
+							else
+							{
+								fputs( "Cannot seek without index\n", stderr );
+							}
 						break;
 
 						default:
