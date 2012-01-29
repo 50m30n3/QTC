@@ -566,8 +566,7 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
-	unsigned int *outpixels;
-	int i;
+	struct pixel *outpixels;
 
 	void qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -582,9 +581,9 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 			i = x1 + y*input->width;
 			for( x=x1; x<x2; x++ )
 			{
-				outpixels[ i ] += color;
-				outpixels[ i ] += color<<8;
-				outpixels[ i ] += color<<16;
+				outpixels[ i ].x += color;
+				outpixels[ i ].y += color;
+				outpixels[ i ].z += color;
 				i++;
 			}
 		}
@@ -597,9 +596,9 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 		if( status == 0 )
 		{
 			if( bgra )
-				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+				put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 			else
-				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+				put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
 		}
 		else
 		{
@@ -637,23 +636,23 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 						else
 						{
 							if( bgra )
-								put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+								put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
 							else
-								put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+								put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 						}
 					}
 				}
 				else
 				{
 					if( bgra )
-						put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+						put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
 					else
-						put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+						put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 				}
 			}
 			else
 			{
-				put_ccode_box( outpixels, x1, x2, y1, y2, input->width, 0x00007F00, 0x0000FF00 );
+				put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x00007F00, 0x0000FF00 );
 			}
 		}
 	}
@@ -715,10 +714,9 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
-	outpixels = (unsigned int *)output->pixels;
-
-	for( i=0; i<input->width*input->height; i++ )
-		outpixels[i] = 0;
+	outpixels = output->pixels;
+	
+	memset( outpixels, 0, input->width*input->height*4 );
 
 	if( ! colordiff )
 	{
