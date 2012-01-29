@@ -5,7 +5,7 @@ OVERVIEW
 
 Like PNG, but for video!
 
-The QTC codec is a lossless video and still image codec for "pixel graphics".
+The QTC codec is a lossless video and still image codec.
 It uses quad trees to quickly find and encode constant and unchanged areas in
 image sequences or single images.
 
@@ -67,7 +67,7 @@ qtienc:
 	-o filename		-	Output file (-)
 
 qtidec:
-	-a				-	Analyze image
+	-a [0..2]		-	Analysis mode
 	-i filename		-	Input file (-)
 	-o filename		-	Output file (-)
 
@@ -90,7 +90,7 @@ qtvenc:
 
 qtvdec:
 	-w				-	Read QTW file
-	-a				-	Analyze image
+	-a [0..2]		-	Analysis mode
 	-f [1..]		-	Begin decoding at specific frame (Needs index)
 	-n [1..]		-	Limit number of frames to decode
 	-i filename		-	Input file (-)
@@ -175,7 +175,10 @@ OPTIONS
 -a:
 	Create a color coded analysis image showing types of blocks and
 	subdivisions. Green blocks are simplified blocks, red blocks are literal
-	blocks, blue blocks are reference blocks. 
+	blocks, blue blocks are reference blocks. When using full fakeyuv encoding
+	a value of 1 will show the luma channel and a value of 2 will show the
+	chroma channel. For videos/images without color separation this has no
+	effect.
 
 -w:
 	Create a QTW file instead of a QTV file. QTW files are designed for web
