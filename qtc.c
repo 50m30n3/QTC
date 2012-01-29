@@ -9,38 +9,38 @@
 #include "qtc.h"
 
 
-static inline void put_rgb_pixel( struct databuffer *databuffer, struct pixel pixel )
+static inline int put_rgb_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
-	databuffer_add_byte( pixel.x, databuffer );
-	databuffer_add_byte( pixel.y, databuffer );
-	databuffer_add_byte( pixel.z, databuffer );
+	return ( ( databuffer_add_byte( pixel.x, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.y, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.z, databuffer ) ) );
 }
 
-static inline void put_bgr_pixel( struct databuffer *databuffer, struct pixel pixel )
+static inline int put_bgr_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
-	databuffer_add_byte( pixel.z, databuffer );
-	databuffer_add_byte( pixel.y, databuffer );
-	databuffer_add_byte( pixel.x, databuffer );
+	return ( ( databuffer_add_byte( pixel.z, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.y, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.x, databuffer ) ) );
 }
 
-static inline void put_luma_pixel( struct databuffer *databuffer, struct pixel pixel )
+static inline int put_luma_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
-	databuffer_add_byte( pixel.y, databuffer );
+	return databuffer_add_byte( pixel.y, databuffer );
 }
 
-static inline void put_rgb_chroma_pixel( struct databuffer *databuffer, struct pixel pixel )
+static inline int put_rgb_chroma_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
-	databuffer_add_byte( pixel.x, databuffer );
-	databuffer_add_byte( pixel.z, databuffer );
+	return ( ( databuffer_add_byte( pixel.x, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.z, databuffer ) ) );
 }
 
-static inline void put_bgr_chroma_pixel( struct databuffer *databuffer, struct pixel pixel )
+static inline int put_bgr_chroma_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
-	databuffer_add_byte( pixel.z, databuffer );
-	databuffer_add_byte( pixel.x, databuffer );
+	return ( ( databuffer_add_byte( pixel.z, databuffer ) ) &&
+			 ( databuffer_add_byte( pixel.x, databuffer ) ) );
 }
 
-static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
+static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
 {
 	int x, y, i;
 
@@ -52,7 +52,8 @@ static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixe
 			{
 				i = x1 + y*width;
 				for( x=x1; x<x2; x++ )
-					put_bgr_pixel( databuffer, pixels[i++] );
+					if( ! put_bgr_pixel( databuffer, pixels[i++] ) )
+						return 0;
 			}
 		}
 		else
@@ -61,7 +62,8 @@ static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixe
 			{
 				i = x1 + y*width;
 				for( x=x1; x<x2; x++ )
-					put_rgb_pixel( databuffer, pixels[i++] );
+					if( ! put_rgb_pixel( databuffer, pixels[i++] ) )
+						return 0;
 			}
 		}
 	}
@@ -73,7 +75,8 @@ static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixe
 			{
 				i = x1 + y*width;
 				for( x=x1; x<x2; x++ )
-					put_luma_pixel( databuffer, pixels[i++] );
+					if( ! put_luma_pixel( databuffer, pixels[i++] ) )
+						return 0;
 			}
 		}
 		else
@@ -84,7 +87,8 @@ static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixe
 				{
 					i = x1 + y*width;
 					for( x=x1; x<x2; x++ )
-						put_bgr_chroma_pixel( databuffer, pixels[i++] );
+						if( ! put_bgr_chroma_pixel( databuffer, pixels[i++] ) )
+							return 0;
 				}
 			}
 			else
@@ -93,11 +97,14 @@ static inline void put_pixels( struct databuffer *databuffer, struct pixel *pixe
 				{
 					i = x1 + y*width;
 					for( x=x1; x<x2; x++ )
-						put_rgb_chroma_pixel( databuffer, pixels[i++] );
+						if( ! put_rgb_chroma_pixel( databuffer, pixels[i++] ) )
+							return 0;
 				}
 			}
 		}
 	}
+
+	return 1;
 }
 
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
@@ -107,7 +114,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	unsigned int mask;
 	int luma;
 
-	void qtc_compress_rec( int x1, int y1, int x2, int y2, int depth )
+	int qtc_compress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
 		int x, y, sx, sy, i;
 		unsigned int p;
@@ -145,7 +152,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 				else
 				{
 					databuffer_add_bits( 0, commanddata, 1 );
-					return;
+					return 1;
 				}
 			}
 
@@ -188,10 +195,13 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					sx = x1 + (x2-x1)/2;
 					sy = y1 + (y2-y1)/2;
 
-					qtc_compress_rec( x1, y1, sx, sy, depth+1 );
-					qtc_compress_rec( x1, sy, sx, y2, depth+1 );
-					qtc_compress_rec( sx, y1, x2, sy, depth+1 );
-					qtc_compress_rec( sx, sy, x2, y2, depth+1 );
+					if( ( ! qtc_compress_rec( x1, y1, sx, sy, depth+1 ) ) ||
+						( ! qtc_compress_rec( x1, sy, sx, y2, depth+1 ) ) ||
+						( ! qtc_compress_rec( sx, y1, x2, sy, depth+1 ) ) ||
+						( ! qtc_compress_rec( sx, sy, x2, y2, depth+1 ) ) )
+					{
+						return 0;
+					}
 				}
 				else
 				{
@@ -199,25 +209,33 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					{
 						sx = x1 + (x2-x1)/2;
 		
-						qtc_compress_rec( x1, y1, sx, y2, depth+1 );
-						qtc_compress_rec( sx, y1, x2, y2, depth+1 );
+						if( ( ! qtc_compress_rec( x1, y1, sx, y2, depth+1 ) ) ||
+							( ! qtc_compress_rec( sx, y1, x2, y2, depth+1 ) ) )
+						{
+							return 0;
+						}
 					}
 					else if ( y2-y1 > minsize )
 					{
 						sy = y1 + (y2-y1)/2;
 		
-						qtc_compress_rec( x1, y1, x2, sy, depth+1 );
-						qtc_compress_rec( x1, sy, x2, y2, depth+1 );
+						if( ( ! qtc_compress_rec( x1, y1, x2, sy, depth+1 ) ) ||
+							( ! qtc_compress_rec( x1, sy, x2, y2, depth+1 ) ) )
+						{
+							return 0;
+						}
 					}
 					else
 					{
-						put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+						if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+							return 0;
 					}
 				}
 			}
 			else
 			{
-				put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+				if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+					return 0;
 			}
 		}
 		else
@@ -229,25 +247,40 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 			if( ! colordiff )
 			{
 				if( bgra )
-					put_bgr_pixel( imagedata, color );
+				{
+					if( ! put_bgr_pixel( imagedata, color ) )
+						return 0;
+				}
 				else
-					put_rgb_pixel( imagedata, color );
+				{
+					if( ! put_rgb_pixel( imagedata, color ) )
+						return 0;
+				}
 			}
 			else
 			{
 				if( luma )
 				{
-					put_luma_pixel( imagedata, color );
+					if( ! put_luma_pixel( imagedata, color ) )
+						return 0;
 				}
 				else
 				{
 					if( bgra )
-						put_bgr_chroma_pixel( imagedata, color );
+					{
+						if( ! put_bgr_chroma_pixel( imagedata, color ) )
+							return 0;
+					}
 					else
-						put_rgb_chroma_pixel( imagedata, color );
+					{
+						if( ! put_rgb_chroma_pixel( imagedata, color ) )
+							return 0;
+					}
 				}
 			}
 		}
+
+		return 1;
 	}
 
 	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
@@ -265,17 +298,20 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	{
 		mask = 0x00FFFFFF;
 		luma = 0;
-		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+		if( ! qtc_compress_rec( 0, 0, input->width, input->height, 0 ) )
+			return 0;
 	}
 	else
 	{
 		mask = 0x0000FF00;
 		luma = 1;
-		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+		if( ! qtc_compress_rec( 0, 0, input->width, input->height, 0 ) )
+			return 0;
 
 		mask = 0x00FF00FF;
 		luma = 0;
-		qtc_compress_rec( 0, 0, input->width, input->height, 0 );
+		if( ! qtc_compress_rec( 0, 0, input->width, input->height, 0 ) )
+			return 0;
 	}
 	
 	return 1;
