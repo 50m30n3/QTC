@@ -127,7 +127,7 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
-				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, colordiff ) )
+				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
 					return 0;	
 			}
 
@@ -167,15 +167,20 @@ int main( int argc, char *argv[] )
 						break;
 
 						case 'a':
-							if( analyze )
+							if( analyze == 0 )
 							{
-								fputs( "Analyze OFF\n", stderr );
-								analyze = 0;
+								fputs( "Analyze ON (Luma)\n", stderr );
+								analyze = 1;
+							}
+							else if( analyze == 1 )
+							{
+								fputs( "Analyze ON (Chroma)\n", stderr );
+								analyze = 2;
 							}
 							else
 							{
-								fputs( "Analyze ON\n", stderr );
-								analyze = 1;
+								fputs( "Analyze OFF\n", stderr );
+								analyze = 0;
 							}
 						break;
 
