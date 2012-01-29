@@ -230,10 +230,14 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )
 		{
-			qtv_create( image.width, image.height, framerate, index, 0, &video );
-			qtv_write_header( &video, outfile );
-			
-			image_create( &refimage, image.width, image.height );
+			if( ! qtv_create( image.width, image.height, framerate, index, 0, &video ) )
+				return 0;
+
+			if( ! qtv_write_header( &video, outfile ) )
+				return 0;
+
+			if( ! image_create( &refimage, image.width, image.height ) )
+				return 0;
 		}
 
 		insize += ( image.width * image.height * 3 );
