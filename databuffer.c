@@ -3,6 +3,13 @@
 
 #include "databuffer.h"
 
+/*******************************************************************************
+* Function to create a new databuffer                                          *
+*                                                                              *
+* size is the initial size of the databuffer in bytes                          *
+*                                                                              *
+* Returns a new databuffer or NULL on failure                                  *
+*******************************************************************************/
 struct databuffer *databuffer_create( unsigned int size )
 {
 	struct databuffer *buffer = malloc( sizeof( struct databuffer ) );
@@ -11,9 +18,6 @@ struct databuffer *databuffer_create( unsigned int size )
 		perror( "databuffer_create: malloc" );
 		return NULL;
 	}
-
-	if( size <= 0 )
-		size = 256;
 
 	buffer->size = 0;
 	buffer->bits = 0;
@@ -37,12 +41,30 @@ struct databuffer *databuffer_create( unsigned int size )
 	return buffer;
 }
 
+/*******************************************************************************
+* Function to free the internal structures of a databuffer                     *
+*                                                                              *
+* buffer is the databuffer to free                                             *
+*                                                                              *
+* Modifies databuffer                                                          *
+*******************************************************************************/
 void databuffer_free( struct databuffer *buffer )
 {
 	free( buffer->data );
 	free( buffer );
 }
 
+/*******************************************************************************
+* Function to add a number of bits to a databuffer                             *
+*                                                                              *
+* data is the data to be added                                                 *
+* buffer is the databuffer to add to                                           *
+* bits is the number of bits to take from data and add                         *
+*                                                                              *
+* Modifies databuffer                                                          *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int databuffer_add_bits( unsigned int data, struct databuffer *buffer, int bits )
 {
 	int i;
@@ -73,6 +95,16 @@ int databuffer_add_bits( unsigned int data, struct databuffer *buffer, int bits 
 	return 1;
 }
 
+/*******************************************************************************
+* Function to add a single byte to a databuffer                                *
+*                                                                              *
+* data is the data to be added                                                 *
+* buffer is the databuffer to add to                                           *
+*                                                                              *
+* Modifies databuffer                                                          *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int databuffer_add_byte( unsigned char data, struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
@@ -109,6 +141,15 @@ int databuffer_add_byte( unsigned char data, struct databuffer *buffer )
 	return 1;
 }
 
+/*******************************************************************************
+* Function to pad the data in a databuffer to a full byte                      *
+*                                                                              *
+* buffer is the databuffer to add to                                           *
+*                                                                              *
+* Modifies databuffer                                                          *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int databuffer_pad( struct databuffer *buffer )
 {
 	if( buffer->bits != 0 )
@@ -131,6 +172,15 @@ int databuffer_pad( struct databuffer *buffer )
 	return 1;
 }
 
+/*******************************************************************************
+* Function to get a number of bits from a databuffer                           *
+*                                                                              *
+* buffer is the databuffer to add to                                           *
+*                                                                              *
+* Modifies databuffer                                                          *
+*                                                                              *
+* Returns the bits in an unsigned int                                          *
+*******************************************************************************/
 unsigned int databuffer_get_bits( struct databuffer *buffer, int bits )
 {
 	unsigned int data = 0;
@@ -150,6 +200,15 @@ unsigned int databuffer_get_bits( struct databuffer *buffer, int bits )
 	return data;
 }
 
+/*******************************************************************************
+* Function to get a single byte from a databuffer                              *
+*                                                                              *
+* buffer is the databuffer to add to                                           *
+*                                                                              *
+* Modifies databuffer                                                          *
+*                                                                              *
+* Returns the byte as unsigned char                                            *
+*******************************************************************************/
 unsigned char databuffer_get_byte( struct databuffer *buffer )
 {
 	unsigned char data;

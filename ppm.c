@@ -6,7 +6,15 @@
 
 #include "ppm.h"
 
-int ppm_read( struct image *image, char filename[] )
+/*******************************************************************************
+* Function to load a ppm file into an image structure                          *
+*                                                                              *
+* image is the uninitialized image structure to load into                      *
+* filename is the file name of the image file                                  *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
+int ppm_read( struct image *image, char *filename )
 {
 	FILE *ppm;
 	char buffer[256];
@@ -153,7 +161,15 @@ int ppm_read( struct image *image, char filename[] )
 	}
 }
 
-int ppm_write( struct image *image, char filename[] )
+/*******************************************************************************
+* Function to write an image structure into a ppm file                         *
+*                                                                              *
+* image is the image to be written                                             *
+* filename is the file name of the new image file                              *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
+int ppm_write( struct image *image, char *filename )
 {
 	FILE *ppm;
 	int i, j;

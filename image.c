@@ -4,6 +4,17 @@
 
 #include "image.h"
 
+/*******************************************************************************
+* Function to create a new image                                               *
+*                                                                              *
+* image is a pointer to an image struct to hold the information                *
+* with is the width of the image                                               *
+* height is the height of the image                                            *
+*                                                                              *
+* Modifies the image struct                                                    *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int image_create( struct image *image, int width, int height )
 {
 	image->width = width;
@@ -22,6 +33,13 @@ int image_create( struct image *image, int width, int height )
 	}
 }
 
+/*******************************************************************************
+* Function to free the internal structures of an image                         *
+*                                                                              *
+* image is the image to free                                                   *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_free( struct image *image )
 {
 	if( image->pixels != NULL )
@@ -31,11 +49,27 @@ void image_free( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to copy the content of one image into another                       *
+* Both images need to have the same dimensions                                 *
+*                                                                              *
+* in is the source image                                                       *
+* out is the destinatin image                                                  *
+*                                                                              *
+* Modifies out                                                                 *
+*******************************************************************************/
 void image_copy( struct image *in, struct image *out )
 {
 	memcpy( out->pixels, in->pixels, in->width*in->height*4 );
 }
 
+/*******************************************************************************
+* Function to apply the fakeyuf transform to an image                          *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_color_diff( struct image *image )
 {
 	int i;
@@ -50,6 +84,13 @@ void image_color_diff( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to apply the reverse fakeyuf transform to an image                  *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_color_diff_rev( struct image *image )
 {
 	int i;
@@ -64,6 +105,13 @@ void image_color_diff_rev( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to apply the simplified Paeth transform to an image                 *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_transform_fast( struct image *image )
 {
 	int x, y, i, width, height;
@@ -112,6 +160,13 @@ void image_transform_fast( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to apply the reversed simplified Paeth transform to an image        *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_transform_fast_rev( struct image *image )
 {
 	int x, y, i, width, height;
@@ -159,6 +214,13 @@ void image_transform_fast_rev( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to apply the Paeth transform to an image                            *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_transform( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
@@ -231,6 +293,13 @@ void image_transform( struct image *image )
 	}
 }
 
+/*******************************************************************************
+* Function to apply the reverse Paeth transform to an image                    *
+*                                                                              *
+* image is the image be processed                                              *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void image_transform_rev( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
