@@ -10,6 +10,14 @@
 #define FILEVERSION "QTI1"
 #define VERSION 2
 
+/*******************************************************************************
+* Function to load and decompress a qti file                                   *
+*                                                                              *
+* image is the uninitialized qti structure to load into                        *
+* filename is the file name of the qti file                                    *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qti_read( struct qti *image, char filename[] )
 {
 	FILE * qti;
@@ -228,6 +236,14 @@ int qti_read( struct qti *image, char filename[] )
 	}
 }
 
+/*******************************************************************************
+* Function to compress a qti and write it to a file                            *
+*                                                                              *
+* image is the image to be written                                             *
+* filename is the file name of the new qti file                                *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qti_write( struct qti *image, int compress, char filename[] )
 {
 	FILE * qti;
@@ -343,6 +359,19 @@ int qti_write( struct qti *image, int compress, char filename[] )
 	}
 }
 
+/*******************************************************************************
+* Function to initialize a qti structure                                       *
+*                                                                              *
+* with is the width of the image                                               *
+* height is the height of the image                                            *
+* minsize is the minimal block size used during compression                    *
+* maxdepth is the maximum recursion depth used during compression              *
+* image is a pointer to an image struct to hold the information                *
+*                                                                              *
+* Modifies the qti structure                                                   *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qti_create( int width, int height, int minsize, int maxdepth, struct qti *image )
 {
 	image->width = width;
@@ -362,6 +391,13 @@ int qti_create( int width, int height, int minsize, int maxdepth, struct qti *im
 	return 1;
 }
 
+/*******************************************************************************
+* Function to free the internal structures of a qti                            *
+*                                                                              *
+* image is the qti to free                                                     *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 void qti_free( struct qti *image )
 {
 	databuffer_free( image->imagedata );
@@ -370,6 +406,11 @@ void qti_free( struct qti *image )
 	image->commanddata = NULL;
 }
 
+/*******************************************************************************
+* Function to free the uncompressed size of a qti image in bits                *
+*                                                                              *
+* image is the qti to return the size of                                       *
+*******************************************************************************/
 unsigned int qti_getsize( struct qti *image )
 {
 	unsigned int size=0;
