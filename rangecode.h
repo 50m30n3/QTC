@@ -1,6 +1,12 @@
 #ifndef RANGECODE_H
 #define RANGECODE_H
 
+/*******************************************************************************
+* Structure that holds all the data associated with a range coder              *
+*                                                                              *
+* order is the order of the markov chain used for prediction                   *
+* freq contains the model data                                                 *
+*******************************************************************************/
 struct rangecoder
 {
 	int order;
