@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+
 #include <SDL/SDL.h>
 
 #include "utils.h"

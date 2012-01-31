@@ -5,7 +5,7 @@
 #include "image.h"
 
 /*******************************************************************************
-* Function to create a new image                                               *
+* Function to initialize an image structure                                    *
 *                                                                              *
 * image is a pointer to an image struct to hold the information                *
 * with is the width of the image                                               *
