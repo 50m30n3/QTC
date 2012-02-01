@@ -205,7 +205,6 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 *                                                                              *
 * Modifies coder, in and out                                                   *
 *******************************************************************************/
-
 int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struct databuffer *out, unsigned int length )
 {
 	int *freqs, *totals;
