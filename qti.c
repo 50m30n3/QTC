@@ -129,7 +129,7 @@ int qti_read( struct qti *image, char filename[] )
 			if( image->commanddata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 0, 8 );
+			coder = rangecoder_create( 4, 1 );
 
 			rangecode_decompress( coder, compdata, image->commanddata, size );
 			
@@ -171,7 +171,7 @@ int qti_read( struct qti *image, char filename[] )
 			if( image->imagedata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 1, 8 );
+			coder = rangecoder_create( 2, 8 );
 
 			rangecode_decompress( coder, compdata, image->imagedata, size );
 			
@@ -296,7 +296,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			if( compdata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 0, 8 );
+			coder = rangecoder_create( 4, 1 );
 			if( coder == NULL )
 				return 0;
 
@@ -317,7 +317,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			if( compdata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 1, 8 );
+			coder = rangecoder_create( 2, 8 );
 			if( coder == NULL )
 				return 0;
 
