@@ -5,13 +5,13 @@
 * Structure that holds all the data associated with a range coder              *
 *                                                                              *
 * order is the order of the markov chain used for prediction                   *
-* freq contains the model data                                                 *
+* bits is the bits per symbol used by the range coder                          *
+* freqs and totals contain the model data                                      *
 *******************************************************************************/
 struct rangecoder
 {
 	int order;
-	int bits, symbols;
-	int fsize, tsize;
+	int bits;
 	int *freqs;
 	int *totals;
 };

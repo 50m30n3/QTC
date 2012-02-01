@@ -17,9 +17,10 @@ unsigned const int bottom = 0x01<<16;
 
 
 /*******************************************************************************
-* This function creates a new range coder using a zero or first order model    *
+* This function creates a new range coder using a markov chain model           *
 *                                                                              *
 * order specifies the order of the markov chain model used for prediciton      *
+* bits specifies the number of bits per symbol                                 *
 *                                                                              *
 * Returns a new range coder struct                                             *
 *******************************************************************************/
@@ -48,10 +49,6 @@ struct rangecoder *rangecoder_create( int order, int bits )
 	symbols = 1<<bits;
 	fsize = 1<<(bits*(order+1));
 	tsize = 1<<(bits*order);
-
-	coder->symbols = symbols;
-	coder->fsize = fsize;
-	coder->tsize = tsize;
 
 	coder->freqs = malloc( sizeof( *coder->freqs ) * fsize );
 	if( coder->freqs == NULL )
@@ -86,12 +83,17 @@ struct rangecoder *rangecoder_create( int order, int bits )
 void rangecoder_reset( struct rangecoder *coder )
 {
 	int i;
+	int symbols, fsize, tsize;
 
-	for( i=0; i<coder->fsize; i++ )
+	symbols = 1<<coder->bits;
+	fsize = 1<<(coder->bits*(coder->order+1));
+	tsize = 1<<(coder->bits*coder->order);
+
+	for( i=0; i<fsize; i++ )
 		coder->freqs[i] = 1;
 	
-	for( i=0; i<coder->tsize; i++ )
-		coder->totals[i] = coder->symbols;
+	for( i=0; i<tsize; i++ )
+		coder->totals[i] = symbols;
 }
 
 /*******************************************************************************
@@ -121,8 +123,9 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 {
 	int *freqs, *totals;
 	unsigned int count;
+	int symbol;
 	int i;
-	int bits, symbol, idx, mask;
+	int bits, symbols, idx, mask;
 	int start, size, total;
 
 	unsigned int low = 0x00;
@@ -131,6 +134,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 	freqs = coder->freqs;
 	totals = coder->totals;
 	bits = coder->bits;
+	symbols = 1<<bits;
 
 	mask = ~((~0x00)<<(bits*(coder->order+1)));
 
@@ -170,7 +174,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 		if( totals[idx>>bits] >= 0xFFFF )
 		{
 			totals[idx>>bits] = 0;
-			for( i=0; i<coder->symbols; i++ )
+			for( i=0; i<symbols; i++ )
 			{
 				freqs[idx+i] /= 2;
 				if( freqs[idx+i] == 0 )
@@ -206,9 +210,10 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 {
 	int *freqs, *totals;
 	unsigned int count;
+	int symbol;
 	int i;
 	int start, size, total, value;
-	int bits, symbol, idx, mask;
+	int bits, symbols, idx, mask;
 
 	unsigned int low = 0x00;
 	unsigned int range = maxrange;
@@ -217,6 +222,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 	freqs = coder->freqs;
 	totals = coder->totals;
 	bits = coder->bits;
+	symbols = 1<<bits;
 
 	for( i=0; i<4; i++ )
 	{
@@ -235,7 +241,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 		value = ( code - low ) / ( range / total );
 
 		i = 0;
-		while( ( value >= 0 ) && ( i < coder->symbols ) )
+		while( ( value >= 0 ) && ( i < symbols ) )
 		{
 			value -= freqs[idx+i];
 			i++;
@@ -283,7 +289,7 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 		if( totals[idx>>bits] >= 0xFFFF )
 		{
 			totals[idx>>bits] = 0;
-			for( i=0; i<coder->symbols; i++ )
+			for( i=0; i<symbols; i++ )
 			{
 				freqs[idx+i] /= 2;
 				if( freqs[idx+i] == 0 )
