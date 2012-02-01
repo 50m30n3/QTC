@@ -10,10 +10,13 @@
 struct rangecoder
 {
 	int order;
-	int *freq;
+	int bits, symbols;
+	int fsize, tsize;
+	int *freqs;
+	int *totals;
 };
 
-extern struct rangecoder *rangecoder_create( int order );
+extern struct rangecoder *rangecoder_create( int order, int bits );
 extern void rangecoder_reset( struct rangecoder *coder );
 extern void rangecoder_free( struct rangecoder *coder );
 extern int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct databuffer *out );

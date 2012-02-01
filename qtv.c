@@ -224,11 +224,11 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 			}
 		}
 
-		video->cmdcoder = rangecoder_create( 0 );
+		video->cmdcoder = rangecoder_create( 3, 2 );
 		if( video->cmdcoder == NULL )
 			return 0;
 
-		video->imgcoder = rangecoder_create( 1 );
+		video->imgcoder = rangecoder_create( 2, 8 );
 		if( video->imgcoder == NULL )
 			return 0;
 
@@ -764,11 +764,11 @@ int qtv_create( int width, int height, int framerate, int index, int is_qtw, str
 		}
 	}
 
-	video->cmdcoder = rangecoder_create( 0 );
+	video->cmdcoder = rangecoder_create( 3, 2 );
 	if( video->cmdcoder == NULL )
 		return 0;
 
-	video->imgcoder = rangecoder_create( 1 );
+	video->imgcoder = rangecoder_create( 2, 8 );
 	if( video->imgcoder == NULL )
 		return 0;
 	

@@ -23,12 +23,13 @@ unsigned const int bottom = 0x01<<16;
 *                                                                              *
 * Returns a new range coder struct                                             *
 *******************************************************************************/
-struct rangecoder *rangecoder_create( int order )
+struct rangecoder *rangecoder_create( int order, int bits )
 {
 	struct rangecoder *coder;
-	int i, j;
+	int i;
+	int symbols, fsize, tsize;
 
-	if( ( order < 0 ) || ( order > 1 ) )
+	if( order < 0 )
 	{
 		perror( "rangecoder_create: out of order" );
 		return NULL;
@@ -42,37 +43,35 @@ struct rangecoder *rangecoder_create( int order )
 	}
 
 	coder->order = order;
+	coder->bits = bits;
+	
+	symbols = 1<<bits;
+	fsize = 1<<(bits*(order+1));
+	tsize = 1<<(bits*order);
 
-	if( order == 0 )
+	coder->symbols = symbols;
+	coder->fsize = fsize;
+	coder->tsize = tsize;
+
+	coder->freqs = malloc( sizeof( *coder->freqs ) * fsize );
+	if( coder->freqs == NULL )
 	{
-		coder->freq = malloc( sizeof( *coder->freq ) * 257 );
-		if( coder->freq == NULL )
-		{
-			perror( "rangecoder_create: malloc" );
-			return NULL;
-		}
-
-		coder->freq[0] = 256;
-		for( i=0; i<256; i++ )
-			coder->freq[i+1] = 1;
+		perror( "rangecoder_create: malloc" );
+		return NULL;
 	}
-	else
+
+	coder->totals = malloc( sizeof( *coder->freqs ) * tsize );
+	if( coder->freqs == NULL )
 	{
-		coder->freq = malloc( sizeof( *coder->freq ) * 257 * 256 );
-		if( coder->freq == NULL )
-		{
-			perror( "rangecoder_create: malloc" );
-			return NULL;
-		}
-
-		for( j=0; j<256; j++ )
-		{
-			coder->freq[j*257] = 256;
-
-			for( i=0; i<256; i++ )
-				coder->freq[i+1+j*257] = 1;
-		}
+		perror( "rangecoder_create: malloc" );
+		return NULL;
 	}
+
+	for( i=0; i<fsize; i++ )
+		coder->freqs[i] = 1;
+	
+	for( i=0; i<tsize; i++ )
+		coder->totals[i] = symbols;
 
 	return coder;
 }
@@ -86,24 +85,13 @@ struct rangecoder *rangecoder_create( int order )
 *******************************************************************************/
 void rangecoder_reset( struct rangecoder *coder )
 {
-	int i, j;
+	int i;
 
-	if( coder->order == 0 )
-	{
-		coder->freq[0] = 256;
-		for( i=0; i<256; i++ )
-			coder->freq[i+1] = 1;
-	}
-	else
-	{
-		for( j=0; j<256; j++ )
-		{
-			coder->freq[j*257] = 256;
-
-			for( i=0; i<256; i++ )
-				coder->freq[i+1+j*257] = 1;
-		}
-	}
+	for( i=0; i<coder->fsize; i++ )
+		coder->freqs[i] = 1;
+	
+	for( i=0; i<coder->tsize; i++ )
+		coder->totals[i] = coder->symbols;
 }
 
 /*******************************************************************************
@@ -115,7 +103,8 @@ void rangecoder_reset( struct rangecoder *coder )
 *******************************************************************************/
 void rangecoder_free( struct rangecoder *coder )
 {
-	free( coder->freq );
+	free( coder->freqs );
+	free( coder->totals );
 	free( coder );
 }
 
@@ -130,29 +119,36 @@ void rangecoder_free( struct rangecoder *coder )
 *******************************************************************************/
 int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct databuffer *out )
 {
-	int *freq;
+	int *freqs, *totals;
 	unsigned int count;
-	int i, symbol, lastsym, idx;
+	int i;
+	int bits, symbol, idx, mask;
 	int start, size, total;
 
 	unsigned int low = 0x00;
 	unsigned int range = maxrange;
 
-	freq = coder->freq;
+	freqs = coder->freqs;
+	totals = coder->totals;
+	bits = coder->bits;
 
-	lastsym = 0x00;
+	mask = ~((~0x00)<<(bits*(coder->order+1)));
+
 	idx = 0x00;
 
 	for( count=0; count<in->size; count++ )
 	{
-		symbol = databuffer_get_byte( in );
+		if( bits == 8 )
+			symbol = databuffer_get_byte( in );
+		else
+			symbol = databuffer_get_bits( in, bits );
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
-			start += freq[i+1+idx];
+			start += freqs[idx+i];
 
-		size = freq[symbol+1+idx];
-		total = freq[idx];
+		size = freqs[idx+symbol];
+		total = totals[idx>>bits];
 
 		range /= total;
 		low += start * range;
@@ -168,26 +164,22 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 			range <<= 8;
 		}
 
-		freq[symbol+1+idx] += 32;
-		freq[idx] += 32;
+		freqs[idx+symbol] += 32;
+		totals[idx>>bits] += 32;
 
-		if( freq[idx] >= 0xFFFF )
+		if( totals[idx>>bits] >= 0xFFFF )
 		{
-			freq[idx] = 0;
-			for( i=0; i<256; i++ )
+			totals[idx>>bits] = 0;
+			for( i=0; i<coder->symbols; i++ )
 			{
-				freq[i+1+idx] /= 2;
-				if( freq[i+1+idx] == 0 )
-					freq[i+1+idx] = 1;
-				freq[idx] += freq[i+1+idx];
+				freqs[idx+i] /= 2;
+				if( freqs[idx+i] == 0 )
+					freqs[idx+i] = 1;
+				totals[idx>>bits] += freqs[idx+i];
 			}
 		}
 
-		if( coder->order > 0 )
-		{
-			lastsym = symbol;
-			idx = lastsym*257;
-		}
+		idx = ((idx+symbol)<<bits)&mask;
 	}
 
 	for( i=0; i<4; i++ )
@@ -212,16 +204,19 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 
 int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struct databuffer *out, unsigned int length )
 {
-	int *freq;
+	int *freqs, *totals;
 	unsigned int count;
-	int i, symbol, lastsym, idx;
+	int i;
 	int start, size, total, value;
+	int bits, symbol, idx, mask;
 
 	unsigned int low = 0x00;
 	unsigned int range = maxrange;
 	unsigned int code = 0x00;
 
-	freq = coder->freq;
+	freqs = coder->freqs;
+	totals = coder->totals;
+	bits = coder->bits;
 
 	for( i=0; i<4; i++ )
 	{
@@ -229,19 +224,20 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 		code |= databuffer_get_byte( in ) & 0xFF;
 	}
 
-	lastsym = 0x00;
+	mask = ~((~0x00)<<(bits*(coder->order+1)));
+
 	idx = 0x00;
 
 	for( count=0; count<length; count++ )
 	{
-		total = freq[idx];
+		total = totals[idx<<bits];
 
 		value = ( code - low ) / ( range / total );
 
 		i = 0;
-		while( ( value >= 0 ) && ( i < 256 ) )
+		while( ( value >= 0 ) && ( i < coder->symbols ) )
 		{
-			value -= freq[i+1+idx];
+			value -= freqs[idx+i];
 			i++;
 		}
 
@@ -253,13 +249,16 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 
 		symbol = i-1;
 
-		databuffer_add_byte( symbol & 0xFF, out );
+		if( bits == 8 )
+			databuffer_add_byte( symbol, out );
+		else
+			databuffer_add_bits( symbol, out, bits );
 
 		start = 0;
 		for( i=0; i<symbol; i++ )
-			start += freq[i+1+idx];
+			start += freqs[idx+i];
 
-		size = freq[symbol+1+idx];
+		size = freqs[idx+symbol];
 
 		range /= total;
 		low += start * range;
@@ -278,26 +277,22 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 			range <<= 8;
 		}
 
-		freq[symbol+1+idx] += 32;
-		freq[idx] += 32;
+		freqs[idx+symbol] += 32;
+		totals[idx>>bits] += 32;
 
-		if( freq[idx] >= 0xFFFF )
+		if( totals[idx>>bits] >= 0xFFFF )
 		{
-			freq[idx] = 0;
-			for( i=0; i<256; i++ )
+			totals[idx>>bits] = 0;
+			for( i=0; i<coder->symbols; i++ )
 			{
-				freq[i+1+idx] /= 2;
-				if( freq[i+1+idx] == 0 )
-					freq[i+1+idx] = 1;
-				freq[idx] += freq[i+1+idx];
+				freqs[idx+i] /= 2;
+				if( freqs[idx+i] == 0 )
+					freqs[idx+i] = 1;
+				totals[idx>>bits] += freqs[idx+i];
 			}
 		}
 
-		if( coder->order > 0 )
-		{
-			lastsym = symbol;
-			idx = lastsym*257;
-		}
+		idx = ((idx+symbol)<<bits)&mask;
 	}
 
 	return 1;
