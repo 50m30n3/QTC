@@ -136,7 +136,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 
 	idx = 0x00;
 
-	for( count=0; count<in->size; count++ )
+	for( count=0; count<in->size*8; count+=bits )
 	{
 		if( bits == 8 )
 			symbol = databuffer_get_byte( in );
@@ -228,9 +228,9 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 
 	idx = 0x00;
 
-	for( count=0; count<length; count++ )
+	for( count=0; count<length*8; count+=bits )
 	{
-		total = totals[idx<<bits];
+		total = totals[idx>>bits];
 
 		value = ( code - low ) / ( range / total );
 
