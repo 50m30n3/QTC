@@ -10,7 +10,7 @@
 
 #define QTV_MAGIC "QTV1"
 #define QTW_MAGIC "QTW1"
-#define VERSION 4
+#define VERSION 5
 
 int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 {

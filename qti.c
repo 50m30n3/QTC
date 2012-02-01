@@ -8,7 +8,7 @@
 #include "qti.h"
 
 #define FILEVERSION "QTI1"
-#define VERSION 2
+#define VERSION 3
 
 /*******************************************************************************
 * Function to load and decompress a qti file                                   *
