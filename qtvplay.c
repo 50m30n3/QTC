@@ -22,7 +22,6 @@ int main( int argc, char *argv[] )
 
 	SDL_Surface *screen;
 	SDL_Event event;
-	char *pixels;
 
 	int opt, analyze, transform, colordiff, qtw;
 	int done, keyframe, playing, step, printfps;
@@ -83,8 +82,6 @@ int main( int argc, char *argv[] )
 	}
 
 	SDL_WM_SetCaption( "QTV Play", "QTV Play" );
-
-	pixels = screen->pixels;
 
 	image_create( &refimage, video.width, video.height );
 

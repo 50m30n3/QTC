@@ -403,7 +403,6 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 	struct pixel *outpixels;
-	unsigned int mask;
 	int luma;
 
 	void qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
@@ -548,17 +547,14 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 
 	if( ! colordiff )
 	{
-		mask = 0x00FFFFFF;
 		luma = 0;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 	}
 	else
 	{
-		mask = 0x0000FF00;
 		luma = 1;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 
-		mask = 0x00FF00FF;
 		luma = 0;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 	}
@@ -600,7 +596,7 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 
 int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int colordiff, int channel )
 {
-	struct databuffer *commanddata, *imagedata;
+	struct databuffer *commanddata;
 	int minsize, maxdepth;
 	struct pixel *outpixels;
 
@@ -746,7 +742,6 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 		return 0;
 	
 	commanddata = input->commanddata;
-	imagedata = input->imagedata;
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 
