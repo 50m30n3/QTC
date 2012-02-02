@@ -10,7 +10,7 @@ all: $(BINARIES)
 
 
 %: %.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 
 %.o: %.c
@@ -23,10 +23,10 @@ qtvenc: qtvenc.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.
 qtvdec: qtvdec.o utils.o databuffer.o image.o ppm.o qtc.o qti.o qtv.o rangecode.o
 
 qtvcap: qtvcap.o utils.o x11grab.o databuffer.o image.o qtc.o qti.o qtv.o rangecode.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(X11FLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) $(X11FLAGS) -o $@
 
 qtvplay: qtvplay.o utils.o databuffer.o image.o qtc.o qti.o qtv.o rangecode.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(SDLFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) $(SDLFLAGS) -o $@
 
 databuffer.o: databuffer.c databuffer.h
 image.o: image.c image.h
