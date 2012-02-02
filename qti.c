@@ -8,7 +8,7 @@
 #include "qti.h"
 
 #define FILEVERSION "QTI1"
-#define VERSION 3
+#define VERSION 4
 
 /*******************************************************************************
 * Function to load and decompress a qti file                                   *
@@ -129,7 +129,7 @@ int qti_read( struct qti *image, char filename[] )
 			if( image->commanddata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 4, 1 );
+			coder = rangecoder_create( 8, 1 );
 
 			rangecode_decompress( coder, compdata, image->commanddata, size );
 			
@@ -296,7 +296,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			if( compdata == NULL )
 				return 0;
 
-			coder = rangecoder_create( 4, 1 );
+			coder = rangecoder_create( 8, 1 );
 			if( coder == NULL )
 				return 0;
 
