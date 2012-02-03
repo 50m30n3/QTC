@@ -224,7 +224,7 @@ void image_transform_fast_rev( struct image *image )
 void image_transform( struct image *image )
 {
 	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
-	struct pixel p1, p2;
+	struct pixel p;
 	struct pixel *pixels;
 	int pr, pg, pb;
 
@@ -245,51 +245,51 @@ void image_transform( struct image *image )
 			pg = pixels[ ia ].y + pixels[ ib ].y - pixels[ ic ].y;
 			pb = pixels[ ia ].z + pixels[ ib ].z - pixels[ ic ].z;
 
-			p1 = pixels[ ia ];
-			aerr = abs(p1.x - pr);
-			aerr += abs(p1.y - pg);
-			aerr += abs(p1.z - pb);
+			p = pixels[ ia ];
+			aerr = abs(p.x - pr);
+			aerr += abs(p.y - pg);
+			aerr += abs(p.z - pb);
 
-			p1 = pixels[ ib ];
-			berr = abs(p1.x - pr);
-			berr += abs(p1.y - pg);
-			berr += abs(p1.z - pb);
+			p = pixels[ ib ];
+			berr = abs(p.x - pr);
+			berr += abs(p.y - pg);
+			berr += abs(p.z - pb);
 		
-			p1 = pixels[ ic ];
-			cerr = abs(p1.x - pr);
-			cerr += abs(p1.y - pg);
-			cerr += abs(p1.z - pb);
+			p = pixels[ ic ];
+			cerr = abs(p.x - pr);
+			cerr += abs(p.y - pg);
+			cerr += abs(p.z - pb);
 
 			if( ( aerr < berr ) && ( aerr < cerr ) )
-				p2 = pixels[ ia ];
+				p = pixels[ ia ];
 			else if( berr < cerr )
-				p2 = pixels[ ib ];
+				p = pixels[ ib ];
 			else
-				p2 = pixels[ ic ];
+				p = pixels[ ic ];
 
-			pixels[ i ].x -= p2.x;
-			pixels[ i ].y -= p2.y;
-			pixels[ i ].z -= p2.z;
+			pixels[ i ].x -= p.x;
+			pixels[ i ].y -= p.y;
+			pixels[ i ].z -= p.z;
 		}
 		
 		i = y*width;
 
-		p1 = pixels[ i-width ];
+		p = pixels[ i-width ];
 		
-		pixels[ i ].x -= p1.x;
-		pixels[ i ].y -= p1.y;
-		pixels[ i ].z -= p1.z;
+		pixels[ i ].x -= p.x;
+		pixels[ i ].y -= p.y;
+		pixels[ i ].z -= p.z;
 	}
 
 	for( x=width-1; x>0; x-- )
 	{
 		i = x;
 
-		p1 = pixels[ i-1 ];
+		p = pixels[ i-1 ];
 
-		pixels[ i ].x -= p1.x;
-		pixels[ i ].y -= p1.y;
-		pixels[ i ].z -= p1.z;
+		pixels[ i ].x -= p.x;
+		pixels[ i ].y -= p.y;
+		pixels[ i ].z -= p.z;
 	}
 }
 
