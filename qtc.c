@@ -9,6 +9,14 @@
 #include "qtc.h"
 
 
+/*******************************************************************************
+* Functions to wite pixel data to a databuffer from various source formats     *
+*                                                                              *
+* databuffer is the databuffer to write to                                     *
+* pixel is the pixel to write                                                  *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 static inline int put_rgb_pixel( struct databuffer *databuffer, struct pixel pixel )
 {
 	return ( ( databuffer_add_byte( pixel.x, databuffer ) ) &&
@@ -40,6 +48,20 @@ static inline int put_bgr_chroma_pixel( struct databuffer *databuffer, struct pi
 			 ( databuffer_add_byte( pixel.x, databuffer ) ) );
 }
 
+
+/*******************************************************************************
+* Function to write pixel data from an image area to a databuffer              *
+*                                                                              *
+* databuffer is the databuffer to write to                                     *
+* pixels is an array containing the complete image data                        *
+* x1, x2, y1, y2 describe the sub-area to write                                *
+* with is the width of the complete image                                      *
+* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
+* colordiff decides wether the image data is in fakeyuv format                 *
+* luma decidec wether to write the luma (1) or chroma (0) channel              *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
 {
 	int x, y, i;
@@ -107,6 +129,20 @@ static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixel
 	return 1;
 }
 
+/*******************************************************************************
+* Function to compress an image using quad tree compression                    *
+*                                                                              *
+* input is the input image                                                     *
+* refimage is the reference image, set to NULL for keyframes                   *
+* output is the compressed image                                               *
+* minsize is the minimum block size                                            *
+* maxdepth is the maximum recursion depth                                      *
+* lazyness indicates how many levels to skip at the beginning                  *
+* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
+* colordiff decides wether the image data is in fakeyuv format                 *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
@@ -318,6 +354,19 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 }
 
 
+/*******************************************************************************
+* Function to write pixel data from a databuffer to an image area              *
+*                                                                              *
+* imagedata is the databuffer to read from                                     *
+* pixels is an array containing the complete image                             *
+* x1, x2, y1, y2 describe the sub-area to write                                *
+* with is the width of the complete image                                      *
+* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
+* colordiff decides wether the image data is in fakeyuv format                 *
+* luma decidec wether to write the luma (1) or chroma (0) channel              *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixels, int x1, int x2, int y1, int y2, int width, int bgra, int colordiff, int luma )
 {
 	int x, y, i;
@@ -398,6 +447,17 @@ static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixel
 	}
 }
 
+/*******************************************************************************
+* Function to decompress an image compressed using quad tree compression       *
+*                                                                              *
+* input is the compressed input image                                          *
+* refimage is the reference image, set to NULL for keyframes                   *
+* output is the uncompressed image                                             *
+* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
+* colordiff decides wether the image data is in fakeyuv format                 *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
@@ -563,6 +623,15 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 }
 
 
+/*******************************************************************************
+* Function to draw a transparent box with outlines into an image               *
+*                                                                              *
+* pixels is an array containing the complete image                             *
+* x1, x2, y1, y2 describe the position of the box                              *
+* with is the width of the complete image                                      *
+* color is the color of the box, as unsigned int                               *
+* linecolor is the color of the box outline                                    *
+*******************************************************************************/
 static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int color, unsigned int linecolor )
 {
 	int x, y, i;
@@ -594,6 +663,18 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 	}
 }
 
+/*******************************************************************************
+* Function to create an analysis image from a compressed image                 *
+*                                                                              *
+* input is the compressed input image                                          *
+* output is the analysis image                                                 *
+* refimage indicated wether a reference image would have been present          *
+* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
+* colordiff decides wether the image data is in fakeyuv format                 *
+* channel decides wether to decode the luma or chroma channel in fakeyuv mode  *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int colordiff, int channel )
 {
 	struct databuffer *commanddata;
