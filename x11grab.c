@@ -14,6 +14,19 @@
 
 #include "x11grab.h"
 
+/*******************************************************************************
+* Function to create a new X11 grabber                                         *
+*                                                                              *
+* grabber is a pointer to an uninitialized x11grabber structure                *
+* disp_name is the name of the X11 display to capture from                     *
+* x and y are the upper left coordinate of the capture area                    *
+* width and height are the size of the capture area                            *
+* mounse indicates wether to capture the mouse cursor (1) or not (0)           *
+*                                                                              *
+* Modifies the grabber                                                         *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int x11grabber_create( struct x11grabber *grabber, char *disp_name, int x, int y, int width, int height, int mouse )
 {
 	Display *display;
@@ -129,6 +142,13 @@ int x11grabber_create( struct x11grabber *grabber, char *disp_name, int x, int y
 	return 1;
 }
 
+/*******************************************************************************
+* Function to free the internal structures of an x11 grabber                   *
+*                                                                              *
+* grabber is the x11grabber to free                                            *
+*                                                                              *
+* Modifies grabber                                                             *
+*******************************************************************************/
 void x11grabber_free( struct x11grabber *grabber )
 {
     XShmDetach( grabber->display, &grabber->shminfo );
@@ -139,6 +159,14 @@ void x11grabber_free( struct x11grabber *grabber )
 	XCloseDisplay( grabber->display );
 }
 
+/*******************************************************************************
+* Function to capture a frame using an x11grabber                              *
+*                                                                              *
+* image is an uninitialied image structure to hold the capture                 *
+* grabber is the x11grabber to use                                             *
+*                                                                              *
+* Modifies image                                                               *
+*******************************************************************************/
 int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 {
 	int x, y, cx, cy, i, ci;
