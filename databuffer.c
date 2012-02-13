@@ -97,6 +97,7 @@ int databuffer_add_bits( unsigned int data, struct databuffer *buffer, int bits 
 
 /*******************************************************************************
 * Function to add a single byte to a databuffer                                *
+* Always skips to the next full byte boundary                                  *
 *                                                                              *
 * data is the data to be added                                                 *
 * buffer is the databuffer to add to                                           *
@@ -202,6 +203,7 @@ unsigned int databuffer_get_bits( struct databuffer *buffer, int bits )
 
 /*******************************************************************************
 * Function to get a single byte from a databuffer                              *
+* Alwas skipd to the next full byte, discards previous bits                    *
 *                                                                              *
 * buffer is the databuffer to add to                                           *
 *                                                                              *
