@@ -12,6 +12,15 @@
 #define QTW_MAGIC "QTW1"
 #define VERSION 6
 
+/*******************************************************************************
+* Function to read a qtv file header and initialize a qtv struct from it       *
+*                                                                              *
+* video is the uninitialized qtv structure to load into                        *
+* is_qtw indicates wether the file to load is a qtw file                       *
+* filename is the file name of the qtv file                                    *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 {
 	FILE *qtv, *block;
@@ -264,6 +273,15 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 	}
 }
 
+/*******************************************************************************
+* Function to read a single frame from an opened qtv file                      *
+*                                                                              *
+* video is a qtv structure as returned from qtv_read_header                    *
+* image is a pointer to a qti image where the frame will be stored             *
+* keyframe will be set to 1 if the loaded frame is a keyframe, otherwise 0     *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 {
 	FILE *qtv;
@@ -474,6 +492,13 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 	}
 }
 
+/*******************************************************************************
+* Function to check wether another frame can be read from a qtv file           *
+*                                                                              *
+* video is a qtv structure as returned from qtv_read_header                    *
+*                                                                              *
+* Returns 0 on file end, 1 when more frames are available                      *
+*******************************************************************************/
 int qtv_can_read_frame( struct qtv *video )
 {
 	int tmp;
@@ -494,6 +519,14 @@ int qtv_can_read_frame( struct qtv *video )
 	}
 }
 
+/*******************************************************************************
+* Function to write a qtv struct to a file                                     *
+*                                                                              *
+* video is a qtv structure as returned from qtv_create                         *
+* filename is the file name of the new qtv file                                *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_write_header( struct qtv *video, char filename[] )
 {
 	FILE *qtv, *block;
@@ -583,6 +616,16 @@ int qtv_write_header( struct qtv *video, char filename[] )
 	}
 }
 
+/*******************************************************************************
+* Function to write a single frame to a qtv file                               *
+*                                                                              *
+* video is a qtv structure as returned from qtv_create                         *
+* image is the frame to be written                                             *
+* compress indicates wether the frame data should be compressed                *
+* keyframe indicates wether the frame is a key frame                           *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int keyframe )
 {
 	FILE * qtv;
@@ -707,6 +750,13 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 	}
 }
 
+/*******************************************************************************
+* Function to finish a block in a qtw file and start a new one                 *
+*                                                                              *
+* video is a qtv structure as returned from qtv_create                         *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_write_block( struct qtv *video )
 {
 	FILE *block;
@@ -737,6 +787,18 @@ int qtv_write_block( struct qtv *video )
 	return 1;
 }
 
+/*******************************************************************************
+* Function to create a new qtv structure for writing                           *
+*                                                                              *
+* width is the width of the video                                              *
+* height is the height of the video                                            *
+* framerate is the frame rate of the video                                     *
+* index indicates wether the video should have and index (1) or not (0)        *
+* is_qtw indicates wether the video should be a qtw (1) or qtv(0) video        *
+* video is a pointer to an uninitialized qtv struct                            *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_create( int width, int height, int framerate, int index, int is_qtw, struct qtv *video )
 {
 	video->width = width;
@@ -775,6 +837,13 @@ int qtv_create( int width, int height, int framerate, int index, int is_qtw, str
 	return 1;
 }
 
+/*******************************************************************************
+* Function to write the index for a qtv file                                   *
+*                                                                              *
+* video is a qtv structure as returned from qtv_create                         *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_write_index( struct qtv *video )
 {
 	FILE *qtv;
@@ -822,6 +891,13 @@ int qtv_write_index( struct qtv *video )
 	return size;
 }
 
+/*******************************************************************************
+* Function to seek in a qtv file with index                                    *
+*                                                                              *
+* video is a qtv structure as returned from qtv_read_header                    *
+*                                                                              *
+* Returns 0 on failure, 1 on success                                           *
+*******************************************************************************/
 int qtv_seek( struct qtv *video, int frame )
 {
 	int i;
@@ -884,6 +960,11 @@ int qtv_seek( struct qtv *video, int frame )
 	return 1;
 }
 
+/*******************************************************************************
+* Function to free the internal structures of a qtv struct                     *
+*                                                                              *
+* video is the qtv structure to be freed                                       *
+*******************************************************************************/
 void qtv_free( struct qtv *video )
 {
 	rangecoder_free( video->cmdcoder );
