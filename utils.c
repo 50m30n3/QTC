@@ -2,6 +2,11 @@
 #include <string.h>
 #include <sys/time.h>
 
+/*******************************************************************************
+* Function to get the current time                                             *
+*                                                                              *
+* Returns the current time in microsecond accuracy                             *
+*******************************************************************************/
 unsigned long int get_time( void )
 {
 	struct timeval tv;
@@ -11,6 +16,15 @@ unsigned long int get_time( void )
 	return tv.tv_sec * 1000000lu + tv.tv_usec;
 }
 
+/*******************************************************************************
+* Function to increase a numerical field in a filename                         *
+*                                                                              *
+* name is a pointer to the file name                                           *
+*                                                                              *
+* Modifies name                                                                *
+*                                                                              *
+* Returns 1 on success, 0 on overflow                                          *
+*******************************************************************************/
 int inc_filename( char *name )
 {
 	int i, carry, done;
