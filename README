@@ -42,11 +42,12 @@ Programs:
 	qtidec  - Still image decoder
 	qtvenc  - Video encoder
 	qtvdec  - Video decoder
-	qtvcap  - Screen capture program
+	qtvcap  - X11 screen capture program
 	qtvplay - Video player
 
 Aside from the screen capture program, which is build for the X Window System,
-all programs should be portable and rely on no external dependencies.
+and the video player, which uses SDL, the programs rely on no external
+dependencies.
 
 
 USAGE
@@ -54,6 +55,7 @@ USAGE
 All programs read and write binary ppm files for uncompressed files.
 The video en/decoders read/write image sequences in the form of img001.ppm,
 img002.ppm, img003.ppm.... Simply pass the name of the first file.
+Concatenated image sequences can also be read/written using stdio.
 
 qtienc:
 	-t [0..2]		-	Use image transforms (0)
@@ -130,6 +132,7 @@ qtvplay:
 OPTIONS
 
 -t:
+	Choose which image transform to use.
 	0 - Don't use image transforms (faster, big)
 	1 - Use simplified Peath transform (fast, small)
 	2 - Use full Peath transform (slow, smaller)
@@ -138,9 +141,11 @@ OPTIONS
 	Compress output data using entropy coding (slower, smaller)
 
 -y:
+	Choose which color transform to use.
+	Mode 2 is mostly useful for pure grayscale images like text.
 	0 - Don't transform color data (fast, big)
 	1 - Transform color data using fakeyuv transform (fast, small)
-	2 - Also separate color data during compression (still pretty fast, smaller)
+	2 - Also separate color data during compression (fast, sometimes smaller)
 
 -v:
 	Print some stats like compression ratio and FPS
@@ -149,7 +154,6 @@ OPTIONS
 	Minimal block size. Small values reduce the amount of data after quad tree
 	compression. Makes entropy coding slightly less efficient.
 	When using entropy coding 4-8 is optimal, otherwise 1-2.
-	Bigger is faster.
 
 -d:
 	Maximum recursion depth during quad tree compression. Setting this to 0
