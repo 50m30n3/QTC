@@ -13,7 +13,7 @@ QTC is designed for "pixel graphics". Its main goal is to lossless encode screen
 captures at high frame rates. It is not suited for encoding photos, film,
 or captures of computer games, although it is certainly capable of doing so.
 
-QTC uses full 24bit RGB color internally to avoid conversion artifacts.
+QTC uses full 24bit RGB or BGR color internally to avoid conversion artifacts.
 Encoding and decoding should be bit exact under all circumstances.
 
 There are currently 3 file formats associated with this codec:
