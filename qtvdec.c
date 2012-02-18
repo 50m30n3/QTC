@@ -11,6 +11,12 @@
 #include "qtv.h"
 #include "ppm.h"
 
+/*******************************************************************************
+* This is the reference qtv decoder.                                           *
+*                                                                              *
+* It implements all the features currently supported by the qtv codec.         *
+*******************************************************************************/
+
 int interrupt;
 
 void sig_exit( int sig )
@@ -102,22 +108,22 @@ int main( int argc, char *argv[] )
 	done = 0;
 	framenum = 0;
 
-	if( ! qtv_read_header( &video, qtw, infile ) )
+	if( ! qtv_read_header( &video, qtw, infile ) )		// Read video header
 		return 0;
 
 	if( startframe != 0 )
 		qtv_seek( &video, startframe );
 
-	image_create( &refimage, video.width, video.height );
+	image_create( &refimage, video.width, video.height );		// Create reference image
 
 	do
 	{
-		if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
+		if( ! qtv_read_frame( &video, &compimage, &keyframe ) )		// Read frame from stream
 			return 0;
 
 		if( analyze == 0 )
 		{
-			if( keyframe )
+			if( keyframe )		// Decompress frame
 			{
 				if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )
 					return 0;
@@ -128,24 +134,24 @@ int main( int argc, char *argv[] )
 					return 0;
 			}
 
-			image_copy( &image, &refimage );
+			image_copy( &image, &refimage );		// Copy frame to reference image
 
-			if( compimage.transform == 1 )
+			if( compimage.transform == 1 )		// Apply image transforms
 				image_transform_fast_rev( &image );
 			else if( compimage.transform == 2 )
 				image_transform_rev( &image );
 
-			if( compimage.colordiff >= 1 )
+			if( compimage.colordiff >= 1 )		// Apply fakeyuv transform
 				image_color_diff_rev( &image );
 
 		}
 		else
 		{
-			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )
+			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
 				return 0;	
 		}
 
-		if( ! ppm_write( &image, outfile ) )
+		if( ! ppm_write( &image, outfile ) )		// Write decompressed frame to file
 			return 0;
 
 		image_free( &image );

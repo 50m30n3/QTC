@@ -8,6 +8,12 @@
 #include "qtc.h"
 #include "ppm.h"
 
+/*******************************************************************************
+* This is the reference qti encoder.                                           *
+*                                                                              *
+* It implements all the features currently supported by the qti codec.         *
+*******************************************************************************/
+
 int main( int argc, char *argv[] )
 {
 	struct image image;
@@ -115,20 +121,20 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
-	if( ! ppm_read( &image, infile ) )
+	if( ! ppm_read( &image, infile ) )		// Read the input image
 		return 0;
 
 	insize = image.width * image.height * 3;
 
-	if( colordiff >= 1 )
+	if( colordiff >= 1 )		// Apply fakeyuv transform
 		image_color_diff( &image );
 
-	if( transform == 1 )
+	if( transform == 1 )		// Apply image transforms
 		image_transform_fast( &image );
 	else if( transform == 2 )
 		image_transform( &image );
 
-	if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
+	if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )		// Compress the image
 		return 0;
 
 	bsize = qti_getsize( &compimage );
@@ -136,7 +142,7 @@ int main( int argc, char *argv[] )
 	compimage.transform = transform;
 	compimage.colordiff = colordiff;
 	
-	if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )
+	if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )		// Write image to file
 		return 0;
 	
 	image_free( &image );

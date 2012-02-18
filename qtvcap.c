@@ -11,6 +11,10 @@
 #include "qtc.h"
 #include "qtv.h"
 
+/*******************************************************************************
+* This is a X11 screen capture program using the qtv codec.                    *
+*******************************************************************************/
+
 int interrupt;
 
 void sig_exit( int sig )

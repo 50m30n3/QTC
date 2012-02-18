@@ -11,6 +11,12 @@
 #include "qtv.h"
 #include "ppm.h"
 
+/*******************************************************************************
+* This is the reference qtv encoder.                                           *
+*                                                                              *
+* It implements all the features currently supported by the qtv codec.         *
+*******************************************************************************/
+
 int interrupt;
 
 void sig_exit( int sig )
@@ -213,32 +219,32 @@ int main( int argc, char *argv[] )
 	{
 		frame_start = get_time();
 
-		if( keyrate == 0 )
+		if( keyrate == 0 )		// Check if we need a keyframe
 			keyframe = framenum == 0;
 		else
 			keyframe = framenum % ( keyrate * framerate ) == 0;
 
-		if( ( qtw ) && ( blocksize >= blockrate*1024 ) )
+		if( ( qtw ) && ( blocksize >= blockrate*1024 ) )		// Check if we need to start a new qtw block
 		{
-			if( ! qtv_write_block( &video ) )
+			if( ! qtv_write_block( &video ) )		// Start new block
 				return 1;
 
 			numblocks++;
 			blocksize = 0;
 		}
 
-		if( ! ppm_read( &image, infile ) )
+		if( ! ppm_read( &image, infile ) )		// Read input frame
 			return 0;
 
-		if( framenum == 0 )
+		if( framenum == 0 )		// Initialize video stream after reading the first frame
 		{
-			if( ! qtv_create( image.width, image.height, framerate, index, qtw, &video ) )
+			if( ! qtv_create( image.width, image.height, framerate, index, qtw, &video ) )		// Initialize video
 				return 0;
 
-			if( ! qtv_write_header( &video, outfile ) )
+			if( ! qtv_write_header( &video, outfile ) )		// Write video header to file
 				return 0;
 
-			if( ! image_create( &refimage, image.width, image.height ) )
+			if( ! image_create( &refimage, image.width, image.height ) )		// Create reference image
 				return 0;
 		}
 
@@ -250,15 +256,15 @@ int main( int argc, char *argv[] )
 
 		insize += ( image.width * image.height * 3 );
 
-		if( colordiff >= 1 )
+		if( colordiff >= 1 )		// Apply fakeyuv transform
 			image_color_diff( &image );
 
-		if( transform == 1 )
+		if( transform == 1 )		// Apply image transforms
 			image_transform_fast( &image );
 		else if( transform == 2 )
 			image_transform( &image );
 
-		if( keyframe )
+		if( keyframe )		// Compress frame
 		{
 			if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
 				return 0;
@@ -274,18 +280,18 @@ int main( int argc, char *argv[] )
 		compimage.transform = transform;
 		compimage.colordiff = colordiff;
 
-		if( qti_getsize( &compimage ) <= 4 )
+		if( qti_getsize( &compimage ) <= 4 )		// Apply entropy coding only to big frames 
 			compress = 0;
 		else
 			compress = rangecomp;
 
-		if( ! ( size = qtv_write_frame( &video, &compimage, compress, keyframe ) ) )
+		if( ! ( size = qtv_write_frame( &video, &compimage, compress, keyframe ) ) )		// Write compressed frame to video stream
 			return 0;
 
 		outsize += size;
 		blocksize += size;
 
-		image_copy( &image, &refimage );
+		image_copy( &image, &refimage );		// Copy current frame to reference image
 
 		image_free( &image );
 		qti_free( &compimage );
@@ -338,7 +344,7 @@ int main( int argc, char *argv[] )
 
 	fps = 1000000.0/((get_time()-start)/framenum);
 
-	if( index )
+	if( index )		// Write video index to file
 		outsize += qtv_write_index( &video );
 
 	image_free( &refimage );
