@@ -3,8 +3,6 @@ QTC by 50m30n3 2012
 
 OVERVIEW
 
-Like PNG, but for video!
-
 The QTC codec is a lossless video and still image codec.
 It uses quad trees to quickly find and encode constant and unchanged areas in
 image sequences or single images.
@@ -26,11 +24,13 @@ HTTP easier.
 
 Both video file containers support indexing and seeking. Adapting the codec for
 other container formats should be trivial and is left as an exercise for the
-reader. (HAHAHAHAHA)
+reader.
 
-The supplied programs implement a full featured QTC decoder and encoder in plain
-C code. The only exception is the quad tree compressor itself which uses local
-functions. This is not supported by all compilers.
+The supplied programs implement a full featured QTC decoder and encoder for
+video ans still images in plain C code. The only exception is the quad tree
+compressor itself which uses local functions. This is not supported by all
+compilers.
+
 This reference implementation is not tweaked for speed or minimal file size.
 All parameters are set on a per file basis, but the format is theoretically
 capable of varying parameters dynamically per frame.
@@ -48,6 +48,65 @@ Programs:
 Aside from the screen capture program, which is build for the X Window System,
 and the video player, which uses SDL, the programs rely on no external
 dependencies.
+
+
+ALGORITHM
+
+The QTC algorithm can be split into three parts.
+The first part is image preprocessing, the second part is the quad tree
+compression itself, and the last part is a range coder based entropy encoder.
+
+In the fist step the image is preprocessed using lossless image and color
+transformations. These are tweakable on a per frame basis.
+
+The image can be processed using either a full Paeth transform, as used in the
+PNG file format, or a simplified Paeth transform that only uses a single
+predictor for increased speed.
+
+The color information can be transformed into a simplified YUV color space
+called fakeyuv. This is done to avoid rounding errors that appear when using
+the standard YUV color space.
+The fakeyuv color space encodes the green channel as Y component, the difference
+between red and green as U and the difference between red and blue as V.
+In memory the colors are stored as UYV to increase computational efficiency.
+
+This step does not reduce the image size and only serves to make the image more
+compressible in the next steps.
+
+The quad tree compressor itself uses recursive subdivision of the input image to
+find areas of constant color or areas that did not change in respect to the
+reference image.
+
+When a reference image is available the encoder first checks the current block
+against the same block in the reference image. If there are no changes
+subdivision stops and the next block gets encoded.
+
+When there is no reference image, or a change was detected in the last step, the
+encoder checks if the current block is of a single color.
+If the block is of a single color, subdivision stops and the color of the block
+is written to the output stream, otherwise the block is subdivided and the
+process is repeated.
+
+Should a block at any time get smaller than a certain threshold it gets saved
+as "literal" block, where the image contents of the block are written to the
+output stream as they are.
+
+The structure of the subdivision tree built during compression is saved as a
+separate command data bit stream so the structure can be replicated during
+decompression.
+
+Normally the compressor works on a per pixel basis, but a special mode for
+the aforementioned fakeyuv color model exists that encodes the Y component
+separately. This is especially useful for gray scale images.
+
+The last step of the encoder is a range coder based entropy encoder.
+
+In the reference encoder this step is integrated into the container format.
+
+The color data is encoded 8 bit at a time using a second order Markov chain
+model.
+The command data is encoded one bit at a time using an eight order Markov chain
+model.
 
 
 USAGE
@@ -142,7 +201,7 @@ OPTIONS
 
 -y:
 	Choose which color transform to use.
-	Mode 2 is mostly useful for pure grayscale images like text.
+	Mode 2 is mostly useful for pure gray scale images like text.
 	0 - Don't transform color data (fast, big)
 	1 - Transform color data using fakeyuv transform (fast, small)
 	2 - Also separate color data during compression (fast, sometimes smaller)
@@ -242,7 +301,7 @@ $ qtvenc -y2 -t2 -s4 -c -i frame0000.ppm -o video.qtv
 Re-encode a video:
 $ qtvdec -i video_old.qtv | qtvenc -y2 -t2 -s4 -c -o video_new.qtv
 
-Re-encode a video with keyframes and index:
+Re-encode a video with key frames and index:
 $ qtvdec -i video_old.qtv | qtvenc -x -k10 -y2 -t2 -s4 -c -o video_new.qtv
 
 Re-encode a video for web into a separate directory:
