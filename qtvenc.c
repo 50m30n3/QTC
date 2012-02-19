@@ -322,7 +322,7 @@ int main( int argc, char *argv[] )
 			{
 				fprintf( stderr, "Frame:%i Block:%i FPS:%.2f In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, numblocks, fps,
 					(insize*8)/(framenum+1)*framerate/1000,
-					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
+					bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
 					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
 					(size*8)*framerate/1000 );
 			}
@@ -330,7 +330,7 @@ int main( int argc, char *argv[] )
 			{
 				fprintf( stderr, "Frame:%i FPS:%.2f In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, fps,
 					(insize*8)/(framenum+1)*framerate/1000,
-					bsize/(framenum/framerate+1)/1000, bsize*100.0/(insize*8),
+					bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
 					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
 					(size*8)*framerate/1000 );
 			}
