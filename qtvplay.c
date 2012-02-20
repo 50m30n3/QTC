@@ -8,6 +8,7 @@
 
 #include "utils.h"
 #include "image.h"
+#include "databuffer.h"
 #include "qti.h"
 #include "qtc.h"
 #include "qtv.h"
@@ -19,20 +20,24 @@
 
 int main( int argc, char *argv[] )
 {
-	struct image image, refimage;
+	struct image image, ccimage, refimage;
 	struct qti compimage;
 	struct qtv video;
 
 	SDL_Surface *screen;
 	SDL_Event event;
 
-	int opt, analyze, transform, colordiff, qtw;
+	int opt, analyze, overlay, transform, colordiff, qtw;
 	int done, keyframe, playing, step, printfps;
 	long int delay, start;
 	double fps;
 	char *infile;
 
+	int i;
+	unsigned int *pixels, *ccpixels;
+
 	analyze = 0;
+	overlay = 0;
 	transform = 1;
 	colordiff = 1;
 	printfps = 0;
@@ -97,21 +102,21 @@ int main( int argc, char *argv[] )
 			if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
 				return 0;
 
-			if( !analyze )
+			if( keyframe )
 			{
-				if( keyframe )
-				{
-					if( ! qtc_decompress( &compimage, NULL, &image, 1, compimage.colordiff >= 2 ) )
-						return 0;
-				}
-				else
-				{
-					if( ! qtc_decompress( &compimage, &refimage, &image, 1, compimage.colordiff >= 2 ) )
-						return 0;
-				}
+				if( ! qtc_decompress( &compimage, NULL, &image, 1, compimage.colordiff >= 2 ) )
+					return 0;
+			}
+			else
+			{
+				if( ! qtc_decompress( &compimage, &refimage, &image, 1, compimage.colordiff >= 2 ) )
+					return 0;
+			}
 
-				image_copy( &image, &refimage );
+			image_copy( &image, &refimage );
 
+			if( !analyze || overlay )
+			{
 				if( transform )
 				{
 					if( compimage.transform == 1 )
@@ -126,10 +131,34 @@ int main( int argc, char *argv[] )
 						image_color_diff_rev( &image );
 				}
 			}
-			else
+			
+			if( analyze )
 			{
-				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
-					return 0;	
+				compimage.imagedata->pos = 0;
+				compimage.imagedata->bitpos = 8;
+				compimage.commanddata->pos = 0;
+				compimage.commanddata->bitpos = 8;
+				
+				if( overlay )
+				{
+					if( ! qtc_decompress_ccode( &compimage, &ccimage, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
+						return 0;
+
+					pixels = (unsigned int *)image.pixels;
+					ccpixels = (unsigned int *)ccimage.pixels;
+
+					for( i=0; i<image.width*image.height; i++ )
+						pixels[i] = ((pixels[i]&0xfefefefe)>>1)+((ccpixels[i]&0xfefefefe)>>1);
+					
+					image_free( &ccimage );
+				}
+				else
+				{
+					image_free( &image );
+
+					if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
+						return 0;
+				}
 			}
 
 			memcpy( screen->pixels, image.pixels, video.width*video.height*4 );
@@ -182,6 +211,19 @@ int main( int argc, char *argv[] )
 							{
 								fputs( "Analyze OFF\n", stderr );
 								analyze = 0;
+							}
+						break;
+
+						case 'o':
+							if( overlay )
+							{
+								fputs( "Overlay OFF\n", stderr );
+								overlay = 0;
+							}
+							else
+							{
+								fputs( "Overlay ON\n", stderr );
+								overlay = 1;
 							}
 						break;
 

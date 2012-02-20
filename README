@@ -183,6 +183,7 @@ qtvplay:
 	[down]			-	Seek backwards 1min
 	[up]			-	Seek forwards 1min
 	[a]				-	Toggle analysis mode
+	[o]				-	Toggle overlay mode	
 	[t]				-	Toggle Peath transform
 	[y]				-	Toggle fakeyuv
 	[f]				-	Print FPS
