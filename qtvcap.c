@@ -42,6 +42,28 @@ void sig_exit( int sig )
 		interrupt = 1;
 }
 
+void print_help( void )
+{
+	puts( "qtvcap (c) 50m30n3 2011, 2012" );
+	puts( "USAGE: qtvcap [options] -o outfile" );
+	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-t [0..2]\t-\tUse image transforms (0)" );
+	puts( "\t-c\t\t-\tCompress output data" );
+	puts( "\t-y [0..2]\t-\tUse fakeyuv transform (0)" );
+	puts( "\t-v\t\t-\tBe verbose" );
+	puts( "\t-x\t\t-\tCreate index (Needs key frames)" );
+	puts( "\t-m\t\t-\tCapture Mouse" );
+	puts( "\t-g geometry\t-\tSpecify capture region" );
+	puts( "\t-s [1..]\t-\tMinimal block size (2)" );
+	puts( "\t-n [1..]\t-\tLimit number of frames to encode" );
+	puts( "\t-r [1..]\t-\tFrame rate (25)" );
+	puts( "\t-k [1..]\t-\tPlace key frames every X seconds" );
+	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
+	puts( "\t-l [0..]\t-\tLaziness" );
+	puts( "\t-i filename\t-\tInput screen ($DISPLAY)" );
+	puts( "\t-o filename\t-\tOutput file (-)" );
+}
+
 int main( int argc, char *argv[] )
 {
 	struct image image, refimage;
@@ -80,10 +102,15 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "cvxmg:y:f:n:t:s:d:l:r:k:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hcvxmg:y:f:n:t:s:d:l:r:k:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
+			case 'h':
+				print_help();
+				return 0;
+			break;
+
 			case 't':
 				if( sscanf( optarg, "%i", &transform ) != 1 )
 					fputs( "main: Can not parse command line: -t\n", stderr );

@@ -37,6 +37,27 @@
 * This is a simple qtv player using SDL.                                       *
 *******************************************************************************/
 
+void print_help( void )
+{
+	puts( "qtvplay (c) 50m30n3 2011, 2012" );
+	puts( "USAGE: qtvplay [options] -i infile" );
+	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-w\t\t-\tRead QTW file" );
+	puts( "\t-i filename\t-\tInput file (-)" );
+	puts( "Keys:" );
+	puts( "\t[space]\t\t-\tPlay/Pause" );
+	puts( "\t[left]\t\t-\tSeek backwards 10sec" );
+	puts( "\t[right]\t\t-\tSeek forwards 10sec" );
+	puts( "\t[down]\t\t-\tSeek backwards 1min" );
+	puts( "\t[up]\t\t-\tSeek forwards 1min" );
+	puts( "\t[a]\t\t-\tToggle analysis mode" );
+	puts( "\t[o]\t\t-\tToggle overlay mode\t" );
+	puts( "\t[t]\t\t-\tToggle Peath transform" );
+	puts( "\t[y]\t\t-\tToggle fakeyuv" );
+	puts( "\t[f]\t\t-\tPrint FPS" );
+
+}
+
 int main( int argc, char *argv[] )
 {
 	struct image image, ccimage, refimage;
@@ -63,10 +84,15 @@ int main( int argc, char *argv[] )
 	qtw = 0;
 	infile = NULL;
 
-	while( ( opt = getopt( argc, argv, "wi:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hwi:" ) ) != -1 )
 	{
 		switch( opt )
 		{
+			case 'h':
+				print_help();
+				return 0;
+			break;
+
 			case 'w':
 				qtw = 1;
 			break;

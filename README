@@ -121,6 +121,7 @@ img002.ppm, img003.ppm.... Simply pass the name of the first file.
 Concatenated image sequences can also be read/written using stdio.
 
 qtienc:
+	-h				-	Print help
 	-t [0..2]		-	Use image transforms (0)
 	-c				-	Compress output data
 	-y [0..2]		-	Use fakeyuv transform (0)
@@ -132,11 +133,13 @@ qtienc:
 	-o filename		-	Output file (-)
 
 qtidec:
+	-h				-	Print help
 	-a [0..2]		-	Analysis mode
 	-i filename		-	Input file (-)
 	-o filename		-	Output file (-)
 
 qtvenc:
+	-h				-	Print help
 	-t [0..2]		-	Use image transforms (0)
 	-c				-	Compress output data
 	-w				-	Create QTW file
@@ -154,6 +157,7 @@ qtvenc:
 	-o filename		-	Output file (-)
 
 qtvdec:
+	-h				-	Print help
 	-w				-	Read QTW file
 	-a [0..2]		-	Analysis mode
 	-f [1..]		-	Begin decoding at specific frame (Needs index)
@@ -162,6 +166,7 @@ qtvdec:
 	-o filename		-	Output file (-)
 
 qtvcap:
+	-h				-	Print help
 	-t [0..2]		-	Use image transforms (0)
 	-c				-	Compress output data
 	-y [0..2]		-	Use fakeyuv transform (0)
@@ -179,6 +184,7 @@ qtvcap:
 	-o filename		-	Output file (-)
 
 qtvplay:
+	-h				-	Print help
 	-w				-	Read QTW file
 	-i filename		-	Input file (-)
 	[space]			-	Play/Pause

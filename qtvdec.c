@@ -44,6 +44,19 @@ void sig_exit( int sig )
 		interrupt = 1;
 }
 
+void print_help( void )
+{
+	puts( "qtvdec (c) 50m30n3 2011, 2012" );
+	puts( "USAGE: qtvdec [options] -i infile -o outfile" );
+	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-w\t\t-\tRead QTW file" );
+	puts( "\t-a [0..2]\t-\tAnalysis mode" );
+	puts( "\t-f [1..]\t-\tBegin decoding at specific frame (Needs index)" );
+	puts( "\t-n [1..]\t-\tLimit number of frames to decode" );
+	puts( "\t-i filename\t-\tInput file (-)" );
+	puts( "\t-o filename\t-\tOutput file (-)" );
+}
+
 int main( int argc, char *argv[] )
 {
 	struct image image, refimage;
@@ -62,10 +75,15 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "a:wf:n:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "ha:wf:n:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
+			case 'h':
+				print_help();
+				return 0;
+			break;
+
 			case 'w':
 				qtw = 1;
 			break;

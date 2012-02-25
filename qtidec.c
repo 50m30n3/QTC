@@ -33,6 +33,16 @@
 * It implements all the features currently supported by the qti codec.         *
 *******************************************************************************/
 
+void print_help( void )
+{
+	puts( "qtidec (c) 50m30n3 2011, 2012" );
+	puts( "USAGE: qtidec [options] -i infile -o outfile" );
+	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-a [0..2]\t-\tAnalysis mode" );
+	puts( "\t-i filename\t-\tInput file (-)" );
+	puts( "\t-o filename\t-\tOutput file (-)" );
+}
+
 int main( int argc, char *argv[] )
 {
 	struct image image;
@@ -45,10 +55,15 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "a:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "ha:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
+			case 'h':
+				print_help();
+				return 0;
+			break;
+
 			case 'a':
 				if( sscanf( optarg, "%i", &analyze ) != 1 )
 					fputs( "main: Can not parse command line: -a\n", stderr );
