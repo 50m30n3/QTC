@@ -138,15 +138,15 @@ int main( int argc, char *argv[] )
 	}
 
 	interrupt = 0;
-	
-	signal( SIGINT, sig_exit );
-	signal( SIGTERM, sig_exit );
 
 	done = 0;
 	framenum = 0;
 
 	if( ! qtv_read_header( &video, qtw, infile ) )		// Read video header
 		return 0;
+
+	signal( SIGINT, sig_exit );
+	signal( SIGTERM, sig_exit );
 
 	if( startframe != 0 )
 		qtv_seek( &video, startframe );

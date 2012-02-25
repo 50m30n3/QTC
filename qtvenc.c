@@ -244,9 +244,6 @@ int main( int argc, char *argv[] )
 	}
 
 	interrupt = 0;
-	
-	signal( SIGINT, sig_exit );
-	signal( SIGTERM, sig_exit );
 
 	done = 0;
 	framenum = 0;
@@ -284,6 +281,9 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )		// Initialize video stream after reading the first frame
 		{
+			signal( SIGINT, sig_exit );
+			signal( SIGTERM, sig_exit );
+
 			if( ! qtv_create( image.width, image.height, framerate, index, qtw, &video ) )		// Initialize video
 				return 0;
 
