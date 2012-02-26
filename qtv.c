@@ -753,7 +753,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 			video->index[video->idx_size].block = video->blocknum;
 			video->index[video->idx_size].offset = offset;
 			video->idx_size++;
-			if( video->idx_size > video->idx_datasize )
+			if( video->idx_size >= video->idx_datasize )
 			{
 				video->idx_datasize *= 2;
 				video->index = realloc( video->index, sizeof( *video->index ) * video->idx_datasize );
