@@ -95,57 +95,57 @@ int x11grabber_create( struct x11grabber *grabber, char *disp_name, int x, int y
 	}
 
 	image = XShmCreateImage( display,
-								DefaultVisual( display, screen ),
-								DefaultDepth( display, screen ),
-								ZPixmap,
-								NULL,
-								&grabber->shminfo,
-								cap_w, cap_h );
+	                         DefaultVisual( display, screen ),
+	                         DefaultDepth( display, screen ),
+	                         ZPixmap,
+	                         NULL,
+	                         &grabber->shminfo,
+	                         cap_w, cap_h );
 
 	if( image == NULL )
 	{
 		fputs( "x11grabber_create: Cannot create SHM image\n", stderr );
 		XCloseDisplay( display );
-        return 0;
+		return 0;
 	}
 
 	if( image->bits_per_pixel != 32 )
 	{
 		fputs( "x11grabber_create: Unsupported bitdepth\n", stderr );
 		XDestroyImage( image );
-        XCloseDisplay( display );
+		XCloseDisplay( display );
 		return 0;
 	}
 
 	grabber->shminfo.shmid = shmget( IPC_PRIVATE,
-							image->bytes_per_line * image->height,
-							IPC_CREAT|0777 );
+	                                 image->bytes_per_line * image->height,
+	                                 IPC_CREAT|0777 );
 
-    if ( grabber->shminfo.shmid < 0 )
-    {
-        fputs( "create_x11grabber: Cannot get system shared memory\n", stderr );
-        XDestroyImage( image );
-        XCloseDisplay( display );
-        return 0;
-    }
+	if( grabber->shminfo.shmid < 0 )
+	{
+		fputs( "create_x11grabber: Cannot get system shared memory\n", stderr );
+		XDestroyImage( image );
+		XCloseDisplay( display );
+		return 0;
+	}
 
 	grabber->shminfo.shmaddr = image->data = shmat( grabber->shminfo.shmid, 0, 0 );
 	if( grabber->shminfo.shmaddr == (char *) -1 )
 	{
 		fputs( "x11grabber_create: Cannot attach to system shared memory\n", stderr );
 		XDestroyImage( image );
-        XCloseDisplay( display );
+		XCloseDisplay( display );
 		return 0;
 	}
 
 	grabber->shminfo.readOnly = False;
 
-	if ( ! XShmAttach( display, &grabber->shminfo ) )
+	if( ! XShmAttach( display, &grabber->shminfo ) )
 	{
 		fputs( "x11grabber_create: Cannot attach to X shared memory\n", stderr );
 		shmdt( grabber->shminfo.shmaddr);
 		XDestroyImage( image );
-        XCloseDisplay( display );
+		XCloseDisplay( display );
 		return 0;
 	}
 
@@ -170,10 +170,10 @@ int x11grabber_create( struct x11grabber *grabber, char *disp_name, int x, int y
 *******************************************************************************/
 void x11grabber_free( struct x11grabber *grabber )
 {
-    XShmDetach( grabber->display, &grabber->shminfo );
-    shmdt( grabber->shminfo.shmaddr );
+	XShmDetach( grabber->display, &grabber->shminfo );
+	shmdt( grabber->shminfo.shmaddr );
 
-    XDestroyImage( grabber->image );
+	XDestroyImage( grabber->image );
 
 	XCloseDisplay( grabber->display );
 }
@@ -247,7 +247,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 						image->pixels[i].z = (image->pixels[i].z*(255-alpha)/255) + ((xcim->pixels[ci] >> 16 & 0xff)*alpha/255);
 					}
 				}
-			
+
 				i++;
 				ci++;
 			}

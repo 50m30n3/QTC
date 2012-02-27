@@ -84,11 +84,11 @@ int qti_read( struct qti *image, char filename[] )
 		}
 
 		if( ( fread( &version, sizeof( version ), 1, qti ) != 1 ) ||
-			( fread( &width, sizeof( width ), 1, qti ) != 1 ) ||
-			( fread( &height, sizeof( height ), 1, qti ) != 1 ) ||
-			( fread( &flags, sizeof( flags ), 1, qti ) != 1 ) ||
-			( fread( &minsize, sizeof( minsize ), 1, qti ) != 1 ) ||
-			( fread( &maxdepth, sizeof( maxdepth ), 1, qti ) != 1 ) )
+		    ( fread( &width, sizeof( width ), 1, qti ) != 1 ) ||
+		    ( fread( &height, sizeof( height ), 1, qti ) != 1 ) ||
+		    ( fread( &flags, sizeof( flags ), 1, qti ) != 1 ) ||
+		    ( fread( &minsize, sizeof( minsize ), 1, qti ) != 1 ) ||
+		    ( fread( &maxdepth, sizeof( maxdepth ), 1, qti ) != 1 ) )
 		{
 			fputs( "qti_read: Short read on image header\n", stderr );
 			if( qti != stdin )

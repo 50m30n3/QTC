@@ -371,7 +371,7 @@ void image_transform_rev( struct image *image )
 			berr = abs(p.x - pr);
 			berr += abs(p.y - pg);
 			berr += abs(p.z - pb);
-		
+
 			p = pixels[ ic ];
 			cerr = abs(p.x - pr);
 			cerr += abs(p.y - pg);

@@ -121,82 +121,82 @@ img002.ppm, img003.ppm.... Simply pass the name of the first file.
 Concatenated image sequences can also be read/written using stdio.
 
 qtienc:
-	-h				-	Print help
-	-t [0..2]		-	Use image transforms (0)
-	-c				-	Compress output data
-	-y [0..2]		-	Use fakeyuv transform (0)
-	-v				-	Be verbose
-	-s [1..]		-	Minimal block size (2)
-	-d [0..]		-	Maximum recursion depth (16)
-	-l [0..]		-	Laziness
-	-i filename		-	Input file (-)
-	-o filename		-	Output file (-)
+	-h		-	Print help
+	-t [0..2]	-	Use image transforms (0)
+	-c		-	Compress output data
+	-y [0..2]	-	Use fakeyuv transform (0)
+	-v		-	Be verbose
+	-s [1..]	-	Minimal block size (2)
+	-d [0..]	-	Maximum recursion depth (16)
+	-l [0..]	-	Laziness
+	-i filename	-	Input file (-)
+	-o filename	-	Output file (-)
 
 qtidec:
-	-h				-	Print help
-	-a [0..2]		-	Analysis mode
-	-i filename		-	Input file (-)
-	-o filename		-	Output file (-)
+	-h		-	Print help
+	-a [0..2]	-	Analysis mode
+	-i filename	-	Input file (-)
+	-o filename	-	Output file (-)
 
 qtvenc:
-	-h				-	Print help
-	-t [0..2]		-	Use image transforms (0)
-	-c				-	Compress output data
-	-w				-	Create QTW file
-	-y [0..2]		-	Use fakeyuv transform (0)
-	-v				-	Be verbose
-	-x				-	Create index (Needs key frames)
-	-s [1..]		-	Minimal block size (2)
-	-n [1..]		-	Limit number of frames to encode
-	-r [1..]		-	Frame rate (25)
-	-k [1..]		-	Place key frames every X seconds
-	-b [1..]		-	Maximum size of one QTW block in KiB (1024)
-	-d [0..]		-	Maximum recursion depth (16)
-	-l [0..]		-	Laziness
-	-i filename		-	Input file (-)
-	-o filename		-	Output file (-)
+	-h		-	Print help
+	-t [0..2]	-	Use image transforms (0)
+	-c		-	Compress output data
+	-w		-	Create QTW file
+	-y [0..2]	-	Use fakeyuv transform (0)
+	-v		-	Be verbose
+	-x		-	Create index (Needs key frames)
+	-s [1..]	-	Minimal block size (2)
+	-n [1..]	-	Limit number of frames to encode
+	-r [1..]	-	Frame rate (25)
+	-k [1..]	-	Place key frames every X seconds
+	-b [1..]	-	Maximum size of one QTW block in KiB (1024)
+	-d [0..]	-	Maximum recursion depth (16)
+	-l [0..]	-	Laziness
+	-i filename	-	Input file (-)
+	-o filename	-	Output file (-)
 
 qtvdec:
-	-h				-	Print help
-	-w				-	Read QTW file
-	-a [0..2]		-	Analysis mode
-	-f [1..]		-	Begin decoding at specific frame (Needs index)
-	-n [1..]		-	Limit number of frames to decode
-	-i filename		-	Input file (-)
-	-o filename		-	Output file (-)
+	-h		-	Print help
+	-w		-	Read QTW file
+	-a [0..2]	-	Analysis mode
+	-f [1..]	-	Begin decoding at specific frame (Needs index)
+	-n [1..]	-	Limit number of frames to decode
+	-i filename	-	Input file (-)
+	-o filename	-	Output file (-)
 
 qtvcap:
-	-h				-	Print help
-	-t [0..2]		-	Use image transforms (0)
-	-c				-	Compress output data
-	-y [0..2]		-	Use fakeyuv transform (0)
-	-v				-	Be verbose
-	-x				-	Create index (Needs key frames)
-	-m				-	Capture Mouse
-	-g geometry		-	Specify capture region
-	-s [1..]		-	Minimal block size (2)
-	-n [1..]		-	Limit number of frames to encode
-	-r [1..]		-	Frame rate (25)
-	-k [1..]		-	Place key frames every X seconds
-	-d [0..]		-	Maximum recursion depth (16)
-	-l [0..]		-	Laziness
-	-i filename		-	Input screen ($DISPLAY)
-	-o filename		-	Output file (-)
+	-h		-	Print help
+	-t [0..2]	-	Use image transforms (0)
+	-c		-	Compress output data
+	-y [0..2]	-	Use fakeyuv transform (0)
+	-v		-	Be verbose
+	-x		-	Create index (Needs key frames)
+	-m		-	Capture Mouse
+	-g geometry	-	Specify capture region
+	-s [1..]	-	Minimal block size (2)
+	-n [1..]	-	Limit number of frames to encode
+	-r [1..]	-	Frame rate (25)
+	-k [1..]	-	Place key frames every X seconds
+	-d [0..]	-	Maximum recursion depth (16)
+	-l [0..]	-	Laziness
+	-i filename	-	Input screen ($DISPLAY)
+	-o filename	-	Output file (-)
 
 qtvplay:
-	-h				-	Print help
-	-w				-	Read QTW file
-	-i filename		-	Input file (-)
-	[space]			-	Play/Pause
-	[left]			-	Seek backwards 10sec
-	[right]			-	Seek forwards 10sec
-	[down]			-	Seek backwards 1min
-	[up]			-	Seek forwards 1min
-	[a]				-	Toggle analysis mode
-	[o]				-	Toggle overlay mode	
-	[t]				-	Toggle Peath transform
-	[y]				-	Toggle fakeyuv
-	[f]				-	Print FPS
+	-h		-	Print help
+	-w		-	Read QTW file
+	-i filename	-	Input file (-)
+	[space]		-	Play/Pause
+	[left]		-	Seek backwards 10sec
+	[right]		-	Seek forwards 10sec
+	[down]		-	Seek backwards 1min
+	[up]		-	Seek forwards 1min
+	[a]		-	Toggle analysis mode
+	[o]		-	Toggle overlay mode	
+	[t]		-	Toggle Peath transform
+	[y]		-	Toggle fakeyuv
+	[f]		-	Print FPS
 
 
 OPTIONS

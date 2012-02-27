@@ -367,18 +367,18 @@ int main( int argc, char *argv[] )
 			if( qtw )
 			{
 				fprintf( stderr, "Frame:%i Block:%i FPS:%.2f In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, numblocks, fps,
-					(insize*8)/(framenum+1)*framerate/1000,
-					bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
-					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
-					(size*8)*framerate/1000 );
+				         (insize*8)/(framenum+1)*framerate/1000,
+				         bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
+				         (outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
+				         (size*8)*framerate/1000 );
 			}
 			else
 			{
 				fprintf( stderr, "Frame:%i FPS:%.2f In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, fps,
-					(insize*8)/(framenum+1)*framerate/1000,
-					bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
-					(outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
-					(size*8)*framerate/1000 );
+				         (insize*8)/(framenum+1)*framerate/1000,
+				         bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
+				         (outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
+				         (size*8)*framerate/1000 );
 			}
 		}
 		
@@ -399,10 +399,10 @@ int main( int argc, char *argv[] )
 	if( verbose )
 	{
 		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%% FPS:%.2f\n",
-			insize/1024/1024,
-			bsize/8/1024/1024, (bsize/8)*100.0/insize,
-			outsize/1024/1024, outsize*100.0/insize,
-			fps );
+		         insize/1024/1024,
+		         bsize/8/1024/1024, (bsize/8)*100.0/insize,
+		         outsize/1024/1024, outsize*100.0/insize,
+		         fps );
 	}
 
 	free( infile );

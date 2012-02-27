@@ -111,10 +111,10 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		}
 
 		if( ( fread( &version, sizeof( version ), 1, qtv ) != 1 ) ||
-			( fread( &width, sizeof( width ), 1, qtv ) != 1 ) ||
-			( fread( &height, sizeof( height ), 1, qtv ) != 1 ) ||
-			( fread( &framerate, sizeof( framerate ), 1, qtv ) != 1 ) ||
-			( fread( &flags, sizeof( flags ), 1, qtv ) != 1 ) )
+		    ( fread( &width, sizeof( width ), 1, qtv ) != 1 ) ||
+		    ( fread( &height, sizeof( height ), 1, qtv ) != 1 ) ||
+		    ( fread( &framerate, sizeof( framerate ), 1, qtv ) != 1 ) ||
+		    ( fread( &flags, sizeof( flags ), 1, qtv ) != 1 ) )
 		{
 			fputs( "qtv_read_header: Short read on image header\n", stderr );
 			if( qtv != stdin )
@@ -178,8 +178,8 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 			if( is_qtw )
 			{
 				if( ( fread( &numframes, sizeof( numframes ), 1, qtv ) != 1 ) ||
-					( fread( &numblocks, sizeof( numblocks ), 1, qtv ) != 1 ) ||
-					( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
+				    ( fread( &numblocks, sizeof( numblocks ), 1, qtv ) != 1 ) ||
+				    ( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
 				{
 					fputs( "qtv_read_header: Cannot read index header\n", stderr );
 					fclose( qtv );
@@ -191,7 +191,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 				numblocks = 0;
 
 				if( ( fread( &numframes, sizeof( numframes ), 1, qtv ) != 1 ) ||
-					( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
+				    ( fread( &idx_size, sizeof( idx_size ), 1, qtv ) != 1 ) )
 				{
 					fputs( "qtv_read_header: Cannot read index header\n", stderr );
 					fclose( qtv );
@@ -217,8 +217,8 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 				if( is_qtw )
 				{
 					if( ( fread( &frame, sizeof( frame ), 1, qtv ) != 1 ) ||
-						( fread( &blocknum, sizeof( blocknum ), 1, qtv ) != 1 ) ||
-						( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
+					    ( fread( &blocknum, sizeof( blocknum ), 1, qtv ) != 1 ) ||
+					    ( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
 					{
 						fputs( "qtv_read_header: Cannot read index entry\n", stderr );
 						fclose( qtv );
@@ -230,7 +230,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 					blocknum = 0;
 
 					if( ( fread( &frame, sizeof( frame ), 1, qtv ) != 1 ) ||
-						( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
+					    ( fread( &offset, sizeof( offset ), 1, qtv ) != 1 ) )
 					{
 						fputs( "qtv_read_header: Cannot read index entry\n", stderr );
 						fclose( qtv );
@@ -351,8 +351,8 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 		}
 
 		if( ( fread( &flags, sizeof( flags ), 1, qtv ) != 1 ) ||
-			( fread( &minsize, sizeof( minsize ), 1, qtv ) != 1 ) ||
-			( fread( &maxdepth, sizeof( maxdepth ), 1, qtv ) != 1 ) )
+		    ( fread( &minsize, sizeof( minsize ), 1, qtv ) != 1 ) ||
+		    ( fread( &maxdepth, sizeof( maxdepth ), 1, qtv ) != 1 ) )
 		{
 			fputs( "qtv_read_frame: Short read on image header\n", stderr );
 			if( qtv != stdin )

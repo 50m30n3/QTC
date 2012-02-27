@@ -193,7 +193,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 							break;
 						}
 
-						i++;				
+						i++;
 					}
 			
 					if( error )
@@ -251,9 +251,9 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					sy = y1 + (y2-y1)/2;
 
 					if( ( ! qtc_compress_rec( x1, y1, sx, sy, depth+1 ) ) ||
-						( ! qtc_compress_rec( x1, sy, sx, y2, depth+1 ) ) ||
-						( ! qtc_compress_rec( sx, y1, x2, sy, depth+1 ) ) ||
-						( ! qtc_compress_rec( sx, sy, x2, y2, depth+1 ) ) )
+					    ( ! qtc_compress_rec( x1, sy, sx, y2, depth+1 ) ) ||
+					    ( ! qtc_compress_rec( sx, y1, x2, sy, depth+1 ) ) ||
+					    ( ! qtc_compress_rec( sx, sy, x2, y2, depth+1 ) ) )
 					{
 						return 0;
 					}
@@ -265,7 +265,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 						sx = x1 + (x2-x1)/2;
 		
 						if( ( ! qtc_compress_rec( x1, y1, sx, y2, depth+1 ) ) ||
-							( ! qtc_compress_rec( sx, y1, x2, y2, depth+1 ) ) )
+						    ( ! qtc_compress_rec( sx, y1, x2, y2, depth+1 ) ) )
 						{
 							return 0;
 						}
@@ -275,7 +275,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 						sy = y1 + (y2-y1)/2;
 		
 						if( ( ! qtc_compress_rec( x1, y1, x2, sy, depth+1 ) ) ||
-							( ! qtc_compress_rec( x1, sy, x2, y2, depth+1 ) ) )
+						    ( ! qtc_compress_rec( x1, sy, x2, y2, depth+1 ) ) )
 						{
 							return 0;
 						}
