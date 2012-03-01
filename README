@@ -298,7 +298,7 @@ Encode a still image (simple):
 $ qtienc -i image.ppm -o image.qti
 
 Encode a still image (high compression):
-$ qtienc -y2 -t2 -s8 -c -i image.ppm -o image.qti
+$ qtienc -y1 -t2 -s8 -c -i image.ppm -o image.qti
 
 Encode an image sequence (simple):
 $ qtvenc -i frame0000.ppm -o video.qtv
@@ -307,17 +307,17 @@ Encode an image sequence (fast):
 $ qtvenc -l3 -i frame0000.ppm -o video.qtv
 
 Encode an image sequence (high compression):
-$ qtvenc -y2 -t2 -s4 -c -i frame0000.ppm -o video.qtv
+$ qtvenc -y1 -t2 -s4 -c -i frame0000.ppm -o video.qtv
 
 Re-encode a video:
-$ qtvdec -i video_old.qtv | qtvenc -y2 -t2 -s4 -c -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -y1 -t2 -s4 -c -o video_new.qtv
 
 Re-encode a video with key frames and index:
-$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y2 -t2 -s4 -c -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c -o video_new.qtv
 
 Re-encode a video for web into a separate directory:
 $ mkdir video.qtw
-$ qtvdec -i video.qtv | qtvenc -x -k10 -y2 -t2 -s4 -c -o video.qtw/video
+$ qtvdec -i video.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c -o video.qtw/video
 
 Decode a video into an image sequence:
 $ qtvdec -i video.qtv -o frame0000.ppm
@@ -330,4 +330,7 @@ $ qtvcap -l3 -m -g $(getgeom) -o capture.qtv
 
 Play back video:
 $ qtvplay -i video.qtv
+
+Re-encode a video using ffmpeg:
+$ qtvdec -i video.qtv | ffmpeg -f image2pipe -r 25 -vcodec ppm -i - video.mp4
 
