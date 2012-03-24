@@ -34,7 +34,7 @@
 * This is a X11 screen capture program using the qtv codec.                    *
 *******************************************************************************/
 
-int interrupt;
+volatile int interrupt;
 
 void sig_exit( int sig )
 {

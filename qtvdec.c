@@ -36,7 +36,7 @@
 * It implements all the features currently supported by the qtv codec.         *
 *******************************************************************************/
 
-int interrupt;
+volatile int interrupt;
 
 void sig_exit( int sig )
 {
