@@ -42,6 +42,7 @@ void print_help( void )
 	puts( "qtvplay (c) 50m30n3 2011, 2012" );
 	puts( "USAGE: qtvplay [options] -i infile" );
 	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-r [1..]\t-\tOverride frame rate" );
 	puts( "\t-w\t\t-\tRead QTW file" );
 	puts( "\t-i filename\t-\tInput file (-)" );
 	puts( "Keys:" );
@@ -69,6 +70,7 @@ int main( int argc, char *argv[] )
 
 	int opt, analyze, overlay, transform, colordiff, qtw;
 	int done, keyframe, playing, step, printfps;
+	int framerate;
 	long int delay, start;
 	double fps;
 	char *infile;
@@ -76,6 +78,7 @@ int main( int argc, char *argv[] )
 	int i;
 	unsigned int *pixels, *ccpixels;
 
+	framerate = 0;
 	analyze = 0;
 	overlay = 0;
 	transform = 1;
@@ -84,13 +87,18 @@ int main( int argc, char *argv[] )
 	qtw = 0;
 	infile = NULL;
 
-	while( ( opt = getopt( argc, argv, "hwi:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hwi:r:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'h':
 				print_help();
 				return 0;
+			break;
+
+			case 'r':
+				if( sscanf( optarg, "%i", &framerate ) != 1 )
+					fputs( "main: Can not parse command line: -r\n", stderr );
 			break;
 
 			case 'w':
@@ -109,6 +117,12 @@ int main( int argc, char *argv[] )
 		}
 	}
 
+	if( framerate < 0 )
+	{
+		fputs( "main: Frame rate out of range\n", stderr );
+		return 1;
+	}
+
 	done = 0;
 	playing = 1;
 	step = 0;
@@ -117,7 +131,10 @@ int main( int argc, char *argv[] )
 	if( ! qtv_read_header( &video, qtw, infile ) )
 		return 0;
 
-	fprintf( stderr, "Video: %ix%i, %iFPS\n", video.width, video.height, video.framerate );
+	if( framerate == 0 )
+		framerate = video.framerate;
+
+	fprintf( stderr, "Video: %ix%i, %iFPS\n", video.width, video.height, framerate );
 
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
@@ -320,7 +337,7 @@ int main( int argc, char *argv[] )
 						case SDLK_LEFT:
 							if( video.has_index )
 							{
-								qtv_seek( &video, video.framenum - 10*video.framerate );
+								qtv_seek( &video, video.framenum - 10*framerate );
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -332,7 +349,7 @@ int main( int argc, char *argv[] )
 						case SDLK_RIGHT:
 							if( video.has_index )
 							{
-								qtv_seek( &video, video.framenum + 10*video.framerate );
+								qtv_seek( &video, video.framenum + 10*framerate );
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -344,7 +361,7 @@ int main( int argc, char *argv[] )
 						case SDLK_DOWN:
 							if( video.has_index )
 							{
-								qtv_seek( &video, video.framenum - 60*video.framerate );
+								qtv_seek( &video, video.framenum - 60*framerate );
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -356,7 +373,7 @@ int main( int argc, char *argv[] )
 						case SDLK_UP:
 							if( video.has_index )
 							{
-								qtv_seek( &video, video.framenum + 60*video.framerate );
+								qtv_seek( &video, video.framenum + 60*framerate );
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -375,7 +392,7 @@ int main( int argc, char *argv[] )
 			}
 		}
 
-		delay = (1000000l/(long int)video.framerate)-(get_time()-start);
+		delay = (1000000l/(long int)framerate)-(get_time()-start);
 
 		if( delay > 0 )
 			usleep( delay );

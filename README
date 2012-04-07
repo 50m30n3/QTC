@@ -185,6 +185,7 @@ qtvcap:
 
 qtvplay:
 	-h		-	Print help
+	-r [1..]	-	Override frame rate
 	-w		-	Read QTW file
 	-i filename	-	Input file (-)
 	[space]		-	Play/Pause
