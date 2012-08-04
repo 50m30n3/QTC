@@ -17,6 +17,7 @@
 *    along with QTC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,10 +48,10 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 	FILE *qtv, *block;
 	int i;
 	char header[4], *magic;
-	int width, height, framerate;
+	int32_t width, height, framerate;
 	unsigned char version, flags;
-	int numframes, idx_size, numblocks, frame, blocknum;
-	long int offset, idx_offset;
+	int32_t numframes, idx_size, numblocks, frame, blocknum;
+	int64_t offset, idx_offset;
 	char blockname[256];
 
 	if( filename == NULL )
@@ -879,7 +880,7 @@ int qtv_write_index( struct qtv *video )
 {
 	FILE *qtv;
 	int i;
-	long int size;
+	int64_t size;
 
 	if( ! video->has_index )
 	{

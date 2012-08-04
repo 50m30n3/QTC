@@ -28,6 +28,16 @@
 
 #include "rangecode.h"
 
+
+/* implement division with floating point instructions on architectures that
+ * don't have an integer division instruction (such as ARMv6).  */
+
+#ifdef SLOW_DIV
+#  define DIV(x,y) (typeof(x))((double)(x) / (double)(y))
+#else
+#  define DIV(x,y) ((x)/(y))
+#endif
+
 unsigned const int maxrange = 0xFFFFFFFF;
 unsigned const int top = 0x01<<24;
 unsigned const int bottom = 0x01<<16;
@@ -171,7 +181,7 @@ int rangecode_compress( struct rangecoder *coder, struct databuffer *in, struct 
 		size = freqs[idx+symbol];
 		total = totals[idx>>bits];
 
-		range /= total;
+		range = DIV(range,total);
 		low += start * range;
 		range *= size;
 
@@ -254,7 +264,9 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 	{
 		total = totals[idx>>bits];
 
-		value = ( code - low ) / ( range / total );
+		range = DIV(range,total);
+
+		value = (code - low) / range;
 
 		i = 0;
 		while( ( value >= 0 ) && ( i < symbols ) )
@@ -282,7 +294,6 @@ int rangecode_decompress( struct rangecoder *coder, struct databuffer *in, struc
 
 		size = freqs[idx+symbol];
 
-		range /= total;
 		low += start * range;
 		range *= size;
 
