@@ -880,7 +880,7 @@ int qtv_write_index( struct qtv *video )
 {
 	FILE *qtv;
 	int i;
-	long int size;
+	int64_t size;
 
 	if( ! video->has_index )
 	{
