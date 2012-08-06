@@ -71,7 +71,7 @@ int main( int argc, char *argv[] )
 	int opt, analyze, overlay, transform, colordiff, qtw;
 	int done, keyframe, playing, step, printfps;
 	int framerate;
-	long int delay, start;
+	long int delay, start, vidstart;
 	double fps;
 	char *infile;
 
@@ -154,6 +154,8 @@ int main( int argc, char *argv[] )
 	SDL_WM_SetCaption( "QTV Play", "QTV Play" );
 
 	image_create( &refimage, video.width, video.height );
+
+	vidstart = get_time();
 
 	do
 	{
@@ -392,14 +394,15 @@ int main( int argc, char *argv[] )
 			}
 		}
 
-		delay = (1000000l/(long int)framerate)-(get_time()-start);
-
+		delay = (video.framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
+		
 		if( delay > 0 )
 			usleep( delay );
 
-		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
 		if( printfps )
 			fprintf( stderr, "FPS: %.2f\n", fps );
+
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
 	}
 	while( ! done );
 

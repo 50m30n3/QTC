@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
 	int lazyness;
 	int index;
 	int framerate, keyrate, numframes;
-	long int delay, start;
+	long int delay, start, vidstart;
 	double fps;
 	char *infile, *outfile;
 
@@ -266,6 +266,8 @@ int main( int argc, char *argv[] )
 	delay = 0;
 	fps = 0;
 
+	vidstart = get_time();
+
 	do
 	{
 		start = get_time();
@@ -342,14 +344,14 @@ int main( int argc, char *argv[] )
 			         (outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
 			         (size*8)*framerate/1000 );
 		}
-		
+
 		framenum++;
 
-		delay = (1000000l/(long int)framerate)-(get_time()-start);
-
+		delay = (framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
+		
 		if( delay > 0 )
 			usleep( delay );
-		
+
 		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
