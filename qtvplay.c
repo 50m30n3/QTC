@@ -68,8 +68,8 @@ int main( int argc, char *argv[] )
 	SDL_Surface *screen;
 	SDL_Event event;
 
-	int opt, analyze, overlay, transform, colordiff, qtw;
-	int done, keyframe, playing, step, printfps;
+	int opt, analyze, overlay, transform, colordiff, printfps, qtw;
+	int done, keyframe, framenum, playing, step;
 	int framerate;
 	long int delay, start, vidstart;
 	double fps;
@@ -124,6 +124,7 @@ int main( int argc, char *argv[] )
 	}
 
 	done = 0;
+	framenum = 0;
 	playing = 1;
 	step = 0;
 	fps = 0.0;
@@ -340,6 +341,8 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum - 10*framerate );
+								framenum = 0;
+								vidstart = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -352,6 +355,8 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum + 10*framerate );
+								framenum = 0;
+								vidstart = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -364,6 +369,8 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum - 60*framerate );
+								framenum = 0;
+								vidstart = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -376,6 +383,8 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum + 60*framerate );
+								framenum = 0;
+								vidstart = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -394,7 +403,9 @@ int main( int argc, char *argv[] )
 			}
 		}
 
-		delay = (video.framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
+		framenum++;
+
+		delay = (framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
 		
 		if( delay > 0 )
 			usleep( delay );
