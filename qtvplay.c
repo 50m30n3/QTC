@@ -422,9 +422,20 @@ int main( int argc, char *argv[] )
 
 		if( printstats )
 		{
-			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% Type: (K:%i,T:%i,Y:%i,S:%i,M:%i)\n", video.framenum, fps,
-			         (double)frame_time*(double)framerate/1000000.0*100.0,
-			         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+			if( qtw )
+			{
+				fprintf( stderr, "Frame:%i/%i Block:%i/%i FPS:%.2f Load:%.2f%% Type: (K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
+				         video.framenum, video.numframes, video.blocknum, video.numblocks, fps,
+				         (double)frame_time*(double)framerate/1000000.0*100.0,
+				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+			}
+			else
+			{
+				fprintf( stderr, "Frame:%i/%i FPS:%.2f Load:%.2f%% Type: (K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
+				         video.framenum, video.numframes, fps,
+				         (double)frame_time*(double)framerate/1000000.0*100.0,
+				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+			}
 		}
 
 		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-frame_start));
