@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
 	int lazyness;
 	int index;
 	int framerate, keyrate, numframes;
-	long int delay, start, vidstart;
+	long int delay, start, frame_start;
 	double fps;
 	char *infile, *outfile;
 
@@ -266,11 +266,11 @@ int main( int argc, char *argv[] )
 	delay = 0;
 	fps = 0;
 
-	vidstart = get_time();
+	start = get_time();
 
 	do
 	{
-		start = get_time();
+		frame_start = get_time();
 
 		if( keyrate == 0 )
 			keyframe = framenum == 0;
@@ -347,14 +347,19 @@ int main( int argc, char *argv[] )
 
 		framenum++;
 
-		delay = (framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
+		if( framerate != 0 )
+		{
+			delay = (framenum*(1000000l/(long int)framerate))-(get_time()-start);
 		
-		if( delay > 0 )
-			usleep( delay );
+			if( delay > 0 )
+				usleep( delay );
+		}
 
-		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-frame_start));
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
+
+	fps = 1000000.0/((get_time()-start)/framenum);
 
 	if( index )
 		outsize += qtv_write_index( &video );
@@ -366,10 +371,11 @@ int main( int argc, char *argv[] )
 
 	if( verbose )
 	{
-		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%%\n",
+		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%% FPS:%.2f\n",
 		         insize/1024/1024,
 		         bsize/8/1024/1024, (bsize/8)*100.0/insize,
-		         outsize/1024/1024, outsize*100.0/insize );
+		         outsize/1024/1024, outsize*100.0/insize,
+		         fps );
 	}
 
 	free( infile );

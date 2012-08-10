@@ -185,6 +185,7 @@ qtvcap:
 
 qtvplay:
 	-h		-	Print help
+	-v		-	Be verbose
 	-r [1..]	-	Override frame rate
 	-w		-	Read QTW file
 	-i filename	-	Input file (-)
@@ -197,7 +198,7 @@ qtvplay:
 	[o]		-	Toggle overlay mode	
 	[t]		-	Toggle Peath transform
 	[y]		-	Toggle fakeyuv
-	[f]		-	Print FPS
+	[s]		-	Print stats
 
 
 OPTIONS

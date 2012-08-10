@@ -42,6 +42,7 @@ void print_help( void )
 	puts( "qtvplay (c) 50m30n3 2011, 2012" );
 	puts( "USAGE: qtvplay [options] -i infile" );
 	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-r [1..]\t-\tOverride frame rate" );
 	puts( "\t-w\t\t-\tRead QTW file" );
 	puts( "\t-i filename\t-\tInput file (-)" );
@@ -55,7 +56,7 @@ void print_help( void )
 	puts( "\t[o]\t\t-\tToggle overlay mode\t" );
 	puts( "\t[t]\t\t-\tToggle Peath transform" );
 	puts( "\t[y]\t\t-\tToggle fakeyuv" );
-	puts( "\t[f]\t\t-\tPrint FPS" );
+	puts( "\t[s]\t\t-\tPrint stats" );
 
 }
 
@@ -68,32 +69,36 @@ int main( int argc, char *argv[] )
 	SDL_Surface *screen;
 	SDL_Event event;
 
-	int opt, analyze, overlay, transform, colordiff, printfps, qtw;
+	int opt, analyze, overlay, transform, colordiff, printstats, qtw;
 	int done, keyframe, framenum, playing, step;
 	int framerate;
-	long int delay, start, vidstart;
+	long int delay, start, frame_start, frame_time;
 	double fps;
 	char *infile;
 
 	int i;
 	unsigned int *pixels, *ccpixels;
 
-	framerate = 0;
+	framerate = -1;
 	analyze = 0;
 	overlay = 0;
 	transform = 1;
 	colordiff = 1;
-	printfps = 0;
+	printstats = 0;
 	qtw = 0;
 	infile = NULL;
 
-	while( ( opt = getopt( argc, argv, "hwi:r:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hvwi:r:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'h':
 				print_help();
 				return 0;
+			break;
+
+			case 'v':
+				printstats = 1;
 			break;
 
 			case 'r':
@@ -117,7 +122,7 @@ int main( int argc, char *argv[] )
 		}
 	}
 
-	if( framerate < 0 )
+	if( framerate < -1 )
 	{
 		fputs( "main: Frame rate out of range\n", stderr );
 		return 1;
@@ -132,10 +137,10 @@ int main( int argc, char *argv[] )
 	if( ! qtv_read_header( &video, qtw, infile ) )
 		return 0;
 
-	if( framerate == 0 )
+	if( framerate == -1 )
 		framerate = video.framerate;
 
-	fprintf( stderr, "Video: %ix%i, %iFPS\n", video.width, video.height, framerate );
+	fprintf( stderr, "Video: %ix%i, %i FPS\n", video.width, video.height, framerate );
 
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
@@ -156,11 +161,11 @@ int main( int argc, char *argv[] )
 
 	image_create( &refimage, video.width, video.height );
 
-	vidstart = get_time();
+	start = get_time();
 
 	do
 	{
-		start = get_time();
+		frame_start = get_time();
 
 		if( playing || step )
 		{
@@ -257,8 +262,8 @@ int main( int argc, char *argv[] )
 							done = 1;
 						break;
 
-						case 'f':
-							printfps = !printfps;
+						case 's':
+							printstats = !printstats;
 						break;
 
 						case 'a':
@@ -342,7 +347,7 @@ int main( int argc, char *argv[] )
 							{
 								qtv_seek( &video, video.framenum - 10*framerate );
 								framenum = 0;
-								vidstart = get_time();
+								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -356,7 +361,7 @@ int main( int argc, char *argv[] )
 							{
 								qtv_seek( &video, video.framenum + 10*framerate );
 								framenum = 0;
-								vidstart = get_time();
+								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -370,7 +375,7 @@ int main( int argc, char *argv[] )
 							{
 								qtv_seek( &video, video.framenum - 60*framerate );
 								framenum = 0;
-								vidstart = get_time();
+								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -384,7 +389,7 @@ int main( int argc, char *argv[] )
 							{
 								qtv_seek( &video, video.framenum + 60*framerate );
 								framenum = 0;
-								vidstart = get_time();
+								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -405,20 +410,36 @@ int main( int argc, char *argv[] )
 
 		framenum++;
 
-		delay = (framenum*(1000000l/(long int)framerate))-(get_time()-vidstart);
+		frame_time = get_time()-frame_start;
+
+		if( framerate != 0 )
+		{
+			delay = (framenum*(1000000l/(long int)framerate))-(get_time()-start);
 		
-		if( delay > 0 )
-			usleep( delay );
+			if( delay > 0 )
+				usleep( delay );
+		}
 
-		if( printfps )
-			fprintf( stderr, "FPS: %.2f\n", fps );
+		if( printstats )
+		{
+			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% Type: (K:%i,T:%i,Y:%i,S:%i,M:%i)\n", video.framenum, fps,
+			         (double)frame_time*(double)framerate/1000000.0*100.0,
+			         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+		}
 
-		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-start));
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-frame_start));
 	}
 	while( ! done );
 
+	fps = 1000000.0/((get_time()-start)/framenum);
+
 	image_free( &refimage );
 	qtv_free( &video );
+
+	if( printstats )
+	{
+		fprintf( stderr, "FPS:%.2f\n", fps );
+	}
 
 	free( infile );
 
