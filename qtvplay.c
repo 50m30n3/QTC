@@ -346,8 +346,6 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum - 10*framerate );
-								framenum = 0;
-								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -360,8 +358,6 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum + 10*framerate );
-								framenum = 0;
-								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -373,8 +369,6 @@ int main( int argc, char *argv[] )
 						case SDLK_DOWN:
 							if( video.has_index )
 							{
-								qtv_seek( &video, video.framenum - 60*framerate );
-								framenum = 0;
 								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
@@ -388,8 +382,6 @@ int main( int argc, char *argv[] )
 							if( video.has_index )
 							{
 								qtv_seek( &video, video.framenum + 60*framerate );
-								framenum = 0;
-								start = get_time();
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
@@ -415,7 +407,7 @@ int main( int argc, char *argv[] )
 			if( qtw )
 			{
 				fprintf( stderr, "Frame:%i/%i Block:%i/%i FPS:%.2f Load:%.2f%% Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
-				         video.framenum-1, video.numframes-1, video.blocknum-1, video.numblocks-1, fps,
+				         video.framenum-1, video.numframes-1, video.blocknum, video.numblocks-1, fps,
 				         (double)frame_time*(double)framerate/1000000.0*100.0,
 				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
 			}
