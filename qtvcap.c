@@ -81,8 +81,8 @@ int main( int argc, char *argv[] )
 	int lazyness;
 	int index;
 	int framerate, keyrate, numframes;
-	long int delay, start, frame_start, frame_time;
-	double fps;
+	long int delay, start, frame_start;
+	double fps, load;
 	char *infile, *outfile;
 
 	verbose = 0;
@@ -264,7 +264,8 @@ int main( int argc, char *argv[] )
 	outsize = 0;
 	
 	delay = 0;
-	fps = 0;
+	fps = 0.0;
+	load = 0.0;
 
 	start = get_time();
 
@@ -336,12 +337,12 @@ int main( int argc, char *argv[] )
 		if( interrupt )
 			done = 1;
 
-		frame_time = get_time()-frame_start;
+		load = load*0.9 + 0.1*((double)(get_time()-frame_start)*(double)framerate/1000000.0*100.0);
 
 		if( verbose )
 		{
-			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n", framenum, fps,
-			         (double)frame_time*(double)framerate/1000000.0*100.0,
+			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n",
+			         framenum, fps, load,
 			         (insize*8)/(framenum+1)*framerate/1000,
 			         bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
 			         (outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,

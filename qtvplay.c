@@ -72,8 +72,8 @@ int main( int argc, char *argv[] )
 	int opt, analyze, overlay, transform, colordiff, printstats, qtw;
 	int done, keyframe, framenum, playing, step;
 	int framerate;
-	long int delay, start, frame_start, frame_time;
-	double fps;
+	long int delay, start, frame_start;
+	double fps, load;
 	char *infile;
 
 	int i;
@@ -133,6 +133,7 @@ int main( int argc, char *argv[] )
 	playing = 1;
 	step = 0;
 	fps = 0.0;
+	load = 0.0;
 
 	if( ! qtv_read_header( &video, qtw, infile ) )
 		return 0;
@@ -400,22 +401,20 @@ int main( int argc, char *argv[] )
 			}
 		}
 
-		frame_time = get_time()-frame_start;
+		load = load*0.9 + 0.1*((double)(get_time()-frame_start)*(double)framerate/1000000.0*100.0);
 
 		if( printstats )
 		{
 			if( qtw )
 			{
 				fprintf( stderr, "Frame:%i/%i Block:%i/%i FPS:%.2f Load:%.2f%% Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
-				         video.framenum-1, video.numframes-1, video.blocknum, video.numblocks-1, fps,
-				         (double)frame_time*(double)framerate/1000000.0*100.0,
+				         video.framenum-1, video.numframes-1, video.blocknum, video.numblocks-1, fps, load,
 				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
 			}
 			else
 			{
 				fprintf( stderr, "Frame:%i/%i FPS:%.2f Load:%.2f%% Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
-				         video.framenum-1, video.numframes-1, fps,
-				         (double)frame_time*(double)framerate/1000000.0*100.0,
+				         video.framenum-1, video.numframes-1, fps, load,
 				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
 			}
 		}
