@@ -44,7 +44,7 @@ struct databuffer *databuffer_create( unsigned int size )
 	buffer->pos = 0;
 	buffer->bitpos = 8;
 
-	buffer->datasize = size;
+	buffer->datasize = size<=0?1:size;
 	buffer->data = malloc( sizeof( unsigned char ) * buffer->datasize );
 	if( buffer->data == NULL )
 	{
