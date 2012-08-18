@@ -64,12 +64,13 @@ int main( int argc, char *argv[] )
 	struct qtv video;
 
 	int opt, analyze, qtw;
-	int done, keyframe, framenum;
+	int done, keyframe, framenum, skipframes;
 	int startframe, numframes;
 	char *infile, *outfile;
 
 	analyze = 0;
 	startframe = 0;
+	skipframes = 0;
 	numframes = -1;
 	qtw = 0;
 	infile = NULL;
@@ -149,7 +150,11 @@ int main( int argc, char *argv[] )
 	signal( SIGTERM, sig_exit );
 
 	if( startframe != 0 )
-		qtv_seek( &video, startframe );
+	{
+		if( video.has_index )
+			qtv_seek( &video, startframe );
+		skipframes = startframe - video.framenum;
+	}
 
 	image_create( &refimage, video.width, video.height );		// Create reference image
 
@@ -173,13 +178,17 @@ int main( int argc, char *argv[] )
 
 			image_copy( &image, &refimage );		// Copy frame to reference image
 
-			if( compimage.transform == 1 )		// Apply image transforms
-				image_transform_fast_rev( &image );
-			else if( compimage.transform == 2 )
-				image_transform_rev( &image );
 
-			if( compimage.colordiff >= 1 )		// Apply fakeyuv transform
-				image_color_diff_rev( &image );
+			if( skipframes <= 0 )
+			{
+				if( compimage.transform == 1 )		// Apply image transforms
+					image_transform_fast_rev( &image );
+				else if( compimage.transform == 2 )
+					image_transform_rev( &image );
+
+				if( compimage.colordiff >= 1 )		// Apply fakeyuv transform
+					image_color_diff_rev( &image );
+			}
 
 		}
 		else
@@ -188,17 +197,20 @@ int main( int argc, char *argv[] )
 				return 0;	
 		}
 
-		if( ! ppm_write( &image, outfile ) )		// Write decompressed frame to file
-			return 0;
+		if( skipframes <= 0 )
+		{
+			if( ! ppm_write( &image, outfile ) )		// Write decompressed frame to file
+				return 0;
+
+			if( ( outfile != NULL ) && ( strcmp( outfile, "-" ) != 0 ) )
+			{
+				if( !inc_filename( outfile ) )
+					done = 1;
+			}
+		}
 
 		image_free( &image );
 		qti_free( &compimage );
-
-		if( ( outfile != NULL ) && ( strcmp( outfile, "-" ) != 0 ) )
-		{
-			if( !inc_filename( outfile ) )
-				done = 1;
-		}
 
 		if( interrupt )
 			done = 1;
@@ -206,7 +218,10 @@ int main( int argc, char *argv[] )
 		if( ! qtv_can_read_frame( &video ) )
 			done = 1;
 
-		framenum++;
+		if( skipframes <= 0 )
+			framenum++;
+		else
+			skipframes--;
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
 
