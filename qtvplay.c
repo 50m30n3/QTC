@@ -370,7 +370,7 @@ int main( int argc, char *argv[] )
 						case SDLK_DOWN:
 							if( video.has_index )
 							{
-								start = get_time();
+								qtv_seek( &video, video.framenum - 60*framerate );
 								fprintf( stderr, "Seek to: %i \n", video.framenum );
 							}
 							else
