@@ -153,6 +153,7 @@ int main( int argc, char *argv[] )
 	{
 		if( video.has_index )
 			qtv_seek( &video, startframe );
+
 		skipframes = startframe - video.framenum;
 	}
 
@@ -193,8 +194,11 @@ int main( int argc, char *argv[] )
 		}
 		else
 		{
-			if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
-				return 0;	
+			if( skipframes <= 0 )
+			{
+				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
+					return 0;
+			}
 		}
 
 		if( skipframes <= 0 )
