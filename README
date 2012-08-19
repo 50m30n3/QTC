@@ -268,6 +268,12 @@ OPTIONS
 	and in the case of QTW files, their block number. This allows for seeking
 	inside the video stream.
 
+-f:
+	Start decoding at a specific frame.
+	In case the selected frame is not a keyframe or the video has no index
+	the decoder will skip the required number of frames.
+	This may take a while.
+
 -n:
 	Only encode a certain number of frames.
 
