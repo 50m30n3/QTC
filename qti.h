@@ -35,6 +35,7 @@
 *  2 - Fakeyuv color and seperate compression of luma and chroma channels      *
 * minsize is the minimal block size used during compression                    *
 * maxdepth is the maximum recursion depth used during compression              *
+* keyframes indicates wether the image makes use of a reference image or not   *
 * imagedata contains the compressed color data of the image                    *
 * commanddata contains the data nessecary for reconstructing the quad tree     *
 *******************************************************************************/
@@ -43,6 +44,7 @@ struct qti
 	int width, height;
 	int transform, colordiff;
 	int minsize, maxdepth;
+	int keyframe;
 
 	struct databuffer *imagedata;
 	struct databuffer *commanddata;

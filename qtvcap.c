@@ -324,7 +324,7 @@ int main( int argc, char *argv[] )
 		else
 			compress = rangecomp;
 
-		if( ! ( size = qtv_write_frame( &video, &compimage, compress, keyframe ) ) )
+		if( ! ( size = qtv_write_frame( &video, &compimage, compress ) ) )
 			return 2;
 
 		outsize += size;

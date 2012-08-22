@@ -70,7 +70,7 @@ int main( int argc, char *argv[] )
 	SDL_Event event;
 
 	int opt, analyze, overlay, transform, colordiff, printstats, qtw;
-	int done, keyframe, framenum, playing, step;
+	int done, framenum, playing, step;
 	int framerate;
 	long int delay, start, frame_start;
 	double fps, load;
@@ -170,19 +170,11 @@ int main( int argc, char *argv[] )
 
 		if( playing || step )
 		{
-			if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
+			if( ! qtv_read_frame( &video, &compimage ) )
 				return 2;
 
-			if( keyframe )
-			{
-				if( ! qtc_decompress( &compimage, NULL, &image, 1 ) )
-					return 2;
-			}
-			else
-			{
-				if( ! qtc_decompress( &compimage, &refimage, &image, 1 ) )
-					return 2;
-			}
+			if( ! qtc_decompress( &compimage, &refimage, &image, 1 ) )
+				return 2;
 
 			image_copy( &image, &refimage );
 
@@ -212,7 +204,7 @@ int main( int argc, char *argv[] )
 				
 				if( overlay )
 				{
-					if( ! qtc_decompress_ccode( &compimage, &ccimage, !keyframe, 1, analyze-1 ) )
+					if( ! qtc_decompress_ccode( &compimage, &ccimage, 1, analyze-1 ) )
 						return 2;
 
 					pixels = (unsigned int *)image.pixels;
@@ -227,7 +219,7 @@ int main( int argc, char *argv[] )
 				{
 					image_free( &image );
 
-					if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, analyze-1 ) )
+					if( ! qtc_decompress_ccode( &compimage, &image, 1, analyze-1 ) )
 						return 2;
 				}
 			}
@@ -409,13 +401,13 @@ int main( int argc, char *argv[] )
 			{
 				fprintf( stderr, "Frame:%i/%i Block:%i/%i FPS:%.2f Load:%.2f%% Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
 				         video.framenum-1, video.numframes-1, video.blocknum, video.numblocks-1, fps, load,
-				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+				         compimage.keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
 			}
 			else
 			{
 				fprintf( stderr, "Frame:%i/%i FPS:%.2f Load:%.2f%% Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
 				         video.framenum-1, video.numframes-1, fps, load,
-				         keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+				         compimage.keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
 			}
 		}
 

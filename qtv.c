@@ -299,13 +299,12 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 *                                                                              *
 * video is a qtv structure as returned from qtv_read_header                    *
 * image is a pointer to a qti image where the frame will be stored             *
-* keyframe will be set to 1 if the loaded frame is a keyframe, otherwise 0     *
 *                                                                              *
 * Modifies video                                                               *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
+int qtv_read_frame( struct qtv *video, struct qti *image )
 {
 	FILE *qtv;
 	struct databuffer *compdata;
@@ -367,11 +366,11 @@ int qtv_read_frame( struct qtv *video, struct qti *image, int *keyframe )
 		image->transform = flags&0x03;
 		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
 		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
-		*keyframe = ( ( flags & (0x01<<7) ) >> 7 ) & 0x01;
+		image->keyframe = ( ( flags & (0x01<<7) ) >> 7 ) & 0x01;
 
 		if( compress )
 		{
-			if( *keyframe )
+			if( image->keyframe )
 			{
 				rangecoder_reset( video->cmdcoder );
 				rangecoder_reset( video->imgcoder );
@@ -647,13 +646,12 @@ int qtv_write_header( struct qtv *video, char filename[] )
 * video is a qtv structure as returned from qtv_create                         *
 * image is the frame to be written                                             *
 * compress indicates wether the frame data should be compressed                *
-* keyframe indicates wether the frame is a key frame                           *
 *                                                                              *
 * Modifies video                                                               *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int keyframe )
+int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 {
 	FILE * qtv;
 	struct databuffer *compdata;
@@ -680,7 +678,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
 		flags |= ( image->colordiff & 0x03 ) << 3;
-		flags |= ( keyframe & 0x01 ) << 7;
+		flags |= ( image->keyframe & 0x01 ) << 7;
 		
 		fwrite( &(flags), sizeof( flags ), 1, qtv );
 		fwrite( &(image->minsize), sizeof( image->minsize ), 1, qtv );
@@ -693,7 +691,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 
 		if( compress )
 		{
-			if( keyframe )
+			if( image->keyframe )
 			{
 				rangecoder_reset( video->cmdcoder );
 				rangecoder_reset( video->imgcoder );
@@ -747,7 +745,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress, int key
 			size += sizeof( image->imagedata->size ) + image->imagedata->size;
 		}
 
-		if( ( video->has_index ) && ( keyframe ) )
+		if( ( video->has_index ) && ( image->keyframe ) )
 		{
 			video->index[video->idx_size].frame = video->numframes;
 			video->index[video->idx_size].block = video->blocknum;

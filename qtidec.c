@@ -109,7 +109,7 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		if( ! qtc_decompress_ccode( &compimage, &image, 0, 0, analyze-1 ) )		// Create analysis image
+		if( ! qtc_decompress_ccode( &compimage, &image, 0, analyze-1 ) )		// Create analysis image
 			return 2;
 	}
 

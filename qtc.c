@@ -352,7 +352,14 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	inpixels = (unsigned int *)input->pixels;
 
 	if( refimage != NULL )
+	{
 		refpixels = (unsigned int *)refimage->pixels;
+		output->keyframe = 0;
+	}
+	else
+	{
+		output->keyframe = 1;
+	}
 
 	if( ! colordiff )
 	{
@@ -485,6 +492,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
+	int keyframe;
 	struct pixel *outpixels;
 	int luma, colordiff;
 
@@ -494,10 +502,10 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 		struct pixel color;
 		unsigned char status;
 
-		if( refimage )
-			status = databuffer_get_bits( commanddata, 1 );
-		else
+		if( keyframe )
 			status = 1;
+		else
+			status = databuffer_get_bits( commanddata, 1 );
 
 		if( status != 0 )
 		{
@@ -623,6 +631,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 	colordiff = input->colordiff == 2;
+	keyframe = input->keyframe;
 
 	output->transform = input->transform;
 
@@ -631,7 +640,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 
 	outpixels = output->pixels;
 
-	if( refimage != NULL )
+	if( ( !keyframe ) && ( refimage != NULL ) )
 		memcpy( outpixels, refimage->pixels, input->width * input->height * 4 );
 
 	if( ! colordiff )
@@ -697,16 +706,16 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 *                                                                              *
 * input is the compressed input image                                          *
 * output is the analysis image                                                 *
-* refimage indicated wether a reference image would have been present          *
 * bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
 * channel decides wether to decode the luma or chroma channel in fakeyuv mode  *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int channel )
+int qtc_decompress_ccode( struct qti *input, struct image *output, int bgra, int channel )
 {
 	struct databuffer *commanddata;
 	int minsize, maxdepth;
+	int keyframe;
 	struct pixel *outpixels;
 	int colordiff;
 
@@ -730,10 +739,10 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 			}
 		}
 
-		if( refimage )
-			status = databuffer_get_bits( commanddata, 1 );
-		else
+		if( keyframe )
 			status = 1;
+		else
+			status = databuffer_get_bits( commanddata, 1 );
 
 		if( status == 0 )
 		{
@@ -804,10 +813,10 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 		int sx, sy;
 		unsigned char status;
 
-		if( refimage )
-			status = databuffer_get_bits( commanddata, 1 );
-		else
+		if( keyframe )
 			status = 1;
+		else
+			status = databuffer_get_bits( commanddata, 1 );
 
 		if( status != 0 )
 		{
