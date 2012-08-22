@@ -61,6 +61,8 @@ struct pixel
 * Structure to hold all the data associated with an image                      *
 *                                                                              *
 * width and height are the dimension of the image                              *
+* transform indicates that the paeth transform was applied to the image        *
+* colordiff indicates that the pixel data is in colordiff mode                 *
 * pixels points to the image data                                              *
 *******************************************************************************/
 struct image

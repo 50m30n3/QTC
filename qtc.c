@@ -154,11 +154,9 @@ static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixel
 * input is the input image                                                     *
 * refimage is the reference image, set to NULL for keyframes                   *
 * output is the compressed image                                               *
-* minsize is the minimum block size                                            *
-* maxdepth is the maximum recursion depth                                      *
 * lazyness indicates how many levels to skip at the beginning                  *
 * bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
-* colordiff decides wether the image data is in fakeyuv format                 *
+* colordiff enables splitting of channels for colordiff images                 *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
@@ -480,7 +478,6 @@ static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixel
 * refimage is the reference image, set to NULL for keyframes                   *
 * output is the uncompressed image                                             *
 * bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
-* colordiff decides wether the image data is in fakeyuv format                 *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
@@ -702,7 +699,6 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 * output is the analysis image                                                 *
 * refimage indicated wether a reference image would have been present          *
 * bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
-* colordiff decides wether the image data is in fakeyuv format                 *
 * channel decides wether to decode the luma or chroma channel in fakeyuv mode  *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
