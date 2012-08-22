@@ -74,7 +74,7 @@ struct qtv
 	int idx_size, idx_datasize;
 };
 
-extern int qtv_create( int width, int height, int framerate, int index, int is_qtw, struct qtv *video );
+extern int qtv_create( struct qtv *video, int width, int height, int framerate, int index, int is_qtw );
 extern int qtv_write_header( struct qtv *video, char filename[] );
 extern int qtv_write_frame( struct qtv *video, struct qti *image, int compress );
 extern int qtv_write_block( struct qtv *video );

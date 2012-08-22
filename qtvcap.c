@@ -283,7 +283,7 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )
 		{
-			if( ! qtv_create( image.width, image.height, framerate, index, 0, &video ) )
+			if( ! qtv_create( &video, image.width, image.height, framerate, index, 0 ) )
 				return 2;
 
 			if( ! qtv_write_header( &video, outfile ) )

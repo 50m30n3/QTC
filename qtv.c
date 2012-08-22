@@ -817,18 +817,18 @@ int qtv_write_block( struct qtv *video )
 /*******************************************************************************
 * Function to create a new qtv structure for writing                           *
 *                                                                              *
+* video is a pointer to an uninitialized qtv struct                            *
 * width is the width of the video                                              *
 * height is the height of the video                                            *
 * framerate is the frame rate of the video                                     *
 * index indicates wether the video should have and index (1) or not (0)        *
 * is_qtw indicates wether the video should be a qtw (1) or qtv(0) video        *
-* video is a pointer to an uninitialized qtv struct                            *
 *                                                                              *
 * Modifies video                                                               *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtv_create( int width, int height, int framerate, int index, int is_qtw, struct qtv *video )
+int qtv_create( struct qtv *video, int width, int height, int framerate, int index, int is_qtw )
 {
 	video->width = width;
 	video->height = height;
