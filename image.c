@@ -29,18 +29,21 @@
 * image is a pointer to an image struct to hold the information                *
 * with is the width of the image                                               *
 * height is the height of the image                                            *
+* bgra indicates that the pixel data is in bgra ordering                       *
 *                                                                              *
 * Modifies the image struct                                                    *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int image_create( struct image *image, int width, int height )
+int image_create( struct image *image, int width, int height, int bgra )
 {
 	image->width = width;
 	image->height = height;
 	
 	image->colordiff = 0;
 	image->transform = 0;
+	
+	image->bgra = bgra;
 
 	image->pixels = malloc( sizeof( *image->pixels ) * width * height );
 

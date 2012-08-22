@@ -209,7 +209,7 @@ int x11grabber_grab_frame( struct image *image, struct x11grabber *grabber )
 		return 0;
 	}
 
-	image_create( image, grabber->width, grabber->height );
+	image_create( image, grabber->width, grabber->height, 1 );
 
 	memcpy( image->pixels, grabber->image->data, image->width * image->height * 4 );
 

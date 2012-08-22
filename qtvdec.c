@@ -157,16 +157,19 @@ int main( int argc, char *argv[] )
 		skipframes = startframe - video.framenum;
 	}
 
-	image_create( &refimage, video.width, video.height );		// Create reference image
+	image_create( &refimage, video.width, video.height, 0 );		// Create reference image
 
 	do
 	{
 		if( ! qtv_read_frame( &video, &compimage ) )		// Read frame from stream
 			return 2;
 
+		if( ! image_create( &image, compimage.width, compimage.height, 0 ) )
+			return 2;
+
 		if( analyze == 0 )
 		{
-			if( ! qtc_decompress( &compimage, &refimage, &image, 0 ) )		// Decompress frame
+			if( ! qtc_decompress( &compimage, &refimage, &image ) )		// Decompress frame
 				return 2;
 
 			image_copy( &image, &refimage );		// Copy frame to reference image
@@ -188,7 +191,7 @@ int main( int argc, char *argv[] )
 		{
 			if( skipframes <= 0 )
 			{
-				if( ! qtc_decompress_ccode( &compimage, &image, 0, analyze-1 ) )		// Create analysis image
+				if( ! qtc_decompress_ccode( &compimage, &image, analyze-1 ) )		// Create analysis image
 					return 2;
 			}
 		}

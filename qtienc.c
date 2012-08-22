@@ -177,7 +177,7 @@ int main( int argc, char *argv[] )
 	if( ! qti_create( image.width, image.height, minsize, maxdepth, &compimage ) )
 		return 2;
 
-	if( ! qtc_compress( &image, NULL, &compimage, lazyness, 0, colordiff >= 2 ) )		// Compress the image
+	if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff >= 2 ) )		// Compress the image
 		return 2;
 
 	bsize = qti_getsize( &compimage );

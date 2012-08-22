@@ -155,18 +155,17 @@ static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixel
 * refimage is the reference image, set to NULL for keyframes                   *
 * output is the compressed image                                               *
 * lazyness indicates how many levels to skip at the beginning                  *
-* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
 * colordiff enables splitting of channels for colordiff images                 *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int lazyness, int bgra, int colordiff )
+int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int lazyness, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 	unsigned int *inpixels, *refpixels;
 	unsigned int mask;
-	int luma;
+	int luma, bgra;
 
 	int qtc_compress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -342,6 +341,8 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	minsize = output->minsize;
 	maxdepth = output->maxdepth;
 
+	bgra = input->bgra;
+
 	output->transform = input->transform;
 	
 	if( colordiff )
@@ -484,17 +485,16 @@ static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixel
 * input is the compressed input image                                          *
 * refimage is the reference image, set to NULL for keyframes                   *
 * output is the uncompressed image                                             *
-* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int bgra )
+int qtc_decompress( struct qti *input, struct image *refimage, struct image *output )
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 	int keyframe;
 	struct pixel *outpixels;
-	int luma, colordiff;
+	int luma, bgra, colordiff;
 
 	void qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -622,9 +622,6 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 			}
 		}
 	}
-
-	if( ! image_create( output, input->width, input->height ) )
-		return 0;
 	
 	commanddata = input->commanddata;
 	imagedata = input->imagedata;
@@ -632,6 +629,8 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	maxdepth = input->maxdepth;
 	colordiff = input->colordiff == 2;
 	keyframe = input->keyframe;
+
+	bgra = output->bgra;
 
 	output->transform = input->transform;
 
@@ -706,18 +705,17 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 *                                                                              *
 * input is the compressed input image                                          *
 * output is the analysis image                                                 *
-* bgra decides wether to use bgra mode (1) or rgba mode (0)                    *
 * channel decides wether to decode the luma or chroma channel in fakeyuv mode  *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_decompress_ccode( struct qti *input, struct image *output, int bgra, int channel )
+int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 {
 	struct databuffer *commanddata;
 	int minsize, maxdepth;
 	int keyframe;
 	struct pixel *outpixels;
-	int colordiff;
+	int bgra, colordiff;
 
 	void qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -856,14 +854,14 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int bgra, int
 			}
 		}
 	}
-
-	if( ! image_create( output, input->width, input->height ) )
-		return 0;
 	
 	commanddata = input->commanddata;
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 	colordiff = input->colordiff == 2;
+	keyframe = input->keyframe;
+
+	bgra = output->bgra;
 
 	output->transform = 0;
 	output->colordiff = 0;

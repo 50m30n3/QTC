@@ -63,6 +63,7 @@ struct pixel
 * width and height are the dimension of the image                              *
 * transform indicates that the paeth transform was applied to the image        *
 * colordiff indicates that the pixel data is in colordiff mode                 *
+* bgra indicates that the pixel data is in bgra ordering                       *
 * pixels points to the image data                                              *
 *******************************************************************************/
 struct image
@@ -70,11 +71,12 @@ struct image
 	int width, height;
 	
 	int transform, colordiff;
+	int bgra;
 	
 	struct pixel *pixels;
 };
 
-extern int image_create( struct image *image, int width, int height );
+extern int image_create( struct image *image, int width, int height, int bgra );
 extern void image_free( struct image *image );
 extern void image_copy( struct image *in, struct image *out );
 

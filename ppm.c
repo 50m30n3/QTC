@@ -127,6 +127,10 @@ int ppm_read( struct image *image, char *filename )
 		image->width = width;
 		image->height = height;
 
+		image->colordiff = 0;
+		image->transform = 0;
+		image->bgra = 0;
+
 		rawpixels = malloc( sizeof( unsigned char ) * width * height * 3 + 1 );
 
 		if( rawpixels != NULL )

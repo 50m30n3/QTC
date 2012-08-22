@@ -290,7 +290,7 @@ int main( int argc, char *argv[] )
 			if( ! qtv_write_header( &video, outfile ) )		// Write video header to file
 				return 2;
 
-			if( ! image_create( &refimage, image.width, image.height ) )		// Create reference image
+			if( ! image_create( &refimage, image.width, image.height, 0 ) )		// Create reference image
 				return 2;
 		}
 
@@ -315,12 +315,12 @@ int main( int argc, char *argv[] )
 
 		if( keyframe )		// Compress frame
 		{
-			if( ! qtc_compress( &image, NULL, &compimage, lazyness, 0, colordiff == 2 ) )
+			if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff == 2 ) )
 				return 2;
 		}
 		else
 		{
-			if( ! qtc_compress( &image, &refimage, &compimage, lazyness, 0, colordiff == 2 ) )
+			if( ! qtc_compress( &image, &refimage, &compimage, lazyness, colordiff == 2 ) )
 				return 2;
 		}
 

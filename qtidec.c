@@ -94,9 +94,12 @@ int main( int argc, char *argv[] )
 	if( ! qti_read( &compimage, infile ) )		// Read compressed image from file
 		return 2;
 
+	if( ! image_create( &image, compimage.width, compimage.height, 0 ) )
+		return 2;
+
 	if( analyze == 0 )
 	{
-		if( ! qtc_decompress( &compimage, NULL, &image, 0 ) )		// Decompress image
+		if( ! qtc_decompress( &compimage, NULL, &image ) )		// Decompress image
 			return 2;
 
 		if( image.transform == 1 )		// Apply reverse image transforms
@@ -109,7 +112,7 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		if( ! qtc_decompress_ccode( &compimage, &image, 0, analyze-1 ) )		// Create analysis image
+		if( ! qtc_decompress_ccode( &compimage, &image, analyze-1 ) )		// Create analysis image
 			return 2;
 	}
 

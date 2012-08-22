@@ -289,7 +289,7 @@ int main( int argc, char *argv[] )
 			if( ! qtv_write_header( &video, outfile ) )
 				return 2;
 
-			if( ! image_create( &refimage, image.width, image.height ) )
+			if( ! image_create( &refimage, image.width, image.height, 1 ) )
 				return 2;
 		}
 
@@ -308,12 +308,12 @@ int main( int argc, char *argv[] )
 
 		if( keyframe )
 		{
-			if( ! qtc_compress( &image, NULL, &compimage, lazyness, 0, colordiff == 2 ) )
+			if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff == 2 ) )
 				return 2;
 		}
 		else
 		{
-			if( ! qtc_compress( &image, &refimage, &compimage, lazyness, 0, colordiff == 2 ) )
+			if( ! qtc_compress( &image, &refimage, &compimage, lazyness, colordiff == 2 ) )
 				return 2;
 		}
 

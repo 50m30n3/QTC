@@ -160,7 +160,7 @@ int main( int argc, char *argv[] )
 
 	SDL_WM_SetCaption( "QTV Play", "QTV Play" );
 
-	image_create( &refimage, video.width, video.height );
+	image_create( &refimage, video.width, video.height, 1 );
 
 	start = get_time();
 
@@ -173,7 +173,10 @@ int main( int argc, char *argv[] )
 			if( ! qtv_read_frame( &video, &compimage ) )
 				return 2;
 
-			if( ! qtc_decompress( &compimage, &refimage, &image, 1 ) )
+			if( ! image_create( &image, compimage.width, compimage.height, 1 ) )
+				return 2;
+
+			if( ! qtc_decompress( &compimage, &refimage, &image ) )
 				return 2;
 
 			image_copy( &image, &refimage );
@@ -204,7 +207,10 @@ int main( int argc, char *argv[] )
 				
 				if( overlay )
 				{
-					if( ! qtc_decompress_ccode( &compimage, &ccimage, 1, analyze-1 ) )
+					if( ! image_create( &ccimage, compimage.width, compimage.height, 1 ) )
+						return 2;
+
+					if( ! qtc_decompress_ccode( &compimage, &ccimage, analyze-1 ) )
 						return 2;
 
 					pixels = (unsigned int *)image.pixels;
@@ -219,7 +225,10 @@ int main( int argc, char *argv[] )
 				{
 					image_free( &image );
 
-					if( ! qtc_decompress_ccode( &compimage, &image, 1, analyze-1 ) )
+					if( ! image_create( &image, compimage.width, compimage.height, 1 ) )
+						return 2;
+
+					if( ! qtc_decompress_ccode( &compimage, &image, analyze-1 ) )
 						return 2;
 				}
 			}
