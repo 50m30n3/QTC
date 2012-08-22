@@ -162,7 +162,7 @@ int main( int argc, char *argv[] )
 	}
 
 	if( ! ppm_read( &image, infile ) )		// Read the input image
-		return 0;
+		return 2;
 
 	insize = image.width * image.height * 3;
 
@@ -175,7 +175,7 @@ int main( int argc, char *argv[] )
 		image_transform( &image );
 
 	if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )		// Compress the image
-		return 0;
+		return 2;
 
 	bsize = qti_getsize( &compimage );
 
@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
 	compimage.colordiff = colordiff;
 	
 	if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )		// Write image to file
-		return 0;
+		return 2;
 	
 	image_free( &image );
 	qti_free( &compimage );

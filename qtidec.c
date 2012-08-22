@@ -92,12 +92,12 @@ int main( int argc, char *argv[] )
 	}
 
 	if( ! qti_read( &compimage, infile ) )		// Read compressed image from file
-		return 0;
+		return 2;
 
 	if( analyze == 0 )
 	{
 		if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )		// Decompress image
-			return 0;
+			return 2;
 
 		if( compimage.transform == 1 )		// Apply reverse image transforms
 			image_transform_fast_rev( &image );
@@ -110,11 +110,11 @@ int main( int argc, char *argv[] )
 	else
 	{
 		if( ! qtc_decompress_ccode( &compimage, &image, 0, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
-			return 0;
+			return 2;
 	}
 
 	if( ! ppm_write( &image, outfile ) )		// Write decompressed image to file
-		return 0;
+		return 2;
 	
 	image_free( &image );
 	qti_free( &compimage );

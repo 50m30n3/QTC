@@ -171,17 +171,17 @@ int main( int argc, char *argv[] )
 		if( playing || step )
 		{
 			if( ! qtv_read_frame( &video, &compimage, &keyframe ) )
-				return 0;
+				return 2;
 
 			if( keyframe )
 			{
 				if( ! qtc_decompress( &compimage, NULL, &image, 1, compimage.colordiff >= 2 ) )
-					return 0;
+					return 2;
 			}
 			else
 			{
 				if( ! qtc_decompress( &compimage, &refimage, &image, 1, compimage.colordiff >= 2 ) )
-					return 0;
+					return 2;
 			}
 
 			image_copy( &image, &refimage );
@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
 				if( overlay )
 				{
 					if( ! qtc_decompress_ccode( &compimage, &ccimage, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
-						return 0;
+						return 2;
 
 					pixels = (unsigned int *)image.pixels;
 					ccpixels = (unsigned int *)ccimage.pixels;
@@ -228,7 +228,7 @@ int main( int argc, char *argv[] )
 					image_free( &image );
 
 					if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
-						return 0;
+						return 2;
 				}
 			}
 

@@ -144,7 +144,7 @@ int main( int argc, char *argv[] )
 	framenum = 0;
 
 	if( ! qtv_read_header( &video, qtw, infile ) )		// Read video header
-		return 0;
+		return 2;
 
 	signal( SIGINT, sig_exit );
 	signal( SIGTERM, sig_exit );
@@ -162,19 +162,19 @@ int main( int argc, char *argv[] )
 	do
 	{
 		if( ! qtv_read_frame( &video, &compimage, &keyframe ) )		// Read frame from stream
-			return 0;
+			return 2;
 
 		if( analyze == 0 )
 		{
 			if( keyframe )		// Decompress frame
 			{
 				if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )
-					return 0;
+					return 2;
 			}
 			else
 			{
 				if( ! qtc_decompress( &compimage, &refimage, &image, 0, compimage.colordiff >= 2 ) )
-					return 0;
+					return 2;
 			}
 
 			image_copy( &image, &refimage );		// Copy frame to reference image
@@ -197,14 +197,14 @@ int main( int argc, char *argv[] )
 			if( skipframes <= 0 )
 			{
 				if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
-					return 0;
+					return 2;
 			}
 		}
 
 		if( skipframes <= 0 )
 		{
 			if( ! ppm_write( &image, outfile ) )		// Write decompressed frame to file
-				return 0;
+				return 2;
 
 			if( ( outfile != NULL ) && ( strcmp( outfile, "-" ) != 0 ) )
 			{

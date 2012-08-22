@@ -270,14 +270,14 @@ int main( int argc, char *argv[] )
 		if( ( qtw ) && ( blocksize >= blockrate*1024 ) )		// Check if we need to start a new qtw block
 		{
 			if( ! qtv_write_block( &video ) )		// Start new block
-				return 1;
+				return 2;
 
 			numblocks++;
 			blocksize = 0;
 		}
 
 		if( ! ppm_read( &image, infile ) )		// Read input frame
-			return 0;
+			return 2;
 
 		if( framenum == 0 )		// Initialize video stream after reading the first frame
 		{
@@ -285,19 +285,19 @@ int main( int argc, char *argv[] )
 			signal( SIGTERM, sig_exit );
 
 			if( ! qtv_create( image.width, image.height, framerate, index, qtw, &video ) )		// Initialize video
-				return 0;
+				return 2;
 
 			if( ! qtv_write_header( &video, outfile ) )		// Write video header to file
-				return 0;
+				return 2;
 
 			if( ! image_create( &refimage, image.width, image.height ) )		// Create reference image
-				return 0;
+				return 2;
 		}
 
 		if( ( image.width != video.width ) || ( image.height != video.height ) )
 		{
 			fprintf( stderr, "main: %s: Image size does not match video size.\n", infile );
-			return 0;
+			return 2;
 		}
 
 		insize += ( image.width * image.height * 3 );
@@ -313,12 +313,12 @@ int main( int argc, char *argv[] )
 		if( keyframe )		// Compress frame
 		{
 			if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
-				return 0;
+				return 2;
 		}
 		else
 		{
 			if( ! qtc_compress( &image, &refimage, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
-				return 0;
+				return 2;
 		}
 
 		bsize += qti_getsize( &compimage );
@@ -332,7 +332,7 @@ int main( int argc, char *argv[] )
 			compress = rangecomp;
 
 		if( ! ( size = qtv_write_frame( &video, &compimage, compress, keyframe ) ) )		// Write compressed frame to video stream
-			return 0;
+			return 2;
 
 		outsize += size;
 		blocksize += size;
