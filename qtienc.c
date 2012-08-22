@@ -174,7 +174,7 @@ int main( int argc, char *argv[] )
 	else if( transform == 2 )
 		image_transform( &image );
 
-	if( ! qti_create( image.width, image.height, minsize, maxdepth, &compimage ) )
+	if( ! qti_create( &compimage, image.width, image.height, minsize, maxdepth ) )
 		return 2;
 
 	if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff >= 2 ) )		// Compress the image

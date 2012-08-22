@@ -382,17 +382,17 @@ int qti_write( struct qti *image, int compress, char filename[] )
 /*******************************************************************************
 * Function to initialize a qti structure                                       *
 *                                                                              *
+* image is a pointer to an qti struct to hold the information                  *
 * with is the width of the image                                               *
 * height is the height of the image                                            *
 * minsize is the minimal block size used during compression                    *
 * maxdepth is the maximum recursion depth used during compression              *
-* image is a pointer to an image struct to hold the information                *
 *                                                                              *
 * Modifies the qti structure                                                   *
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qti_create( int width, int height, int minsize, int maxdepth, struct qti *image )
+int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth )
 {
 	image->width = width;
 	image->height = height;
