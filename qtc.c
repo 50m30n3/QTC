@@ -162,9 +162,10 @@ static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixel
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int minsize, int maxdepth, int lazyness, int bgra, int colordiff )
+int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int lazyness, int bgra, int colordiff )
 {
 	struct databuffer *commanddata, *imagedata;
+	int minsize, maxdepth;
 	unsigned int *inpixels, *refpixels;
 	unsigned int mask;
 	int luma;
@@ -337,12 +338,18 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 
 		return 1;
 	}
-
-	if( ! qti_create( input->width, input->height, minsize, maxdepth, output ) )
-		return 0;
 	
 	commanddata = output->commanddata;
 	imagedata = output->imagedata;
+	minsize = output->minsize;
+	maxdepth = output->maxdepth;
+
+	output->transform = input->transform;
+	
+	if( colordiff )
+		output->colordiff = 2;
+	else
+		output->colordiff = input->colordiff;
 
 	inpixels = (unsigned int *)input->pixels;
 
@@ -477,12 +484,12 @@ static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixel
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int bgra, int colordiff )
+int qtc_decompress( struct qti *input, struct image *refimage, struct image *output, int bgra )
 {
 	struct databuffer *commanddata, *imagedata;
 	int minsize, maxdepth;
 	struct pixel *outpixels;
-	int luma;
+	int luma, colordiff;
 
 	void qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -618,6 +625,12 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	imagedata = input->imagedata;
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
+	colordiff = input->colordiff == 2;
+
+	output->transform = input->transform;
+
+	if( input->colordiff >= 1 )
+		output->colordiff = 1;
 
 	outpixels = output->pixels;
 
@@ -694,11 +707,12 @@ static inline void put_ccode_box( unsigned int *pixels, int x1, int x2, int y1, 
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int colordiff, int channel )
+int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage, int bgra, int channel )
 {
 	struct databuffer *commanddata;
 	int minsize, maxdepth;
 	struct pixel *outpixels;
+	int colordiff;
 
 	void qtc_decompress_ccode_rec( int x1, int y1, int x2, int y2, int depth )
 	{
@@ -844,6 +858,10 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int refimage,
 	commanddata = input->commanddata;
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
+	colordiff = input->colordiff == 2;
+
+	output->transform = 0;
+	output->colordiff = 0;
 
 	outpixels = output->pixels;
 	

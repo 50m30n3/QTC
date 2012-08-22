@@ -310,21 +310,21 @@ int main( int argc, char *argv[] )
 		else if( transform == 2 )
 			image_transform( &image );
 
+		if( ! qti_create( image.width, image.height, minsize, maxdepth, &compimage ) )
+			return 2;
+
 		if( keyframe )		// Compress frame
 		{
-			if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
+			if( ! qtc_compress( &image, NULL, &compimage, lazyness, 0, colordiff == 2 ) )
 				return 2;
 		}
 		else
 		{
-			if( ! qtc_compress( &image, &refimage, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )
+			if( ! qtc_compress( &image, &refimage, &compimage, lazyness, 0, colordiff == 2 ) )
 				return 2;
 		}
 
 		bsize += qti_getsize( &compimage );
-
-		compimage.transform = transform;
-		compimage.colordiff = colordiff;
 
 		if( qti_getsize( &compimage ) <= 4 )		// Apply entropy coding only to big frames 
 			compress = 0;

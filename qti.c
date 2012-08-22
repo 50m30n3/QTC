@@ -398,6 +398,7 @@ int qti_create( int width, int height, int minsize, int maxdepth, struct qti *im
 	image->minsize = minsize;
 	image->maxdepth = maxdepth;
 	image->transform = 0;
+	image->colordiff = 0;
 
 	image->imagedata = databuffer_create( 1024*512 );
 	if( image->imagedata == NULL )

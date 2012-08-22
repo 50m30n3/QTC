@@ -96,20 +96,20 @@ int main( int argc, char *argv[] )
 
 	if( analyze == 0 )
 	{
-		if( ! qtc_decompress( &compimage, NULL, &image, 0, compimage.colordiff >= 2 ) )		// Decompress image
+		if( ! qtc_decompress( &compimage, NULL, &image, 0 ) )		// Decompress image
 			return 2;
 
-		if( compimage.transform == 1 )		// Apply reverse image transforms
+		if( image.transform == 1 )		// Apply reverse image transforms
 			image_transform_fast_rev( &image );
-		else if( compimage.transform == 2 )
+		else if( image.transform == 2 )
 			image_transform_rev( &image );
 
-		if( compimage.colordiff >= 1 )		// Apply reverse fakeyuv transform
+		if( image.colordiff )		// Apply reverse fakeyuv transform
 			image_color_diff_rev( &image );
 	}
 	else
 	{
-		if( ! qtc_decompress_ccode( &compimage, &image, 0, 0, compimage.colordiff >= 2, analyze-1 ) )		// Create analysis image
+		if( ! qtc_decompress_ccode( &compimage, &image, 0, 0, analyze-1 ) )		// Create analysis image
 			return 2;
 	}
 

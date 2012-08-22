@@ -174,14 +174,14 @@ int main( int argc, char *argv[] )
 	else if( transform == 2 )
 		image_transform( &image );
 
-	if( ! qtc_compress( &image, NULL, &compimage, minsize, maxdepth, lazyness, 0, colordiff >= 2 ) )		// Compress the image
+	if( ! qti_create( image.width, image.height, minsize, maxdepth, &compimage ) )
+		return 2;
+
+	if( ! qtc_compress( &image, NULL, &compimage, lazyness, 0, colordiff >= 2 ) )		// Compress the image
 		return 2;
 
 	bsize = qti_getsize( &compimage );
 
-	compimage.transform = transform;
-	compimage.colordiff = colordiff;
-	
 	if( ! ( outsize = qti_write( &compimage, rangecomp, outfile ) ) )		// Write image to file
 		return 2;
 	

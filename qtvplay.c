@@ -175,12 +175,12 @@ int main( int argc, char *argv[] )
 
 			if( keyframe )
 			{
-				if( ! qtc_decompress( &compimage, NULL, &image, 1, compimage.colordiff >= 2 ) )
+				if( ! qtc_decompress( &compimage, NULL, &image, 1 ) )
 					return 2;
 			}
 			else
 			{
-				if( ! qtc_decompress( &compimage, &refimage, &image, 1, compimage.colordiff >= 2 ) )
+				if( ! qtc_decompress( &compimage, &refimage, &image, 1 ) )
 					return 2;
 			}
 
@@ -190,15 +190,15 @@ int main( int argc, char *argv[] )
 			{
 				if( transform )
 				{
-					if( compimage.transform == 1 )
+					if( image.transform == 1 )
 						image_transform_fast_rev( &image );
-					else if( compimage.transform == 2 )
+					else if( image.transform == 2 )
 						image_transform_rev( &image );
 				}
 
 				if( colordiff )
 				{
-					if( compimage.colordiff >= 1 )
+					if( image.colordiff )
 						image_color_diff_rev( &image );
 				}
 			}
@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
 				
 				if( overlay )
 				{
-					if( ! qtc_decompress_ccode( &compimage, &ccimage, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
+					if( ! qtc_decompress_ccode( &compimage, &ccimage, !keyframe, 1, analyze-1 ) )
 						return 2;
 
 					pixels = (unsigned int *)image.pixels;
@@ -227,7 +227,7 @@ int main( int argc, char *argv[] )
 				{
 					image_free( &image );
 
-					if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, compimage.colordiff >= 2, analyze-1 ) )
+					if( ! qtc_decompress_ccode( &compimage, &image, !keyframe, 1, analyze-1 ) )
 						return 2;
 				}
 			}

@@ -38,6 +38,9 @@ int image_create( struct image *image, int width, int height )
 {
 	image->width = width;
 	image->height = height;
+	
+	image->colordiff = 0;
+	image->transform = 0;
 
 	image->pixels = malloc( sizeof( *image->pixels ) * width * height );
 
@@ -94,6 +97,8 @@ void image_color_diff( struct image *image )
 	int i;
 	struct pixel *pixels;
 
+	image->colordiff = 1;
+
 	pixels = image->pixels;
 
 	for( i=0; i<image->width*image->height; i++ )
@@ -114,6 +119,8 @@ void image_color_diff_rev( struct image *image )
 {
 	int i;
 	struct pixel *pixels;
+
+	image->colordiff = 0;
 
 	pixels = image->pixels;
 
@@ -136,6 +143,8 @@ void image_transform_fast( struct image *image )
 	int x, y, i, width, height;
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
+
+	image->transform = 1;
 
 	width = image->width;
 	height = image->height;
@@ -192,6 +201,8 @@ void image_transform_fast_rev( struct image *image )
 	struct pixel pa, pb, pc;
 	struct pixel *pixels;
 
+	image->transform = 0;
+
 	width = image->width;
 	height = image->height;
 	pixels = image->pixels;
@@ -246,6 +257,8 @@ void image_transform( struct image *image )
 	struct pixel p;
 	struct pixel *pixels;
 	int pr, pg, pb;
+
+	image->transform = 2;
 
 	width = image->width;
 	height = image->height;
@@ -325,6 +338,8 @@ void image_transform_rev( struct image *image )
 	struct pixel p;
 	struct pixel *pixels;
 	int pr, pg, pb;
+
+	image->transform = 0;
 
 	width = image->width;
 	height = image->height;

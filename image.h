@@ -66,6 +66,9 @@ struct pixel
 struct image
 {
 	int width, height;
+	
+	int transform, colordiff;
+	
 	struct pixel *pixels;
 };
 
