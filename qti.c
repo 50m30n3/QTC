@@ -111,7 +111,7 @@ int qti_read( struct qti *image, char filename[] )
 		image->transform = flags&0x03;
 		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
 		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
-		image->keyframe = 0;
+		image->keyframe = 1;
 
 		if( compress )
 		{
