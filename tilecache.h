@@ -34,6 +34,7 @@ struct tilecache
 	int size;
 	int blocksize;
 	int tilesize;
+	int indexbits;
 
 	int index;
 

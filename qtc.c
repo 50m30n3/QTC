@@ -297,7 +297,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 							{
 								databuffer_add_bits( 0, commanddata, 1 );
 								
-								databuffer_add_bits( index, indexdata, 32 );
+								databuffer_add_bits( index, indexdata, output->tilecache->indexbits );
 							}
 						}
 						else
@@ -578,7 +578,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 								}
 								else
 								{
-									index = databuffer_get_bits( indexdata, 32 );
+									index = databuffer_get_bits( indexdata, input->tilecache->indexbits );
 									tilecache_read( input->tilecache, (unsigned int *)outpixels, index, x1, x2, y1, y2, input->width, mask );
 								}
 							}
