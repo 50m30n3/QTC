@@ -215,4 +215,48 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 	}
 }
 
+void tilecache_read( struct tilecache *cache, unsigned int *pixels, int index, int x1, int x2, int y1, int y2, int width, unsigned int mask )
+{
+	int x, y, i, j;
+	unsigned int invmask;
+	unsigned int *data;
+
+	invmask = ~mask;
+	data = cache->tiles[index].data;
+
+	j = 0;
+	for( y=y1; y<y2; y++ )
+	{
+		i = x1 + y*width;
+		for( x=x1; x<x2; x++ )
+		{
+			pixels[i] &= invmask;
+			pixels[i++] |= data[j++]&mask;
+		}
+	}
+}
+
+void tilecache_add( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask )
+{
+	int x, y, i, j;
+
+	cache->numblocks++;
+
+	memset( (unsigned char *)cache->tempdata, 0, cache->tilesize );
+
+	j = 0;
+	for( y=y1; y<y2; y++ )
+	{
+		i = x1 + y*width;
+		for( x=x1; x<x2; x++ )
+			cache->tempdata[j++] = pixels[i++]&mask;
+	}
+
+	cache->index++;
+	cache->index %= cache->size;
+
+	cache->tiles[cache->index].present = 1;
+	memcpy( cache->tiles[cache->index].data, cache->tempdata, cache->tilesize );
+		
+}
 

@@ -45,8 +45,8 @@ int qti_read( struct qti *image, char filename[] )
 	struct rangecoder *coder;
 	char header[4];
 	int width, height;
-	int minsize, maxdepth;
-	int compress;
+	int minsize, maxdepth, cachesize, tilesize;
+	int compress, cache;
 	unsigned char flags, version;
 	unsigned int size;
 
@@ -112,7 +112,28 @@ int qti_read( struct qti *image, char filename[] )
 		image->transform = flags&0x03;
 		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
 		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
+		cache = ( ( flags & (0x01<<5) ) >> 5 ) & 0x01;
 		image->keyframe = 1;
+
+		if( cache )
+		{
+			if( ( fread( &cachesize, sizeof( cachesize ), 1, qti ) != 1 ) ||
+			    ( fread( &tilesize, sizeof( tilesize ), 1, qti ) != 1 ) )
+			{
+				fputs( "qti_read: Short read on cache info\n", stderr );
+				if( qti != stdin )
+					fclose( qti );
+				return 0;
+			}
+
+			image->tilecache = tilecache_create( cachesize, tilesize );
+			if( image->tilecache == NULL )
+				return 0;
+		}
+		else
+		{
+			image->tilecache = NULL;
+		}
 
 		if( compress )
 		{
@@ -198,6 +219,51 @@ int qti_read( struct qti *image, char filename[] )
 			
 			rangecoder_free( coder );
 			databuffer_free( compdata );
+
+
+			if( cache )
+			{
+				if( fread( &size, sizeof( size ), 1, qti ) != 1 )
+				{
+					fputs( "qti_read: Short read on compressed index data size\n", stderr );
+					if( qti != stdin )
+						fclose( qti );
+					return 0;
+				}
+
+				compdata = databuffer_create( size );
+				if( compdata == NULL )
+					return 0;
+
+				compdata->size = size;
+
+				if( fread( &size, sizeof( size ), 1, qti ) != 1 )
+				{
+					fputs( "qti_read: Short read on uncompressed index data size\n", stderr );
+					if( qti != stdin )
+						fclose( qti );
+					return 0;
+				}
+
+				if( fread( compdata->data, 1, compdata->size, qti ) != compdata->size )
+				{
+					fputs( "qti_read: Short read on compressed index data\n", stderr );
+					if( qti != stdin )
+						fclose( qti );
+					return 0;
+				}
+			
+				image->indexdata = databuffer_create( size );
+				if( image->indexdata == NULL )
+					return 0;
+
+				coder = rangecoder_create( 2, 8 );
+
+				rangecode_decompress( coder, compdata, image->indexdata, size );
+			
+				rangecoder_free( coder );
+				databuffer_free( compdata );
+			}
 		}
 		else
 		{
@@ -242,6 +308,31 @@ int qti_read( struct qti *image, char filename[] )
 				if( qti != stdin )
 					fclose( qti );
 				return 0;
+			}
+
+
+			if( cache )
+			{
+				if( fread( &size, sizeof( size ), 1, qti ) != 1 )
+				{
+					fputs( "qti_read: Short read on index data size\n", stderr );
+					if( qti != stdin )
+						fclose( qti );
+					return 0;
+				}
+
+				image->indexdata = databuffer_create( size );
+				if( image->indexdata == NULL )
+					return 0;
+
+				image->indexdata->size = size;
+				if( fread( image->indexdata->data, 1, image->indexdata->size, qti ) != image->indexdata->size )
+				{
+					fputs( "qti_read: Short read on index data\n", stderr );
+					if( qti != stdin )
+						fclose( qti );
+					return 0;
+				}
 			}
 		}
 		
@@ -297,6 +388,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
 		flags |= ( image->colordiff & 0x03 ) << 3;
+		flags |= (image->tilecache!=NULL) << 5;
 		version = VERSION;
 		
 		fwrite( &(version), sizeof( version ), 1, qti );
@@ -305,9 +397,18 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		fwrite( &(flags), sizeof( flags ), 1, qti );
 		fwrite( &(image->minsize), sizeof( image->minsize ), 1, qti );
 		fwrite( &(image->maxdepth), sizeof( image->maxdepth ), 1, qti );
+		
+		if( image->tilecache != NULL )
+		{
+			fwrite( &(image->tilecache->size), sizeof( image->tilecache->size ), 1, qti );
+			fwrite( &(image->tilecache->blocksize), sizeof( image->tilecache->blocksize ), 1, qti );
+		}
 
 		databuffer_pad( image->commanddata );
 		databuffer_pad( image->imagedata );
+
+		if( image->tilecache != NULL )
+			databuffer_pad( image->indexdata );
 		
 		size = 0;
 
@@ -353,6 +454,29 @@ int qti_write( struct qti *image, int compress, char filename[] )
 
 			rangecoder_free( coder );
 			databuffer_free( compdata );
+
+			if( image->tilecache != NULL )
+			{
+				compdata = databuffer_create( image->indexdata->size / 2 + 1 );
+				if( compdata == NULL )
+					return 0;
+
+				coder = rangecoder_create( 2, 8 );
+				if( coder == NULL )
+					return 0;
+
+				rangecode_compress( coder, image->indexdata, compdata );
+				databuffer_pad( compdata );
+
+				fwrite( &(compdata->size), sizeof( compdata->size ), 1, qti );
+				fwrite( &(image->indexdata->size), sizeof( image->indexdata->size ), 1, qti );
+				fwrite( compdata->data, 1, compdata->size, qti );
+
+				size += sizeof( compdata->size ) + sizeof( image->indexdata->size ) + compdata->size;
+
+				rangecoder_free( coder );
+				databuffer_free( compdata );
+			}
 		}
 		else
 		{
@@ -366,6 +490,14 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			fwrite( image->imagedata->data, 1, image->imagedata->size, qti );
 			
 			size += sizeof( image->imagedata->size ) + image->imagedata->size;
+
+			if( image->tilecache != NULL )
+			{
+				fwrite( &(image->indexdata->size), sizeof( image->indexdata->size ), 1, qti );
+				fwrite( image->indexdata->data, 1, image->indexdata->size, qti );
+			
+				size += sizeof( image->indexdata->size ) + image->indexdata->size;
+			}
 		}
 
 		if( qti != stdout )
@@ -455,6 +587,9 @@ unsigned int qti_getsize( struct qti *image )
 	
 	size += image->imagedata->size*8+image->imagedata->bits;
 	size += image->commanddata->size*8+image->commanddata->bits;
+	
+	if( image->tilecache != NULL )
+		size += image->indexdata->size*8+image->indexdata->bits;
 	
 	return size;
 }

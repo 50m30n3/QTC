@@ -310,29 +310,8 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 			}
 			else
 			{
-				if( output->tilecache != NULL )
-				{
-					index = tilecache_write( output->tilecache, inpixels, x1, x2, y1, y2, input->width, mask );
-
-					if( index < 0 )
-					{
-						databuffer_add_bits( 1, commanddata, 1 );
-
-						if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
-							return 0;
-					}
-					else
-					{
-						databuffer_add_bits( 0, commanddata, 1 );
-						
-						databuffer_add_bits( index, indexdata, 32 );
-					}
-				}
-				else
-				{
-					if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
-						return 0;
-				}
+				if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+					return 0;
 			}
 		}
 		else
@@ -535,10 +514,11 @@ static inline void get_pixels( struct databuffer *imagedata, struct pixel *pixel
 *******************************************************************************/
 int qtc_decompress( struct qti *input, struct image *refimage, struct image *output )
 {
-	struct databuffer *commanddata, *imagedata;
+	struct databuffer *commanddata, *imagedata, *indexdata;
 	int minsize, maxdepth;
 	int keyframe;
 	struct pixel *outpixels;
+	unsigned int mask;
 	int luma, bgra, colordiff;
 
 	void qtc_decompress_rec( int x1, int y1, int x2, int y2, int depth )
@@ -546,6 +526,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 		int x, y, sx, sy, i;
 		struct pixel color;
 		unsigned char status;
+		int index;
 
 		if( keyframe )
 			status = 1;
@@ -587,13 +568,30 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 						}
 						else
 						{
-							get_pixels( imagedata, (struct pixel *)outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+							if( input->tilecache != NULL )
+							{
+								status = databuffer_get_bits( commanddata, 1 );
+								if( status == 1 )
+								{
+									get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+									tilecache_add( input->tilecache, (unsigned int *)outpixels, x1, x2, y1, y2, input->width, mask );
+								}
+								else
+								{
+									index = databuffer_get_bits( indexdata, 32 );
+									tilecache_read( input->tilecache, (unsigned int *)outpixels, index, x1, x2, y1, y2, input->width, mask );
+								}
+							}
+							else
+							{
+								get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+							}
 						}
 					}
 				}
 				else
 				{
-					get_pixels( imagedata, (struct pixel *)outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
+					get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
 				}
 			}
 			else
@@ -670,6 +668,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 	
 	commanddata = input->commanddata;
 	imagedata = input->imagedata;
+	indexdata = input->indexdata;
 	minsize = input->minsize;
 	maxdepth = input->maxdepth;
 	colordiff = input->colordiff == 2;
@@ -689,14 +688,17 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 
 	if( ! colordiff )
 	{
+		mask = 0x00FFFFFF;
 		luma = 0;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 	}
 	else
 	{
+		mask = 0x0000FF00;
 		luma = 1;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 
+		mask = 0x00FF00FF;
 		luma = 0;
 		qtc_decompress_rec( 0, 0, input->width, input->height, 0 );
 	}

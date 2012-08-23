@@ -52,5 +52,7 @@ extern struct tilecache *tilecache_create( int size, int blocksize );
 extern void tilecache_free( struct tilecache *cache );
 extern void tilecache_reset( struct tilecache *cache );
 extern int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask );
+extern void tilecache_read( struct tilecache *cache, unsigned int *pixels, int index, int x1, int x2, int y1, int y2, int width, unsigned int mask );
+extern void tilecache_add( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask );
 
 #endif
