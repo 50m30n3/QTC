@@ -526,7 +526,7 @@ int qtv_read_frame( struct qtv *video, struct qti *image )
 				if( image->indexdata == NULL )
 					return 0;
 
-				coder = video->imgcoder;
+				coder = video->idxcoder;
 
 				rangecode_decompress( coder, compdata, image->indexdata, size );
 			
@@ -849,7 +849,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 				if( compdata == NULL )
 					return 0;
 
-				coder = video->imgcoder;
+				coder = video->idxcoder;
 				rangecode_compress( coder, image->indexdata, compdata );
 				databuffer_pad( compdata );
 
