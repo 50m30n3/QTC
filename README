@@ -123,7 +123,7 @@ Concatenated image sequences can also be read/written using stdio.
 qtienc:
 	-h		-	Print help
 	-t [0..2]	-	Use image transforms (0)
-	-c		-	Compress output data
+	-e		-	Compress output data
 	-y [0..2]	-	Use fakeyuv transform (0)
 	-v		-	Be verbose
 	-s [1..]	-	Minimal block size (2)
@@ -141,7 +141,7 @@ qtidec:
 qtvenc:
 	-h		-	Print help
 	-t [0..2]	-	Use image transforms (0)
-	-c		-	Compress output data
+	-e		-	Compress output data
 	-w		-	Create QTW file
 	-y [0..2]	-	Use fakeyuv transform (0)
 	-v		-	Be verbose
@@ -168,7 +168,7 @@ qtvdec:
 qtvcap:
 	-h		-	Print help
 	-t [0..2]	-	Use image transforms (0)
-	-c		-	Compress output data
+	-e		-	Compress output data
 	-y [0..2]	-	Use fakeyuv transform (0)
 	-v		-	Be verbose
 	-x		-	Create index (Needs key frames)
@@ -209,7 +209,7 @@ OPTIONS
 	1 - Use simplified Peath transform (fast, small)
 	2 - Use full Peath transform (slow, smaller)
 
--c:
+-e:
 	Compress output data using entropy coding (slower, smaller)
 
 -y:
@@ -306,7 +306,7 @@ Encode a still image (simple):
 $ qtienc -i image.ppm -o image.qti
 
 Encode a still image (high compression):
-$ qtienc -y1 -t2 -s8 -c -i image.ppm -o image.qti
+$ qtienc -y1 -t2 -s8 -e -i image.ppm -o image.qti
 
 Encode an image sequence (simple):
 $ qtvenc -i frame0000.ppm -o video.qtv
@@ -315,17 +315,17 @@ Encode an image sequence (fast):
 $ qtvenc -l3 -i frame0000.ppm -o video.qtv
 
 Encode an image sequence (high compression):
-$ qtvenc -y1 -t2 -s4 -c -i frame0000.ppm -o video.qtv
+$ qtvenc -y1 -t2 -s4 -e -i frame0000.ppm -o video.qtv
 
 Re-encode a video:
-$ qtvdec -i video_old.qtv | qtvenc -y1 -t2 -s4 -c -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -y1 -t2 -s4 -e -o video_new.qtv
 
 Re-encode a video with key frames and index:
-$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y1 -t2 -s4 -e -o video_new.qtv
 
 Re-encode a video for web into a separate directory:
 $ mkdir video.qtw
-$ qtvdec -i video.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c -o video.qtw/video
+$ qtvdec -i video.qtv | qtvenc -x -k10 -y1 -t2 -s4 -e -o video.qtw/video
 
 Decode a video into an image sequence:
 $ qtvdec -i video.qtv -o frame0000.ppm

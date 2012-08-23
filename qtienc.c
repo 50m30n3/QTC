@@ -39,7 +39,7 @@ void print_help( void )
 	puts( "USAGE: qtienc [options] -i infile -o outfile" );
 	puts( "\t-h\t\t-\tPrint help" );
 	puts( "\t-t [0..2]\t-\tUse image transforms (0)" );
-	puts( "\t-c\t\t-\tCompress output data" );
+	puts( "\t-e\t\t-\tCompress output data" );
 	puts( "\t-y [0..2]\t-\tUse fakeyuv transform (0)" );
 	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-s [1..]\t-\tMinimal block size (2)" );
@@ -73,7 +73,7 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "hcvy:t:s:d:l:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hevy:t:s:d:l:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -87,7 +87,7 @@ int main( int argc, char *argv[] )
 					fputs( "main: Can not parse command line: -t\n", stderr );
 			break;
 
-			case 'c':
+			case 'e':
 				rangecomp = 1;
 			break;
 
