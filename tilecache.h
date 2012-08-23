@@ -25,19 +25,28 @@ struct tile
 	int present;
 	unsigned short int hash;
 	int width, height, size;
-	int luma;
 	struct pixel *pixels;
+};
+
+struct tileindex
+{
+	int index;
+	struct tileindex *next, *prev;
 };
 
 struct tilecache
 {
-	int width, height;
 	int size;
+	int blocksize;
 
 	struct tile *tiles;
 	struct tileindex *index;
 
-	struct pixel *pixels;
+	struct pixel *data;
 };
+
+
+extern struct tilecache *tilecache_create( int size, int blocksize );
+extern void tilecache_free( struct tilecache *cache );
 
 #endif
