@@ -58,8 +58,10 @@ struct tilecache *tilecache_create( int size, int blocksize )
 	cache->blocksize = blocksize;
 	cache->tilesize = sizeof( *cache->data )*blocksize*blocksize;
 
-	if( size <= 0x10000 )
+	if( size <= 0x1<<16 )
 		cache->indexbits = 16;
+	else if( size <= 0x1<<24 )
+		cache->indexbits = 24;
 	else
 		cache->indexbits = 32;
 
