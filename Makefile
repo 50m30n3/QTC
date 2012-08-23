@@ -38,10 +38,10 @@ qtc.o: qtc.c databuffer.h qti.h tilecache.h image.h qtc.h
 qti.o: qti.c databuffer.h rangecode.h tilecache.h qti.h
 qtidec.o: qtidec.c image.h qti.h qtc.h ppm.h
 qtienc.o: qtienc.c image.h qti.h qtc.h ppm.h tilecache.h
-qtv.o: qtv.c databuffer.h rangecode.h qti.h qtv.h
-qtvcap.o: qtvcap.c utils.h image.h x11grab.h qti.h qtc.h qtv.h
+qtv.o: qtv.c databuffer.h rangecode.h tilecache.h qti.h qtv.h
+qtvcap.o: qtvcap.c utils.h image.h x11grab.h qti.h qtc.h qtv.h tilecache.h
 qtvdec.o: qtvdec.c utils.h image.h qti.h qtc.h qtv.h ppm.h
-qtvenc.o: qtvenc.c utils.h image.h qti.h qtc.h qtv.h ppm.h
+qtvenc.o: qtvenc.c utils.h image.h qti.h qtc.h qtv.h ppm.h tilecache.h
 qtvplay.o: qtvplay.c utils.h image.h databuffer.h qti.h qtc.h qtv.h ppm.h
 rangecode.o: rangecode.c databuffer.h rangecode.h
 tilecache.o: tilecache.c tilecache.h
