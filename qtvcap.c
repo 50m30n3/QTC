@@ -330,6 +330,9 @@ int main( int argc, char *argv[] )
 
 		if( keyframe )
 		{
+			if( cache != NULL )
+				tilecache_reset( cache );
+
 			if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff == 2 ) )
 				return 2;
 		}

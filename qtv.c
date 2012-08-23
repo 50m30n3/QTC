@@ -404,6 +404,12 @@ int qtv_read_frame( struct qtv *video, struct qti *image )
 		{
 			rangecoder_reset( video->cmdcoder );
 			rangecoder_reset( video->imgcoder );
+			
+			if( image->tilecache != NULL )
+			{
+				rangecoder_reset( video->idxcoder );
+				tilecache_reset( video->tilecache );
+			}
 		}
 
 		if( compress )
