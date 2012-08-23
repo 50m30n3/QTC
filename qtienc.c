@@ -26,6 +26,7 @@
 #include "qti.h"
 #include "qtc.h"
 #include "ppm.h"
+#include "tilecache.h"
 
 /*******************************************************************************
 * This is the reference qti encoder.                                           *
@@ -44,6 +45,7 @@ void print_help( void )
 	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-s [1..]\t-\tMinimal block size (2)" );
 	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
+	puts( "\t-c [0..]\t-\tCache size in KiB (0)" );
 	puts( "\t-l [0..]\t-\tLaziness" );
 	puts( "\t-i filename\t-\tInput file (-)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );
@@ -53,14 +55,17 @@ int main( int argc, char *argv[] )
 {
 	struct image image;
 	struct qti compimage;
+	struct tilecache *cache;
 
 	int opt, verbose;
 	unsigned long int insize, bsize, outsize;
+	unsigned long int cacheblocks, cachehits;
 	int transform, colordiff;
 	int rangecomp;
 	int minsize;
 	int maxdepth;
 	int lazyness;
+	int cachesize;
 	char *infile, *outfile;
 
 	verbose = 0;
@@ -69,11 +74,12 @@ int main( int argc, char *argv[] )
 	rangecomp = 0;
 	minsize = 2;
 	maxdepth = 16;
+	cachesize = 0;
 	lazyness = 0;
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "hevy:t:s:d:l:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hevy:t:s:d:c:l:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -108,6 +114,11 @@ int main( int argc, char *argv[] )
 			case 'd':
 				if( sscanf( optarg, "%i", &maxdepth ) != 1 )
 					fputs( "main: Can not parse command line: -d\n", stderr );
+			break;
+
+			case 'c':
+				if( sscanf( optarg, "%i", &cachesize ) != 1 )
+					fputs( "main: Can not parse command line: -s\n", stderr );
 			break;
 
 			case 'l':
@@ -155,6 +166,12 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
+	if( cachesize < 0 )
+	{
+		fputs( "main: Cache size out of range\n", stderr );
+		return 1;
+	}
+
 	if( lazyness < 0 )
 	{
 		fputs( "main: Lazyness recursion depth out of range\n", stderr );
@@ -174,7 +191,12 @@ int main( int argc, char *argv[] )
 	else if( transform == 2 )
 		image_transform( &image );
 
-	if( ! qti_create( &compimage, image.width, image.height, minsize, maxdepth ) )
+	if( cachesize > 0 )
+		cache = tilecache_create( cachesize*1024, minsize );
+	else
+		cache = NULL;
+
+	if( ! qti_create( &compimage, image.width, image.height, minsize, maxdepth, cache ) )
 		return 2;
 
 	if( ! qtc_compress( &image, NULL, &compimage, lazyness, colordiff >= 2 ) )		// Compress the image
@@ -188,8 +210,23 @@ int main( int argc, char *argv[] )
 	image_free( &image );
 	qti_free( &compimage );
 	
+	if( cache )
+	{
+		cacheblocks = cache->numblocks;
+		cachehits = cache->hits;
+		tilecache_free( cache );
+	}
+	else
+	{
+		cacheblocks = 0;
+		cachehits = 0;
+	}
+	
 	if( verbose )
-		fprintf( stderr, "In:%luB Buff:%luB,%f%% Out:%luB,%f%%\n", insize, bsize/8, (bsize/8)*100.0/insize, outsize, outsize*100.0/insize );
+		fprintf( stderr, "In:%luB Buff:%luB,%f%% Cache:%lu/%lu,%f%% Out:%luB,%f%%\n",
+		         insize, bsize/8, (bsize/8)*100.0/insize,
+		         cachehits, cacheblocks, cachehits*100.0/cacheblocks,
+		         outsize, outsize*100.0/insize );
 
 	free( infile );
 	free( outfile );

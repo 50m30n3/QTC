@@ -23,6 +23,7 @@
 
 #include "databuffer.h"
 #include "qti.h"
+#include "tilecache.h"
 #include "image.h"
 
 #include "qtc.h"
@@ -161,7 +162,7 @@ static inline int put_pixels( struct databuffer *databuffer, struct pixel *pixel
 *******************************************************************************/
 int qtc_compress( struct image *input, struct image *refimage, struct qti *output, int lazyness, int colordiff )
 {
-	struct databuffer *commanddata, *imagedata;
+	struct databuffer *commanddata, *imagedata, *indexdata;
 	int minsize, maxdepth;
 	unsigned int *inpixels, *refpixels;
 	unsigned int mask;
@@ -172,6 +173,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 		int x, y, sx, sy, i;
 		unsigned int p;
 		struct pixel color;
+		int index;
 		int error;
 
 		if( depth >= lazyness )
@@ -280,15 +282,57 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					}
 					else
 					{
-						if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
-							return 0;
+						if( output->tilecache != NULL )
+						{
+							index = tilecache_write( output->tilecache, inpixels, x1, x2, y1, y2, input->width, mask );
+
+							if( index < 0 )
+							{
+								databuffer_add_bits( 1, commanddata, 1 );
+
+								if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+									return 0;
+							}
+							else
+							{
+								databuffer_add_bits( 0, commanddata, 1 );
+								
+								databuffer_add_bits( index, indexdata, 32 );
+							}
+						}
+						else
+						{
+							if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+								return 0;
+						}
 					}
 				}
 			}
 			else
 			{
-				if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
-					return 0;
+				if( output->tilecache != NULL )
+				{
+					index = tilecache_write( output->tilecache, inpixels, x1, x2, y1, y2, input->width, mask );
+
+					if( index < 0 )
+					{
+						databuffer_add_bits( 1, commanddata, 1 );
+
+						if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+							return 0;
+					}
+					else
+					{
+						databuffer_add_bits( 0, commanddata, 1 );
+						
+						databuffer_add_bits( index, indexdata, 32 );
+					}
+				}
+				else
+				{
+					if( ! put_pixels( imagedata, input->pixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma ) )
+						return 0;
+				}
 			}
 		}
 		else
@@ -338,6 +382,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 	
 	commanddata = output->commanddata;
 	imagedata = output->imagedata;
+	indexdata = output->indexdata;
 	minsize = output->minsize;
 	maxdepth = output->maxdepth;
 

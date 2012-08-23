@@ -23,15 +23,10 @@
 struct tile
 {
 	int present;
+	int size;
 	unsigned short int hash;
-	int width, height, size;
-	struct pixel *pixels;
-};
-
-struct tileindex
-{
-	int index;
-	struct tileindex *next, *prev;
+	int next;
+	unsigned int *data;
 };
 
 struct tilecache
@@ -39,14 +34,22 @@ struct tilecache
 	int size;
 	int blocksize;
 
-	struct tile *tiles;
-	struct tileindex *index;
+	int index;
 
-	struct pixel *data;
+	unsigned long int numblocks;
+	unsigned long int hits;
+
+	struct tile *tiles;
+	int *tileindex;
+
+	unsigned int *data;
+	unsigned int *tempdata;
 };
 
 
 extern struct tilecache *tilecache_create( int size, int blocksize );
 extern void tilecache_free( struct tilecache *cache );
+extern void tilecache_reset( struct tilecache *cache );
+extern int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask );
 
 #endif

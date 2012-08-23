@@ -23,6 +23,7 @@
 
 #include "databuffer.h"
 #include "rangecode.h"
+#include "tilecache.h"
 
 #include "qti.h"
 
@@ -392,7 +393,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 *                                                                              *
 * Returns 0 on failure, 1 on success                                           *
 *******************************************************************************/
-int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth )
+int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth, struct tilecache *cache )
 {
 	image->width = width;
 	image->height = height;
@@ -402,6 +403,8 @@ int qti_create( struct qti *image, int width, int height, int minsize, int maxde
 	image->colordiff = 0;
 	image->keyframe = 0;
 
+	image->tilecache = cache;
+
 	image->imagedata = databuffer_create( 1024*512 );
 	if( image->imagedata == NULL )
 		return 0;
@@ -409,7 +412,14 @@ int qti_create( struct qti *image, int width, int height, int minsize, int maxde
 	image->commanddata = databuffer_create( 1204 );
 	if( image->commanddata == NULL )
 		return 0;
-	
+
+	if( cache != NULL )
+	{
+		image->indexdata = databuffer_create( 1024*64 );
+		if( image->indexdata == NULL )
+			return 0;
+	}
+
 	return 1;
 }
 
@@ -426,6 +436,12 @@ void qti_free( struct qti *image )
 	image->imagedata = NULL;
 	databuffer_free( image->commanddata );
 	image->commanddata = NULL;
+
+	if( image->tilecache != NULL )
+	{
+		databuffer_free( image->indexdata );
+		image->indexdata = NULL;
+	}
 }
 
 /*******************************************************************************

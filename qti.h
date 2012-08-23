@@ -47,10 +47,13 @@ struct qti
 	int keyframe;
 
 	struct databuffer *imagedata;
+	struct databuffer *indexdata;
 	struct databuffer *commanddata;
+	
+	struct tilecache *tilecache;
 };
 
-extern int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth );
+extern int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth, struct tilecache *cache );
 extern int qti_read( struct qti *image, char filename[] );
 extern int qti_write( struct qti *image, int compress, char filename[] );
 extern void qti_free( struct qti *image );
