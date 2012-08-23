@@ -56,6 +56,7 @@ struct tilecache *tilecache_create( int size, int blocksize )
 	
 	cache->size = size;
 	cache->blocksize = blocksize;
+	cache->tilesize = sizeof( *cache->data )*blocksize*blocksize;
 
 	cache->index = 0;
 
@@ -137,8 +138,7 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 
 	cache->numblocks++;
 
-	for( i=0; i<cache->blocksize*cache->blocksize; i++ )
-		cache->tempdata[i] = 0;
+	memset( (unsigned char *)cache->tempdata, 0, cache->tilesize );
 
 	j = 0;
 	for( y=y1; y<y2; y++ )
@@ -150,14 +150,14 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 
 	size = (x2-x1)*(y2-y1);
 	
-	hash = fletcher16( (unsigned char *)cache->tempdata, sizeof( *cache->tempdata )*size );
+	hash = fletcher16( (unsigned char *)cache->tempdata, cache->tilesize );
 	i = cache->tileindex[hash];
 
 	found = 0;
 
-/*	while( ( i != -1 ) && ( ! found ) )
+	while( ( i != -1 ) && ( ! found ) )
 	{
-		if( memcmp( cache->tempdata, cache->tiles[i].data, size ) == 0 )
+		if( memcmp( cache->tempdata, cache->tiles[i].data, cache->tilesize ) == 0 )
 		{
 			found = 1;
 			cache->hits++;
@@ -165,21 +165,6 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 		else
 		{
 			i = cache->tiles[i].next;
-		}
-	}*/
-
-	i=0;
-
-	while( ( i < cache->size ) && ( ! found ) )
-	{
-		if( ( cache->tiles[i].present ) && ( cache->tiles[i].size == size ) && ( memcmp( cache->tempdata, cache->tiles[i].data, size ) == 0 ) )
-		{
-			found = 1;
-			cache->hits++;
-		}
-		else
-		{
-			i++;
 		}
 	}
 
@@ -220,7 +205,7 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 		cache->tiles[cache->index].hash = hash;
 		cache->tiles[cache->index].next = cache->tileindex[hash];
 		cache->tileindex[hash] = cache->index;
-		memcpy( cache->tiles[cache->index].data, cache->tempdata, cache->blocksize*cache->blocksize );
+		memcpy( cache->tiles[cache->index].data, cache->tempdata, cache->tilesize );
 		
 		return -1;
 	}
