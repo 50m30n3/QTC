@@ -837,16 +837,16 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 								if( status == 1 )
 								{
 									if( bgra )
-										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
 									else
-										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
 								}
 								else
 								{
 									if( bgra )
-										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
 									else
-										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
 								}
 							}
 							else
