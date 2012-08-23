@@ -60,7 +60,7 @@ void print_help( void )
 	puts( "\t-r [1..]\t-\tFrame rate (25)" );
 	puts( "\t-k [1..]\t-\tPlace key frames every X seconds" );
 	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
-	puts( "\t-c [0..]\t-\tCache size in KiB (0)" );
+	puts( "\t-c [0..]\t-\tCache size in kilo tiles (0)" );
 	puts( "\t-l [0..]\t-\tLaziness" );
 	puts( "\t-i filename\t-\tInput screen ($DISPLAY)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );

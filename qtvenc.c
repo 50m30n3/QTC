@@ -62,7 +62,7 @@ void print_help( void )
 	puts( "\t-k [1..]\t-\tPlace key frames every X seconds" );
 	puts( "\t-b [1..]\t-\tMaximum size of one QTW block in KiB (1024)" );
 	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
-	puts( "\t-c [0..]\t-\tCache size in KiB (0)" );
+	puts( "\t-c [0..]\t-\tCache size in kilo tiles (0)" );
 	puts( "\t-l [0..]\t-\tLaziness" );
 	puts( "\t-i filename\t-\tInput file (-)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );

@@ -45,7 +45,7 @@ void print_help( void )
 	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-s [1..]\t-\tMinimal block size (2)" );
 	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
-	puts( "\t-c [0..]\t-\tCache size in KiB (0)" );
+	puts( "\t-c [0..]\t-\tCache size in kilo tiles (0)" );
 	puts( "\t-l [0..]\t-\tLaziness" );
 	puts( "\t-i filename\t-\tInput file (-)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );
