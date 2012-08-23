@@ -29,6 +29,7 @@
 #include "qti.h"
 #include "qtc.h"
 #include "qtv.h"
+#include "tilecache.h"
 
 /*******************************************************************************
 * This is a X11 screen capture program using the qtv codec.                    *
@@ -59,6 +60,7 @@ void print_help( void )
 	puts( "\t-r [1..]\t-\tFrame rate (25)" );
 	puts( "\t-k [1..]\t-\tPlace key frames every X seconds" );
 	puts( "\t-d [0..]\t-\tMaximum recursion depth (16)" );
+	puts( "\t-c [0..]\t-\tCache size in KiB (0)" );
 	puts( "\t-l [0..]\t-\tLaziness" );
 	puts( "\t-i filename\t-\tInput screen ($DISPLAY)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );
@@ -69,16 +71,19 @@ int main( int argc, char *argv[] )
 	struct image image, refimage;
 	struct qti compimage;
 	struct qtv video;
+	struct tilecache *cache;
 	struct x11grabber grabber;
 
 	int opt, verbose, x, y, w, h, mouse;
 	unsigned long int insize, bsize, outsize, size;
+	unsigned long int cacheblocks, cachehits;
 	int done, keyframe, framenum;
 	int transform, colordiff;
 	int rangecomp, compress;
 	int minsize;
 	int maxdepth;
 	int lazyness;
+	int cachesize;
 	int index;
 	int framerate, keyrate, numframes;
 	long int delay, start, frame_start;
@@ -91,6 +96,7 @@ int main( int argc, char *argv[] )
 	rangecomp = 0;
 	minsize = 2;
 	maxdepth = 16;
+	cachesize = 0;
 	lazyness = 0;
 	framerate = 25;
 	keyrate = 0;
@@ -102,7 +108,7 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "hevxmg:y:f:n:t:s:d:l:r:k:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hevxmg:y:f:n:t:s:d:c:l:r:k:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
@@ -167,6 +173,11 @@ int main( int argc, char *argv[] )
 					fputs( "main: Can not parse command line: -d\n", stderr );
 			break;
 
+			case 'c':
+				if( sscanf( optarg, "%i", &cachesize ) != 1 )
+					fputs( "main: Can not parse command line: -s\n", stderr );
+			break;
+
 			case 'l':
 				if( sscanf( optarg, "%i", &lazyness ) != 1 )
 					fputs( "main: Can not parse command line: -l\n", stderr );
@@ -224,6 +235,12 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
+	if( cachesize < 0 )
+	{
+		fputs( "main: Cache size out of range\n", stderr );
+		return 1;
+	}
+
 	if( lazyness < 0 )
 	{
 		fputs( "main: Lazyness recursion depth out of range\n", stderr );
@@ -262,7 +279,12 @@ int main( int argc, char *argv[] )
 	insize = 0;
 	bsize = 0;
 	outsize = 0;
-	
+
+	if( cachesize > 0 )
+		cache = tilecache_create( cachesize*1024, minsize );
+	else
+		cache = NULL;
+
 	delay = 0;
 	fps = 0.0;
 	load = 0.0;
@@ -283,7 +305,7 @@ int main( int argc, char *argv[] )
 
 		if( framenum == 0 )
 		{
-			if( ! qtv_create( &video, image.width, image.height, framerate, index, 0 ) )
+			if( ! qtv_create( &video, image.width, image.height, framerate, cache, index, 0 ) )
 				return 2;
 
 			if( ! qtv_write_header( &video, outfile ) )
@@ -303,7 +325,7 @@ int main( int argc, char *argv[] )
 		else if( transform == 2 )
 			image_transform( &image );
 
-		if( ! qti_create( &compimage, image.width, image.height, minsize, maxdepth ) )
+		if( ! qti_create( &compimage, image.width, image.height, minsize, maxdepth, cache ) )
 			return 2;
 
 		if( keyframe )
@@ -341,10 +363,22 @@ int main( int argc, char *argv[] )
 
 		if( verbose )
 		{
-			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% In:%lukb/s Buff:%lukb/s,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n",
+			if( cache != NULL )
+			{
+				cacheblocks = cache->numblocks;
+				cachehits = cache->hits;
+			}
+			else
+			{
+				cacheblocks = 0;
+				cachehits = 0;
+			}
+
+			fprintf( stderr, "Frame:%i FPS:%.2f Load:%.2f%% In:%lukb/s Buff:%lukb/s,%f%% Cache:%lu/%lu,%f%% Out:%lukb/s,%f%% Curr:%lukb/s\n",
 			         framenum, fps, load,
 			         (insize*8)/(framenum+1)*framerate/1000,
 			         bsize/(framenum+1)*framerate/1000, bsize*100.0/(insize*8),
+			         cachehits, cacheblocks, cachehits*100.0/cacheblocks,
 			         (outsize*8)/(framenum+1)*framerate/1000, outsize*100.0/insize,
 			         (size*8)*framerate/1000 );
 		}
@@ -373,11 +407,24 @@ int main( int argc, char *argv[] )
 	image_free( &refimage );
 	qtv_free( &video );
 
+	if( cache != NULL )
+	{
+		cacheblocks = cache->numblocks;
+		cachehits = cache->hits;
+		tilecache_free( cache );
+	}
+	else
+	{
+		cacheblocks = 0;
+		cachehits = 0;
+	}
+
 	if( verbose )
 	{
-		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Out:%lumiB,%f%% FPS:%.2f\n",
+		fprintf( stderr, "In:%lumiB Buff:%lumiB,%f%% Cache:%lu/%lu,%f%% Out:%lumiB,%f%% FPS:%.2f\n",
 		         insize/1024/1024,
 		         bsize/8/1024/1024, (bsize/8)*100.0/insize,
+		         cachehits, cacheblocks, cachehits*100.0/cacheblocks,
 		         outsize/1024/1024, outsize*100.0/insize,
 		         fps );
 	}

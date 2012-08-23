@@ -157,7 +157,7 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 
 	while( ( i != -1 ) && ( ! found ) )
 	{
-		if( memcmp( cache->tempdata, cache->tiles[i].data, cache->tilesize ) == 0 )
+		if( (  cache->tiles[i].size == size ) && ( memcmp( cache->tempdata, cache->tiles[i].data, cache->tilesize ) == 0 ) )
 		{
 			found = 1;
 			cache->hits++;

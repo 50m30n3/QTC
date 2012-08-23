@@ -210,7 +210,7 @@ int main( int argc, char *argv[] )
 	image_free( &image );
 	qti_free( &compimage );
 	
-	if( cache )
+	if( cache != NULL )
 	{
 		cacheblocks = cache->numblocks;
 		cachehits = cache->hits;

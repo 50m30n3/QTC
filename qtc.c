@@ -831,10 +831,31 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 						}
 						else
 						{
-							if( bgra )
-								put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+							if( input->tilecache != NULL )
+							{
+								status = databuffer_get_bits( commanddata, 1 );
+								if( status == 1 )
+								{
+									if( bgra )
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
+									else
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F7F7F, 0x00FFFFFF );
+								}
+								else
+								{
+									if( bgra )
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+									else
+										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+								}
+							}
 							else
-								put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+							{
+								if( bgra )
+									put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
+								else
+									put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x0000007F, 0x000000FF );
+							}
 						}
 					}
 				}

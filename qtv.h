@@ -72,9 +72,12 @@ struct qtv
 	int has_index;
 	struct qtv_index *index;
 	int idx_size, idx_datasize;
+	
+	struct tilecache *tilecache;
+	struct rangecoder *idxcoder;
 };
 
-extern int qtv_create( struct qtv *video, int width, int height, int framerate, int index, int is_qtw );
+extern int qtv_create( struct qtv *video, int width, int height, int framerate, struct tilecache *cache, int index, int is_qtw );
 extern int qtv_write_header( struct qtv *video, char filename[] );
 extern int qtv_write_frame( struct qtv *video, struct qti *image, int compress );
 extern int qtv_write_block( struct qtv *video );
