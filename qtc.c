@@ -917,6 +917,11 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 							qtc_decompress_ccode_dummy_rec( x1, y1, x2, sy, depth+1 );
 							qtc_decompress_ccode_dummy_rec( x1, sy, x2, y2, depth+1 );
 						}
+						else
+						{
+							if( input->tilecache != NULL )
+								databuffer_get_bits( commanddata, 1 );
+						}
 					}
 				}
 			}
