@@ -160,7 +160,7 @@ qtvdec:
 	-h		-	Print help
 	-w		-	Read QTW file
 	-a [0..2]	-	Analysis mode
-	-f [1..]	-	Begin decoding at specific frame (Needs index)
+	-f [0..]	-	Begin decoding at specific frame
 	-n [1..]	-	Limit number of frames to decode
 	-i filename	-	Input file (-)
 	-o filename	-	Output file (-)
