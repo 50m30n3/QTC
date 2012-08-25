@@ -262,8 +262,6 @@ void tilecache_add( struct tilecache *cache, unsigned int *pixels, int x1, int x
 	cache->index++;
 	cache->index %= cache->size;
 
-	cache->tiles[cache->index].present = 1;
 	memcpy( cache->tiles[cache->index].data, cache->tempdata, cache->tilesize );
-		
 }
 
