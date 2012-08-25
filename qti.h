@@ -47,10 +47,11 @@ struct qti
 	int keyframe;
 
 	struct databuffer *imagedata;
-	struct databuffer *indexdata;
 	struct databuffer *commanddata;
-	
+
+	int has_tilecache;
 	struct tilecache *tilecache;
+	struct databuffer *indexdata;
 };
 
 extern int qti_create( struct qti *image, int width, int height, int minsize, int maxdepth, struct tilecache *cache );

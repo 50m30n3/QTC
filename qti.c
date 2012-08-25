@@ -46,7 +46,7 @@ int qti_read( struct qti *image, char filename[] )
 	char header[4];
 	int width, height;
 	int minsize, maxdepth, cachesize, tilesize;
-	int compress, cache;
+	int compress;
 	unsigned char flags, version;
 	unsigned int size;
 
@@ -110,12 +110,12 @@ int qti_read( struct qti *image, char filename[] )
 		image->minsize = minsize;
 		image->maxdepth = maxdepth;
 		image->transform = flags&0x03;
-		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
+		compress = ( flags & (0x01<<2) ) != 0;
 		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
-		cache = ( ( flags & (0x01<<5) ) >> 5 ) & 0x01;
+		image->has_tilecache = ( flags & (0x01<<5) ) != 0;
 		image->keyframe = 1;
 
-		if( cache )
+		if( image->has_tilecache )
 		{
 			if( ( fread( &cachesize, sizeof( cachesize ), 1, qti ) != 1 ) ||
 			    ( fread( &tilesize, sizeof( tilesize ), 1, qti ) != 1 ) )
@@ -129,10 +129,6 @@ int qti_read( struct qti *image, char filename[] )
 			image->tilecache = tilecache_create( cachesize, tilesize );
 			if( image->tilecache == NULL )
 				return 0;
-		}
-		else
-		{
-			image->tilecache = NULL;
 		}
 
 		if( compress )
@@ -221,7 +217,7 @@ int qti_read( struct qti *image, char filename[] )
 			databuffer_free( compdata );
 
 
-			if( cache )
+			if( image->has_tilecache )
 			{
 				if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 				{
@@ -311,7 +307,7 @@ int qti_read( struct qti *image, char filename[] )
 			}
 
 
-			if( cache )
+			if( image->has_tilecache )
 			{
 				if( fread( &size, sizeof( size ), 1, qti ) != 1 )
 				{
@@ -388,7 +384,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
 		flags |= ( image->colordiff & 0x03 ) << 3;
-		flags |= (image->tilecache!=NULL) << 5;
+		flags |= ( image->has_tilecache & 0x01 ) << 5;
 		version = VERSION;
 		
 		fwrite( &(version), sizeof( version ), 1, qti );
@@ -398,7 +394,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		fwrite( &(image->minsize), sizeof( image->minsize ), 1, qti );
 		fwrite( &(image->maxdepth), sizeof( image->maxdepth ), 1, qti );
 		
-		if( image->tilecache != NULL )
+		if( image->has_tilecache )
 		{
 			fwrite( &(image->tilecache->size), sizeof( image->tilecache->size ), 1, qti );
 			fwrite( &(image->tilecache->blocksize), sizeof( image->tilecache->blocksize ), 1, qti );
@@ -407,7 +403,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 		databuffer_pad( image->commanddata );
 		databuffer_pad( image->imagedata );
 
-		if( image->tilecache != NULL )
+		if( image->has_tilecache )
 			databuffer_pad( image->indexdata );
 		
 		size = 0;
@@ -455,7 +451,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			rangecoder_free( coder );
 			databuffer_free( compdata );
 
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				compdata = databuffer_create( image->indexdata->size / 2 + 1 );
 				if( compdata == NULL )
@@ -491,7 +487,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 			
 			size += sizeof( image->imagedata->size ) + image->imagedata->size;
 
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				fwrite( &(image->indexdata->size), sizeof( image->indexdata->size ), 1, qti );
 				fwrite( image->indexdata->data, 1, image->indexdata->size, qti );
@@ -535,7 +531,19 @@ int qti_create( struct qti *image, int width, int height, int minsize, int maxde
 	image->colordiff = 0;
 	image->keyframe = 0;
 
-	image->tilecache = cache;
+	if( cache != NULL )
+	{
+		image->has_tilecache = 1;
+		image->tilecache = cache;
+
+		image->indexdata = databuffer_create( 1024*64 );
+		if( image->indexdata == NULL )
+			return 0;
+	}
+	else
+	{
+		image->has_tilecache = 0;
+	}
 
 	image->imagedata = databuffer_create( 1024*512 );
 	if( image->imagedata == NULL )
@@ -544,13 +552,6 @@ int qti_create( struct qti *image, int width, int height, int minsize, int maxde
 	image->commanddata = databuffer_create( 1204 );
 	if( image->commanddata == NULL )
 		return 0;
-
-	if( cache != NULL )
-	{
-		image->indexdata = databuffer_create( 1024*64 );
-		if( image->indexdata == NULL )
-			return 0;
-	}
 
 	return 1;
 }
@@ -569,7 +570,7 @@ void qti_free( struct qti *image )
 	databuffer_free( image->commanddata );
 	image->commanddata = NULL;
 
-	if( image->tilecache != NULL )
+	if( image->has_tilecache )
 	{
 		databuffer_free( image->indexdata );
 		image->indexdata = NULL;
@@ -588,7 +589,7 @@ unsigned int qti_getsize( struct qti *image )
 	size += image->imagedata->size*8+image->imagedata->bits;
 	size += image->commanddata->size*8+image->commanddata->bits;
 	
-	if( image->tilecache != NULL )
+	if( image->has_tilecache )
 		size += image->indexdata->size*8+image->indexdata->bits;
 	
 	return size;

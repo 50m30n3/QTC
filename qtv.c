@@ -49,7 +49,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 	int i;
 	char header[4], *magic;
 	int width, height, framerate;
-	int cache, cachesize, tilesize;
+	int cachesize, tilesize;
 	unsigned char version, flags;
 	int numframes, idx_size, numblocks, frame, blocknum;
 	long int offset, idx_offset;
@@ -140,8 +140,8 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		video->height = height;
 		video->framerate = framerate;
 		video->is_qtw = is_qtw;
-		video->has_index = flags&0x01;
-		cache = (flags&0x02)!=0;
+		video->has_index = ( flags & 0x01 ) != 0;
+		video->has_tilecache = ( flags & (0x01<<1) ) != 0;
 
 		if( qtv == stdin )
 			video->has_index = 0;
@@ -257,7 +257,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 			}
 		}
 
-		if( cache )
+		if( video->has_tilecache )
 		{
 			if( ( fread( &cachesize, sizeof( cachesize ), 1, qtv ) != 1 ) ||
 			    ( fread( &tilesize, sizeof( tilesize ), 1, qtv ) != 1 ) )
@@ -271,10 +271,10 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 			video->tilecache = tilecache_create( cachesize, tilesize );
 			if( video->tilecache == NULL )
 				return 0;
-		}
-		else
-		{
-			video->tilecache = NULL;
+
+			video->idxcoder = rangecoder_create( 2, 8 );
+			if( video->idxcoder == NULL )
+				return 0;
 		}
 
 		video->cmdcoder = rangecoder_create( 8, 1 );
@@ -285,12 +285,6 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		if( video->imgcoder == NULL )
 			return 0;
 
-		if( cache )
-		{
-			video->idxcoder = rangecoder_create( 2, 8 );
-			if( video->idxcoder == NULL )
-				return 0;
-		}
 
 		if( filename )
 			video->filename = strdup( filename );
@@ -393,19 +387,27 @@ int qtv_read_frame( struct qtv *video, struct qti *image )
 		image->height = video->height;
 		image->minsize = minsize;
 		image->maxdepth = maxdepth;
-		image->transform = flags&0x03;
-		compress = ( ( flags & (0x01<<2) ) >> 2 ) & 0x01;
+		image->transform = flags & 0x03;
+		compress = ( flags & (0x01<<2) ) != 0;
 		image->colordiff = ( ( flags & (0x03<<3) ) >> 3 ) & 0x03;
-		image->keyframe = ( ( flags & (0x01<<7) ) >> 7 ) & 0x01;
+		image->has_tilecache = ( flags & (0x01<<5) ) != 0;
+		image->keyframe = ( flags & (0x01<<7) ) != 0;
 
-		image->tilecache = video->tilecache;
+		if( ( image->has_tilecache ) && ( video->has_tilecache ) )
+		{
+			image->tilecache = video->tilecache;
+		}
+		else
+		{
+			image->has_tilecache = 0;
+		}
 
 		if( image->keyframe )
 		{
 			rangecoder_reset( video->cmdcoder );
 			rangecoder_reset( video->imgcoder );
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				rangecoder_reset( video->idxcoder );
 				tilecache_reset( video->tilecache );
@@ -496,7 +498,7 @@ int qtv_read_frame( struct qtv *video, struct qti *image )
 			databuffer_free( compdata );
 			
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				if( fread( &size, sizeof( size ), 1, qtv ) != 1 )
 				{
@@ -585,7 +587,7 @@ int qtv_read_frame( struct qtv *video, struct qti *image )
 			}
 			
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				if( fread( &size, sizeof( size ), 1, qtv ) != 1 )
 				{
@@ -708,8 +710,8 @@ int qtv_write_header( struct qtv *video, char filename[] )
 		version = VERSION;
 		
 		flags = 0;
-		flags |= video->has_index&0x01;
-		flags |= (video->tilecache!=NULL) << 1;
+		flags |= video->has_index & 0x01;
+		flags |= ( video->has_tilecache & 0x01 ) << 1;
 		
 		fwrite( &(version), sizeof( version ), 1, qtv );
 		fwrite( &(video->width), sizeof( video->width ), 1, qtv );
@@ -717,7 +719,7 @@ int qtv_write_header( struct qtv *video, char filename[] )
 		fwrite( &(video->framerate), sizeof( video->framerate ), 1, qtv );
 		fwrite( &flags, sizeof( flags ), 1, qtv );
 
-		if( video->tilecache != NULL )
+		if( video->has_tilecache )
 		{
 			fwrite( &(video->tilecache->size), sizeof( video->tilecache->size ), 1, qtv );
 			fwrite( &(video->tilecache->blocksize), sizeof( video->tilecache->blocksize ), 1, qtv );
@@ -793,6 +795,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 		flags |= image->transform & 0x03;
 		flags |= ( compress & 0x01 ) << 2;
 		flags |= ( image->colordiff & 0x03 ) << 3;
+		flags |= ( image->has_tilecache & 0x01 ) << 5;
 		flags |= ( image->keyframe & 0x01 ) << 7;
 		
 		fwrite( &(flags), sizeof( flags ), 1, qtv );
@@ -809,7 +812,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 			rangecoder_reset( video->cmdcoder );
 			rangecoder_reset( video->imgcoder );
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 				rangecoder_reset( video->idxcoder );
 		}
 
@@ -849,7 +852,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 			
 			databuffer_free( compdata );
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				compdata = databuffer_create( image->indexdata->size / 2 + 1 );
 				if( compdata == NULL )
@@ -881,7 +884,7 @@ int qtv_write_frame( struct qtv *video, struct qti *image, int compress )
 			
 			size += sizeof( image->imagedata->size ) + image->imagedata->size;
 			
-			if( image->tilecache != NULL )
+			if( image->has_tilecache )
 			{
 				fwrite( &(image->indexdata->size), sizeof( image->indexdata->size ), 1, qtv );
 				fwrite( image->indexdata->data, 1, image->indexdata->size, qtv );
@@ -987,8 +990,6 @@ int qtv_create( struct qtv *video, int width, int height, int framerate, struct 
 	video->framenum = 0;
 	video->numblocks = 0;
 	video->blocknum = 0;
-	
-	video->tilecache = cache;
 
 	if( index )
 	{
@@ -1002,6 +1003,20 @@ int qtv_create( struct qtv *video, int width, int height, int framerate, struct 
 		}
 	}
 
+	if( cache != NULL )
+	{
+		video->has_tilecache = 1;
+		video->tilecache = cache;
+		
+		video->idxcoder = rangecoder_create( 2, 8 );
+		if( video->idxcoder == NULL )
+			return 0;
+	}
+	else
+	{
+		video->has_tilecache = 0;
+	}
+
 	video->cmdcoder = rangecoder_create( 8, 1 );
 	if( video->cmdcoder == NULL )
 		return 0;
@@ -1009,13 +1024,6 @@ int qtv_create( struct qtv *video, int width, int height, int framerate, struct 
 	video->imgcoder = rangecoder_create( 2, 8 );
 	if( video->imgcoder == NULL )
 		return 0;
-
-	if( cache != NULL )
-	{
-		video->idxcoder = rangecoder_create( 2, 8 );
-		if( video->idxcoder == NULL )
-			return 0;
-	}
 
 	return 1;
 }
@@ -1161,20 +1169,26 @@ void qtv_free( struct qtv *video )
 	
 	if( video->has_index )
 		free( video->index );
-	
-	if( ( video->file ) && ( video->file != stdout ) )
+
+	if( video->has_tilecache )
+	{
+		rangecoder_free( video->idxcoder );
+		video->idxcoder = NULL;
+	}
+
+	if( ( video->file != NULL ) && ( video->file != stdout ) )
 	{
 		fclose( video->file );
 		video->file = NULL;
 	}
 
-	if( ( video->streamfile ) && ( video->streamfile != stdout ) )
+	if( ( video->streamfile != NULL ) && ( video->streamfile != stdout ) )
 	{
 		fclose( video->streamfile );
 		video->streamfile = NULL;
 	}
 	
-	if( video->filename )
+	if( video->filename != NULL )
 		free( video->filename );
 }
 

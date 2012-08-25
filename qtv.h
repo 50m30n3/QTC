@@ -72,7 +72,8 @@ struct qtv
 	int has_index;
 	struct qtv_index *index;
 	int idx_size, idx_datasize;
-	
+
+	int has_tilecache;
 	struct tilecache *tilecache;
 	struct rangecoder *idxcoder;
 };

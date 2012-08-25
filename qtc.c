@@ -282,7 +282,7 @@ int qtc_compress( struct image *input, struct image *refimage, struct qti *outpu
 					}
 					else
 					{
-						if( output->tilecache != NULL )
+						if( output->has_tilecache )
 						{
 							index = tilecache_write( output->tilecache, inpixels, x1, x2, y1, y2, input->width, mask );
 
@@ -568,7 +568,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 						}
 						else
 						{
-							if( input->tilecache != NULL )
+							if( input->has_tilecache )
 							{
 								status = databuffer_get_bits( commanddata, 1 );
 								if( status == 1 )
@@ -831,7 +831,7 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 						}
 						else
 						{
-							if( input->tilecache != NULL )
+							if( input->has_tilecache )
 							{
 								status = databuffer_get_bits( commanddata, 1 );
 								if( status == 1 )
@@ -919,7 +919,7 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 						}
 						else
 						{
-							if( input->tilecache != NULL )
+							if( input->has_tilecache )
 								databuffer_get_bits( commanddata, 1 );
 						}
 					}
