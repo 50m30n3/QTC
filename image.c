@@ -1,5 +1,5 @@
 /*
-*    QTC: image.c (c) 2011, 2012 50m30n3
+*    QTC: image.c (c) 2011, 2012 50m30n3, FUZxxl
 *
 *    This file is part of QTC.
 *
@@ -249,6 +249,7 @@ void image_transform_fast_rev( struct image *image )
 
 /*******************************************************************************
 * Function to apply the Paeth transform to an image                            *
+* Based on implementation from libpng and FUZxxl                               *
 *                                                                              *
 * image is the image be processed                                              *
 *                                                                              *
@@ -256,7 +257,8 @@ void image_transform_fast_rev( struct image *image )
 *******************************************************************************/
 void image_transform( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	int x, y, i, width, height;
+	int aerr, berr, cerr, err, ia, ib, ic;
 	struct pixel a, b, c, p;
 	struct pixel *pixels;
 	int px, py, pz, qx, qy, qz;
@@ -292,12 +294,14 @@ void image_transform( struct image *image )
 			berr = abs(qx) + abs(qy) + abs(qz);
 			cerr = abs(px + qx) + abs(py + qy) + abs(pz + qz);
 
-			if (berr < aerr) aerr = berr, a = b;
-			if (cerr < aerr) a = c;
+			p = a;
+			err = aerr;
+			if (berr < err) err = berr, p = b;
+			if (cerr < err) p = c;
 
-			pixels[ i ].x -= a.x;
-			pixels[ i ].y -= a.y;
-			pixels[ i ].z -= a.z;
+			pixels[ i ].x -= p.x;
+			pixels[ i ].y -= p.y;
+			pixels[ i ].z -= p.z;
 		}
 		
 		i = y*width;
@@ -323,6 +327,7 @@ void image_transform( struct image *image )
 
 /*******************************************************************************
 * Function to apply the reverse Paeth transform to an image                    *
+* Based on implementation from libpng and FUZxxl                               *
 *                                                                              *
 * image is the image be processed                                              *
 *                                                                              *
@@ -330,7 +335,8 @@ void image_transform( struct image *image )
 *******************************************************************************/
 void image_transform_rev( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
+	int x, y, i, width, height;
+	int aerr, berr, cerr, err, ia, ib, ic;
 	struct pixel p, a, b, c;
 	struct pixel *pixels;
 	int px, py, pz, qx, qy, qz;
@@ -385,12 +391,14 @@ void image_transform_rev( struct image *image )
 			berr = abs(qx) + abs(qy) + abs(qz);
 			cerr = abs(px + qx) + abs(py + qy) + abs(pz + qz);
 
-			if (berr < aerr) aerr = berr, a = b;
-			if (cerr < aerr) a = c;
+			p = a;
+			err = aerr;
+			if (berr < err) err = berr, p = b;
+			if (cerr < err) p = c;
 
-			pixels[ i ].x += a.x;
-			pixels[ i ].y += a.y;
-			pixels[ i ].z += a.z;
+			pixels[ i ].x += p.x;
+			pixels[ i ].y += p.y;
+			pixels[ i ].z += p.z;
 		}
 	}
 }
