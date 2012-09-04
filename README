@@ -139,6 +139,7 @@ qtienc:
 
 qtidec:
 	-h		-	Print help
+	-v		-	Be verbose
 	-a [0..2]	-	Analysis mode
 	-i filename	-	Input file (-)
 	-o filename	-	Output file (-)
@@ -164,6 +165,7 @@ qtvenc:
 
 qtvdec:
 	-h		-	Print help
+	-v		-	Be verbose
 	-w		-	Read QTW file
 	-a [0..2]	-	Analysis mode
 	-f [0..]	-	Begin decoding at specific frame
