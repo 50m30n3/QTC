@@ -20,6 +20,15 @@
 #ifndef TILECACHE_H
 #define TILECACHE_H
 
+/*******************************************************************************
+* Structure to hold a single cached tile                                       *
+*                                                                              *
+* present indicates wether the current tile is used or not                     *
+* size is the size of the cached tile in pixels                                *
+* hash ist the fletcher16 hash of the tile data                                *
+* next ist the index of the next tile with the same hash, -1 if there is none  *
+* data is the cached data                                                      *
+*******************************************************************************/
 struct tile
 {
 	int present;
@@ -29,6 +38,21 @@ struct tile
 	unsigned int *data;
 };
 
+/*******************************************************************************
+* Structure to hold all the data associated with a tile cache                  *
+*                                                                              *
+* size is the number of tiles in the cache                                     *
+* blocksize is the width/height of a single tile                               *
+* tilesize is the size of one tile in bytes                                    *
+* indexbits is the number of bits needed to represent a cache index            *
+* index is the index of the last cached tile                                   *
+* numblocks is the total number of blocks written to the cache                 *
+* hits is the total number of cache hits                                       *
+* tiles contains the cached tiles                                              *
+* tileindex is a hash table containing tile indices                            *
+* data is the cache data used by the tiles                                     *
+* tempdata is a temporary buffer used for internal operations                  *
+*******************************************************************************/
 struct tilecache
 {
 	int size;
