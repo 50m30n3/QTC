@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
 		image_transform( &image );
 
 	if( cachesize > 0 )
-		cache = tilecache_create( cachesize*1024, minsize );
+		cache = tilecache_create( cachesize*1024, minsize );		// Create tile cache
 	else
 		cache = NULL;
 

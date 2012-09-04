@@ -25,7 +25,15 @@
 
 const int indexsize = 0x10000;
 
-static unsigned short int fletcher16( unsigned char * data, int length )
+/*******************************************************************************
+* Function to compute the fletcher16 checksum of a block of data               *
+*                                                                              *
+* data is the data the checksum should be computed of                          *
+* length is the length aof the data in bytes                                   *
+*                                                                              *
+* Returns the fletcher16 checksum of the data                                  *
+*******************************************************************************/
+static unsigned short int fletcher16( unsigned char *data, int length )
 {
 	unsigned char s1, s2;
 	int i;
@@ -41,7 +49,14 @@ static unsigned short int fletcher16( unsigned char * data, int length )
 	return (s2<<8)|s1;
 }
 
-
+/*******************************************************************************
+* Function to create a new tile cache                                          *
+*                                                                              *
+* size is the number of tiles to cache                                         *
+* blocksize is the width and height of the quadratic tiles                     *
+*                                                                              *
+* Returns a new tile cache or NULL on failure                                  *
+*******************************************************************************/
 struct tilecache *tilecache_create( int size, int blocksize )
 {
 	struct tilecache *cache;
@@ -111,6 +126,13 @@ struct tilecache *tilecache_create( int size, int blocksize )
 	return cache;
 }
 
+/*******************************************************************************
+* Function to free a tile buffer structure                                     *
+*                                                                              *
+* cache is the tile cache to free                                              *
+*                                                                              *
+* Modifies tile cache                                                          *
+*******************************************************************************/
 void tilecache_free( struct tilecache *cache )
 {
 	free( cache->tiles );
@@ -120,6 +142,13 @@ void tilecache_free( struct tilecache *cache )
 	free( cache );
 }
 
+/*******************************************************************************
+* Function to reset a tile buffer to its initial state                         *
+*                                                                              *
+* cache is the tile cache to be reset                                          *
+*                                                                              *
+* Modifies tile cache                                                          *
+*******************************************************************************/
 void tilecache_reset( struct tilecache *cache )
 {
 	int i;
@@ -136,6 +165,17 @@ void tilecache_reset( struct tilecache *cache )
 		cache->tileindex[i] = -1;
 }
 
+/*******************************************************************************
+* Function to write a new tile to the cache                                    *
+*                                                                              *
+* cache is the tile cache to use                                               *
+* pixels is a pointer to the pixel array containing the tile                   *
+* x1, x2, y1, y2 describe the tile position                                    *
+* with is the width of the complete image                                      *
+* mask is the channel mask used during write                                   *
+*                                                                              *
+* Modifies tile cache, returns index of tile if already cached, -1 otherwise   *
+*******************************************************************************/
 int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask )
 {
 	int size;
@@ -222,6 +262,18 @@ int tilecache_write( struct tilecache *cache, unsigned int *pixels, int x1, int 
 	}
 }
 
+/*******************************************************************************
+* Function to read a tile from a tile cache                                    *
+*                                                                              *
+* cache is the tile cache to use                                               *
+* pixels is a pointer to the pixel array the tile should be written to         *
+* index is the index of the tile to retreive                                   *
+* x1, x2, y1, y2 describe the tile position                                    *
+* with is the width of the complete image                                      *
+* mask is the channel mask used during write                                   *
+*                                                                              *
+* Modifies tile pixels                                                         *
+*******************************************************************************/
 void tilecache_read( struct tilecache *cache, unsigned int *pixels, int index, int x1, int x2, int y1, int y2, int width, unsigned int mask )
 {
 	int x, y, i, j;
@@ -243,6 +295,17 @@ void tilecache_read( struct tilecache *cache, unsigned int *pixels, int index, i
 	}
 }
 
+/*******************************************************************************
+* Function to add aa tile to a tile cache                                      *
+*                                                                              *
+* cache is the tile cache to use                                               *
+* pixels is a pointer to the pixel array containing the tile                   *
+* x1, x2, y1, y2 describe the tile position                                    *
+* with is the width of the complete image                                      *
+* mask is the channel mask used during write                                   *
+*                                                                              *
+* Modifies tile cache                                                          *
+*******************************************************************************/
 void tilecache_add( struct tilecache *cache, unsigned int *pixels, int x1, int x2, int y1, int y2, int width, unsigned int mask )
 {
 	int x, y, i, j;

@@ -516,6 +516,7 @@ int qti_write( struct qti *image, int compress, char filename[] )
 * height is the height of the image                                            *
 * minsize is the minimal block size used during compression                    *
 * maxdepth is the maximum recursion depth used during compression              *
+* tilecache is the tile cache to associate with this image                     *
 *                                                                              *
 * Modifies the qti structure                                                   *
 *                                                                              *

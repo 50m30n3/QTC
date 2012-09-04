@@ -273,7 +273,7 @@ int main( int argc, char *argv[] )
 	outsize = 0;
 
 	if( cachesize > 0 )
-		cache = tilecache_create( cachesize*1024, minsize );
+		cache = tilecache_create( cachesize*1024, minsize );		// Create tile cache
 	else
 		cache = NULL;
 

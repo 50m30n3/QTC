@@ -969,6 +969,7 @@ int qtv_write_block( struct qtv *video )
 * width is the width of the video                                              *
 * height is the height of the video                                            *
 * framerate is the frame rate of the video                                     *
+* tilecache is the tile cache to associate with this video                     *
 * index indicates wether the video should have and index (1) or not (0)        *
 * is_qtw indicates wether the video should be a qtw (1) or qtv(0) video        *
 *                                                                              *
