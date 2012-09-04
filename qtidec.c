@@ -38,6 +38,7 @@ void print_help( void )
 	puts( "qtidec (c) 50m30n3 2011, 2012" );
 	puts( "USAGE: qtidec [options] -i infile -o outfile" );
 	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-a [0..2]\t-\tAnalysis mode" );
 	puts( "\t-i filename\t-\tInput file (-)" );
 	puts( "\t-o filename\t-\tOutput file (-)" );
@@ -48,20 +49,25 @@ int main( int argc, char *argv[] )
 	struct image image;
 	struct qti compimage;
 
-	int opt, analyze;
+	int opt, verbose, analyze;
 	char *infile, *outfile;
 
+	verbose = 0;
 	analyze = 0;
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "ha:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hva:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'h':
 				print_help();
 				return 0;
+			break;
+
+			case 'v':
+				verbose = 1;
 			break;
 
 			case 'a':
@@ -118,7 +124,11 @@ int main( int argc, char *argv[] )
 
 	if( ! ppm_write( &image, outfile ) )		// Write decompressed image to file
 		return 2;
-	
+
+	if( verbose )
+		fprintf( stderr, "Width:%i, Height:%i, Type:(T:%i,Y:%i,S:%i,M:%i)\n", compimage.width, compimage.height,
+		         compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+
 	image_free( &image );
 	qti_free( &compimage );
 

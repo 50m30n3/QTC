@@ -141,7 +141,8 @@ int main( int argc, char *argv[] )
 	if( framerate == -1 )
 		framerate = video.framerate;
 
-	fprintf( stderr, "Video: %ix%i, %i FPS\n", video.width, video.height, framerate );
+	if( printstats )
+		fprintf( stderr, "Width:%i, Height:%i, FPS:%i\n", video.width, video.height, framerate );
 
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{

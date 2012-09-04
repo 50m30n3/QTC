@@ -49,6 +49,7 @@ void print_help( void )
 	puts( "qtvdec (c) 50m30n3 2011, 2012" );
 	puts( "USAGE: qtvdec [options] -i infile -o outfile" );
 	puts( "\t-h\t\t-\tPrint help" );
+	puts( "\t-v\t\t-\tBe verbose" );
 	puts( "\t-w\t\t-\tRead QTW file" );
 	puts( "\t-a [0..2]\t-\tAnalysis mode" );
 	puts( "\t-f [1..]\t-\tBegin decoding at specific frame (Needs index)" );
@@ -63,11 +64,14 @@ int main( int argc, char *argv[] )
 	struct qti compimage;
 	struct qtv video;
 
-	int opt, analyze, qtw;
+	int opt, verbose, analyze, qtw;
 	int done, framenum, skipframes;
 	int startframe, numframes;
+	long int start, frame_start;
+	double fps;
 	char *infile, *outfile;
 
+	verbose = 0;
 	analyze = 0;
 	startframe = 0;
 	skipframes = 0;
@@ -76,13 +80,17 @@ int main( int argc, char *argv[] )
 	infile = NULL;
 	outfile = NULL;
 
-	while( ( opt = getopt( argc, argv, "ha:wf:n:i:o:" ) ) != -1 )
+	while( ( opt = getopt( argc, argv, "hva:wf:n:i:o:" ) ) != -1 )
 	{
 		switch( opt )
 		{
 			case 'h':
 				print_help();
 				return 0;
+			break;
+
+			case 'v':
+				verbose = 1;
 			break;
 
 			case 'w':
@@ -146,6 +154,9 @@ int main( int argc, char *argv[] )
 	if( ! qtv_read_header( &video, qtw, infile ) )		// Read video header
 		return 2;
 
+	if( verbose )
+		fprintf( stderr, "Width:%i, Height:%i, FPS:%i\n", video.width, video.height, video.framerate );
+
 	signal( SIGINT, sig_exit );
 	signal( SIGTERM, sig_exit );
 
@@ -159,8 +170,13 @@ int main( int argc, char *argv[] )
 
 	image_create( &refimage, video.width, video.height, 0 );		// Create reference image
 
+	fps = 0;
+	start = get_time();
+
 	do
 	{
+		frame_start = get_time();
+
 		if( ! qtv_read_frame( &video, &compimage ) )		// Read frame from stream
 			return 2;
 
@@ -217,15 +233,40 @@ int main( int argc, char *argv[] )
 		if( ! qtv_can_read_frame( &video ) )
 			done = 1;
 
+		if( verbose )
+		{
+			if( qtw )
+			{
+				fprintf( stderr, "Frame:%i(%i)/%i(%i) Block:%i/%i FPS:%.2f Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
+				         framenum, video.framenum-1, numframes, video.numframes-1, video.blocknum, video.numblocks-1, fps,
+				         compimage.keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+			}
+			else
+			{
+				fprintf( stderr, "Frame:%i(%i)/%i(%i) FPS:%.2f Type:(K:%i,T:%i,Y:%i,S:%i,M:%i)\n",
+				         framenum, video.framenum-1, numframes, video.numframes-1, fps,
+				         compimage.keyframe, compimage.transform, compimage.colordiff, compimage.minsize, compimage.maxdepth );
+			}
+		}
+
 		if( skipframes <= 0 )
 			framenum++;
 		else
 			skipframes--;
+		
+		fps = fps*0.75 + 0.25*(1000000.0/(get_time()-frame_start));
 	}
 	while( ( ! done ) && ( framenum != numframes ) );
 
+	fps = 1000000.0/((get_time()-start)/framenum);
+
 	image_free( &refimage );
 	qtv_free( &video );
+
+	if( verbose )
+	{
+		fprintf( stderr, "FPS:%.2f\n", fps );
+	}
 
 	free( infile );
 	free( outfile );
