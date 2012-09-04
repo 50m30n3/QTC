@@ -30,7 +30,7 @@
 
 #define QTV_MAGIC "QTV1"
 #define QTW_MAGIC "QTW1"
-#define VERSION 6
+#define VERSION 7
 
 /*******************************************************************************
 * Function to read a qtv file header and initialize a qtv struct from it       *

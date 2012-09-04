@@ -1,5 +1,5 @@
 /*
-*    QTC: image.c (c) 2011, 2012 50m30n3
+*    QTC: image.c (c) 2011, 2012 50m30n3, FUZxxl
 *
 *    This file is part of QTC.
 *
@@ -249,6 +249,7 @@ void image_transform_fast_rev( struct image *image )
 
 /*******************************************************************************
 * Function to apply the Paeth transform to an image                            *
+* Based on implementation from libpng and FUZxxl                               *
 *                                                                              *
 * image is the image be processed                                              *
 *                                                                              *
@@ -256,10 +257,11 @@ void image_transform_fast_rev( struct image *image )
 *******************************************************************************/
 void image_transform( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
-	struct pixel p;
+	int x, y, i, width, height;
+	int aerr, berr, cerr, err, ia, ib, ic;
+	struct pixel a, b, c, p;
 	struct pixel *pixels;
-	int pr, pg, pb;
+	int px, py, pz, qx, qy, qz;
 
 	image->transform = 2;
 
@@ -276,31 +278,26 @@ void image_transform( struct image *image )
 			ib = i-width;
 			ic = i-1-width;
 
-			pr = pixels[ ia ].x + pixels[ ib ].x - pixels[ ic ].x;
-			pg = pixels[ ia ].y + pixels[ ib ].y - pixels[ ic ].y;
-			pb = pixels[ ia ].z + pixels[ ib ].z - pixels[ ic ].z;
+			a = pixels[ ia ];
+			b = pixels[ ib ];
+			c = pixels[ ic ];
 
-			p = pixels[ ia ];
-			aerr = abs(p.x - pr);
-			aerr += abs(p.y - pg);
-			aerr += abs(p.z - pb);
+			px = b.x - c.x;
+			py = b.y - c.y;
+			pz = b.z - c.z;
 
-			p = pixels[ ib ];
-			berr = abs(p.x - pr);
-			berr += abs(p.y - pg);
-			berr += abs(p.z - pb);
-		
-			p = pixels[ ic ];
-			cerr = abs(p.x - pr);
-			cerr += abs(p.y - pg);
-			cerr += abs(p.z - pb);
+			qx = a.x - c.x;
+			qy = a.y - c.y;
+			qz = a.z - c.z;
 
-			if( ( aerr < berr ) && ( aerr < cerr ) )
-				p = pixels[ ia ];
-			else if( berr < cerr )
-				p = pixels[ ib ];
-			else
-				p = pixels[ ic ];
+			aerr = abs(px) + abs(py) + abs(pz);
+			berr = abs(qx) + abs(qy) + abs(qz);
+			cerr = abs(px + qx) + abs(py + qy) + abs(pz + qz);
+
+			p = a;
+			err = aerr;
+			if (berr < err) err = berr, p = b;
+			if (cerr < err) p = c;
 
 			pixels[ i ].x -= p.x;
 			pixels[ i ].y -= p.y;
@@ -330,6 +327,7 @@ void image_transform( struct image *image )
 
 /*******************************************************************************
 * Function to apply the reverse Paeth transform to an image                    *
+* Based on implementation from libpng and FUZxxl                               *
 *                                                                              *
 * image is the image be processed                                              *
 *                                                                              *
@@ -337,10 +335,11 @@ void image_transform( struct image *image )
 *******************************************************************************/
 void image_transform_rev( struct image *image )
 {
-	int x, y, i, width, height, aerr, berr, cerr, ia, ib, ic;
-	struct pixel p;
+	int x, y, i, width, height;
+	int aerr, berr, cerr, err, ia, ib, ic;
+	struct pixel p, a, b, c;
 	struct pixel *pixels;
-	int pr, pg, pb;
+	int px, py, pz, qx, qy, qz;
 
 	image->transform = 0;
 
@@ -376,31 +375,26 @@ void image_transform_rev( struct image *image )
 			ib = i-width;
 			ic = i-1-width;
 
-			pr = pixels[ ia ].x + pixels[ ib ].x - pixels[ ic ].x;
-			pg = pixels[ ia ].y + pixels[ ib ].y - pixels[ ic ].y;
-			pb = pixels[ ia ].z + pixels[ ib ].z - pixels[ ic ].z;
+			a = pixels[ ia ];
+			b = pixels[ ib ];
+			c = pixels[ ic ];
 
-			p = pixels[ ia ];
-			aerr = abs(p.x - pr);
-			aerr += abs(p.y - pg);
-			aerr += abs(p.z - pb);
+			px = b.x - c.x;
+			py = b.y - c.y;
+			pz = b.z - c.z;
 
-			p = pixels[ ib ];
-			berr = abs(p.x - pr);
-			berr += abs(p.y - pg);
-			berr += abs(p.z - pb);
+			qx = a.x - c.x;
+			qy = a.y - c.y;
+			qz = a.z - c.z;
 
-			p = pixels[ ic ];
-			cerr = abs(p.x - pr);
-			cerr += abs(p.y - pg);
-			cerr += abs(p.z - pb);
+			aerr = abs(px) + abs(py) + abs(pz);
+			berr = abs(qx) + abs(qy) + abs(qz);
+			cerr = abs(px + qx) + abs(py + qy) + abs(pz + qz);
 
-			if( ( aerr < berr ) && ( aerr < cerr ) )
-				p = pixels[ ia ];
-			else if( berr < cerr )
-				p = pixels[ ib ];
-			else
-				p = pixels[ ic ];
+			p = a;
+			err = aerr;
+			if (berr < err) err = berr, p = b;
+			if (cerr < err) p = c;
 
 			pixels[ i ].x += p.x;
 			pixels[ i ].y += p.y;
