@@ -95,6 +95,10 @@ Should a block at any time get smaller than a certain threshold it gets saved
 as "literal" block, where the image contents of the block are written to the
 output stream as they are.
 
+At this point an optional caching mechanism can be used to reduce the number of
+literal blocks written to the file. This cache allows to recognize recently
+used blocks and reference them using an id.
+
 The structure of the subdivision tree built during compression is saved as a
 separate command data bit stream so the structure can be replicated during
 decompression.
@@ -128,6 +132,7 @@ qtienc:
 	-v		-	Be verbose
 	-s [1..]	-	Minimal block size (2)
 	-d [0..]	-	Maximum recursion depth (16)
+	-c [0..]	-	Cache size in kilo tiles (0)
 	-l [0..]	-	Laziness
 	-i filename	-	Input file (-)
 	-o filename	-	Output file (-)
@@ -152,6 +157,7 @@ qtvenc:
 	-k [1..]	-	Place key frames every X seconds
 	-b [1..]	-	Maximum size of one QTW block in KiB (1024)
 	-d [0..]	-	Maximum recursion depth (16)
+	-c [0..]	-	Cache size in kilo tiles (0)
 	-l [0..]	-	Laziness
 	-i filename	-	Input file (-)
 	-o filename	-	Output file (-)
@@ -179,6 +185,7 @@ qtvcap:
 	-r [1..]	-	Frame rate (25)
 	-k [1..]	-	Place key frames every X seconds
 	-d [0..]	-	Maximum recursion depth (16)
+	-c [0..]	-	Cache size in kilo tiles (0)
 	-l [0..]	-	Laziness
 	-i filename	-	Input screen ($DISPLAY)
 	-o filename	-	Output file (-)
@@ -231,6 +238,14 @@ OPTIONS
 	Maximum recursion depth during quad tree compression. Setting this to 0
 	disables the quad tree compression.
 
+-c:
+	Size of the cache to use during compression in kilo (1024) tiles.
+	Caching uses an additional cachesize*minsize*minsize*4 bytes of ram
+	during en/decoding. Can drastically reduce the size of raw data without
+	much of a speed impact. Cache size 16 is recommended.
+	Larger cache sizes need more bits to save the cache indices, increasing
+	the files size, but allow for more cache hits in large videos.
+
 -l:
 	Subdivide quad tree n times before beginning real compression.
 	Saves a bit of time but introduces a tiny overhead.
@@ -251,10 +266,10 @@ OPTIONS
 -a:
 	Create a color coded analysis image showing types of blocks and
 	subdivisions. Green blocks are simplified blocks, red blocks are literal
-	blocks, blue blocks are reference blocks. When using full fakeyuv encoding
-	a value of 1 will show the luma channel and a value of 2 will show the
-	chroma channel. For videos/images without color separation this has no
-	effect.
+	blocks, blue blocks are reference blocks, white blocks are cached.
+	When using full fakeyuv encoding a value of 1 will show the luma channel
+	and a value of 2 will show the chroma channel.
+	For videos/images without color separation this has no effect.
 
 -w:
 	Create a QTW file instead of a QTV file. QTW files are designed for web
@@ -306,7 +321,7 @@ Encode a still image (simple):
 $ qtienc -i image.ppm -o image.qti
 
 Encode a still image (high compression):
-$ qtienc -y1 -t2 -s8 -e -i image.ppm -o image.qti
+$ qtienc -y1 -t2 -s4 -c16 -e -i image.ppm -o image.qti
 
 Encode an image sequence (simple):
 $ qtvenc -i frame0000.ppm -o video.qtv
@@ -315,17 +330,17 @@ Encode an image sequence (fast):
 $ qtvenc -l3 -i frame0000.ppm -o video.qtv
 
 Encode an image sequence (high compression):
-$ qtvenc -y1 -t2 -s4 -e -i frame0000.ppm -o video.qtv
+$ qtvenc -y1 -t2 -s4 -c16 -e -i frame0000.ppm -o video.qtv
 
 Re-encode a video:
-$ qtvdec -i video_old.qtv | qtvenc -y1 -t2 -s4 -e -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -y1 -t2 -s4 -c16 -e -o video_new.qtv
 
 Re-encode a video with key frames and index:
-$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y1 -t2 -s4 -e -o video_new.qtv
+$ qtvdec -i video_old.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c16 -e -o video_new.qtv
 
 Re-encode a video for web into a separate directory:
 $ mkdir video.qtw
-$ qtvdec -i video.qtv | qtvenc -x -k10 -y1 -t2 -s4 -e -o video.qtw/video
+$ qtvdec -i video.qtv | qtvenc -x -k10 -y1 -t2 -s4 -c16 -e -o video.qtw/video
 
 Decode a video into an image sequence:
 $ qtvdec -i video.qtv -o frame0000.ppm
