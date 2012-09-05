@@ -52,7 +52,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 	int cachesize, tilesize;
 	unsigned char version, flags;
 	int numframes, idx_size, numblocks, frame, blocknum;
-	long int offset, idx_offset;
+	long int orig_offset, offset, idx_offset;
 	char blockname[256];
 
 	if( filename == NULL )
@@ -143,6 +143,18 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 		video->has_index = ( flags & 0x01 ) != 0;
 		video->has_tilecache = ( flags & (0x01<<1) ) != 0;
 
+		if( video->has_tilecache )
+		{
+			if( ( fread( &cachesize, sizeof( cachesize ), 1, qtv ) != 1 ) ||
+			    ( fread( &tilesize, sizeof( tilesize ), 1, qtv ) != 1 ) )
+			{
+				fputs( "qtv_read: Short read on cache info\n", stderr );
+				if( qtv != stdin )
+					fclose( qtv );
+				return 0;
+			}
+		}
+
 		if( qtv == stdin )
 			video->has_index = 0;
 
@@ -154,6 +166,8 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 
 		if( video->has_index )
 		{
+			orig_offset = ftell( qtv );
+
 			if( !is_qtw )
 			{
 				if( fseek( qtv, -sizeof( idx_offset ), SEEK_END ) == -1 )
@@ -248,7 +262,7 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 
 			if( ! is_qtw )
 			{
-				if( fseek( qtv, 18, SEEK_SET ) == -1 )
+				if( fseek( qtv, orig_offset, SEEK_SET ) == -1 )
 				{
 					perror( "qtv_read_header: fseek" );
 					fclose( qtv );
@@ -259,15 +273,6 @@ int qtv_read_header( struct qtv *video, int is_qtw, char filename[] )
 
 		if( video->has_tilecache )
 		{
-			if( ( fread( &cachesize, sizeof( cachesize ), 1, qtv ) != 1 ) ||
-			    ( fread( &tilesize, sizeof( tilesize ), 1, qtv ) != 1 ) )
-			{
-				fputs( "qtv_read: Short read on cache info\n", stderr );
-				if( qtv != stdin )
-					fclose( qtv );
-				return 0;
-			}
-
 			video->tilecache = tilecache_create( cachesize, tilesize );
 			if( video->tilecache == NULL )
 				return 0;
