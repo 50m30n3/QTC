@@ -570,8 +570,7 @@ int qtc_decompress( struct qti *input, struct image *refimage, struct image *out
 						{
 							if( input->has_tilecache )
 							{
-								status = databuffer_get_bits( commanddata, 1 );
-								if( status == 1 )
+								if( databuffer_get_bits( commanddata, 1 ) )
 								{
 									get_pixels( imagedata, outpixels, x1, x2, y1, y2, input->width, bgra, colordiff, luma );
 									tilecache_add( input->tilecache, (unsigned int *)outpixels, x1, x2, y1, y2, input->width, mask );
@@ -833,8 +832,7 @@ int qtc_decompress_ccode( struct qti *input, struct image *output, int channel )
 						{
 							if( input->has_tilecache )
 							{
-								status = databuffer_get_bits( commanddata, 1 );
-								if( status == 1 )
+								if( databuffer_get_bits( commanddata, 1 ) )
 								{
 									if( bgra )
 										put_ccode_box( (unsigned int *)outpixels, x1, x2, y1, y2, input->width, 0x007F0000, 0x00FF0000 );
