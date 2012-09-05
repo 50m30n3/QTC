@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
 
 			case 'c':
 				if( sscanf( optarg, "%i", &cachesize ) != 1 )
-					fputs( "main: Can not parse command line: -s\n", stderr );
+					fputs( "main: Can not parse command line: -c\n", stderr );
 			break;
 
 			case 'l':
