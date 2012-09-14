@@ -113,8 +113,8 @@ In the reference encoder this step is integrated into the container format.
 
 The color data is encoded 8 bit at a time using a second order Markov chain
 model.
-The command data is encoded one bit at a time using an eight order Markov chain
-model.
+The command and index data is encoded one bit at a time using an eight order
+Markov chain model.
 
 
 USAGE
