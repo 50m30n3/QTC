@@ -296,7 +296,7 @@ void tilecache_read( struct tilecache *cache, unsigned int *pixels, int index, i
 }
 
 /*******************************************************************************
-* Function to add aa tile to a tile cache                                      *
+* Function to add a tile to a tile cache                                       *
 *                                                                              *
 * cache is the tile cache to use                                               *
 * pixels is a pointer to the pixel array containing the tile                   *

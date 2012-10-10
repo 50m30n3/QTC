@@ -244,7 +244,7 @@ OPTIONS
 	Size of the cache to use during compression in kilo (1024) tiles.
 	Caching uses an additional cachesize*minsize*minsize*4 bytes of ram
 	during en/decoding. Can drastically reduce the size of raw data without
-	much of a speed impact. Cache size 16 is recommended.
+	much of a speed impact. Cache size 64 is recommended.
 	Larger cache sizes need more bits to save the cache indices, increasing
 	the files size, but allow for more cache hits in large videos.
 
